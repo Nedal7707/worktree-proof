@@ -256,7 +256,7 @@ test('bridge inbox is read-only and bridge state cannot escape the repository', 
   assert.equal(JSON.parse(stream.out[0]).result.messages[0].recipient, 'claude');
 
   const escape = capture();
-  const escaped = await runCli(['bridge', 'inbox', '--agent', 'claude', '--bridge-root', '..\\outside'], {
+  const escaped = await runCli(['bridge', 'inbox', '--agent', 'claude', '--bridge-root', path.join('..', 'outside')], {
     io: escape.io,
     deps: { bridge: { listBridgeInbox: async () => [] } },
   });

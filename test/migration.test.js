@@ -12,6 +12,7 @@ import {
   createIntegrationManifest,
   MigrationSafetyError,
   planLocalMigration,
+  resumeLocalMigration,
   rollbackLocalMigration,
   sha256,
 } from '../src/index.js';
@@ -861,6 +862,144 @@ test('recovery resumes by id across child processes and keeps terminal cleanup o
     await assert.rejects(access(journalPath));
     await assert.rejects(access(lockPath));
     await assert.rejects(access(path.join(backupRoot, '.migration.claim')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('owned recovery claim fences ordinary acquisition while lock cleanup is paused', async () => {
+  const home = await tempHome();
+  let releaseGate = () => {};
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    const backupRoot = receipt.backupRoot;
+    const recoveryId = `recovery-${secondPlan.planHash}`;
+    const lockPath = path.join(backupRoot, '.migration.lock');
+    const claimPath = path.join(backupRoot, '.migration.claim');
+    await assert.rejects(
+      () => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { throw new Error('injected marker rename failure'); } } }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED',
+    );
+
+    let started;
+    const startedPromise = new Promise((resolveStarted) => { started = resolveStarted; });
+    const gate = new Promise((resolveGate) => { releaseGate = resolveGate; });
+    const resumed = resumeLocalMigration(recoveryId, {
+      backupRoot,
+      hooks: {
+        afterLockRelease: async () => {
+          started();
+          await gate;
+        },
+      },
+    });
+    const reached = await Promise.race([
+      startedPromise.then(() => true),
+      new Promise((resolveReached) => setTimeout(() => resolveReached(false), 750)),
+    ]);
+    assert.equal(reached, true, 'resume must expose the lock-removal/claim-cleanup interleave');
+    await assert.doesNotReject(() => access(claimPath));
+    await assert.rejects(access(lockPath));
+    const beforeApply = await snapshotTree(home);
+    const beforeBackup = await snapshotTree(backupRoot);
+    await assert.rejects(
+      () => applyLocalMigration(firstPlan, { confirm: true, backupRoot }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_MIGRATION_LOCK',
+    );
+    assert.deepEqual(await snapshotTree(home), beforeApply);
+    assert.deepEqual(await snapshotTree(backupRoot), beforeBackup);
+    releaseGate();
+    assert.equal((await resumed).ok, true);
+  } finally {
+    releaseGate();
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('claim-release failure leaves durable claim-only state and fresh resume cleans only its owner', async () => {
+  const home = await tempHome();
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const target = path.join(home, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+    const originalTarget = await readFile(target);
+    const originalMarker = await readFile(marker);
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    const backupRoot = receipt.backupRoot;
+    const recoveryId = `recovery-${secondPlan.planHash}`;
+    const lockPath = path.join(backupRoot, '.migration.lock');
+    const claimPath = path.join(backupRoot, '.migration.claim');
+    const journalPath = path.join(backupRoot, `migration-${secondPlan.planHash}.journal.json`);
+    const receiptPath = path.join(home, '.child-receipt.json');
+    await writeFile(receiptPath, `${JSON.stringify(receipt)}\n`, 'utf8');
+    await assert.rejects(
+      () => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { throw new Error('injected marker rename failure'); } } }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED',
+    );
+
+    let failure;
+    await assert.rejects(
+      () => resumeLocalMigration(recoveryId, {
+        backupRoot,
+        hooks: {
+          beforeClaimRelease: async () => {
+            throw new MigrationSafetyError('injected claim cleanup failure', 'ERR_RECOVERY_REQUIRED', recoveryId);
+          },
+        },
+      }),
+      (error) => {
+        failure = error;
+        return error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED';
+      },
+    );
+    assert.equal(failure.recoveryReceipt, recoveryId);
+    await assert.rejects(access(lockPath));
+    const ownedClaim = await readFile(claimPath, 'utf8');
+    const terminalJournal = JSON.parse(await readFile(journalPath, 'utf8'));
+    assert.equal(terminalJournal.status, 'restored');
+    assert.equal(terminalJournal.recoveryId, recoveryId);
+    assert.deepEqual(await readFile(target), originalTarget);
+    assert.deepEqual(await readFile(marker), originalMarker);
+
+    const beforeApply = await snapshotTree(home);
+    await assert.rejects(
+      () => applyLocalMigration(firstPlan, { confirm: true, backupRoot }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_MIGRATION_LOCK',
+    );
+    assert.deepEqual(await snapshotTree(home), beforeApply);
+
+    const claim = JSON.parse(ownedClaim);
+    const mismatched = {
+      ...claim,
+      planHash: firstPlan.planHash,
+      recoveryId: `recovery-${firstPlan.planHash}`,
+      journalPath: path.join(backupRoot, `migration-${firstPlan.planHash}.journal.json`),
+    };
+    const mismatchedBytes = `${canonicalJson(mismatched)}\n`;
+    await writeFile(claimPath, mismatchedBytes, 'utf8');
+    const mismatch = await runMigrationChild({ mode: 'resume', receiptPath, backupRoot, recoveryId });
+    assert.equal(mismatch.exitCode, 0);
+    assert.equal(mismatch.code, 'ERR_MIGRATION_LOCK');
+    assert.equal(await readFile(claimPath, 'utf8'), mismatchedBytes);
+    await writeFile(claimPath, ownedClaim, 'utf8');
+
+    const resumed = await runMigrationChild({ mode: 'resume', receiptPath, backupRoot, recoveryId });
+    assert.equal(resumed.exitCode, 0);
+    assert.equal(resumed.ok, true);
+    assert.deepEqual(await readFile(target), originalTarget);
+    assert.deepEqual(await readFile(marker), originalMarker);
+    await assert.rejects(access(claimPath));
+    await assert.rejects(access(journalPath));
+    await assert.rejects(access(lockPath));
   } finally {
     await rm(home, { recursive: true, force: true });
   }

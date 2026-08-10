@@ -732,6 +732,20 @@ async function readCanonicalClaim(claimPath, expected = {}) {
   return validated;
 }
 
+async function assertRecoveryClaimAbsent(backupRoot) {
+  const root = resolve(backupRoot);
+  const claimPath = join(root, '.migration.claim');
+  if (!(await pathExists(claimPath))) return;
+  // Any existing claim is a fail-closed recovery witness.  Even a malformed
+  // or mismatched claim must fence a normal acquire rather than be replaced.
+  try {
+    await readCanonicalClaim(claimPath, { backupRoot: root });
+  } catch {
+    throw new MigrationSafetyError('migration recovery claim blocks acquisition', 'ERR_MIGRATION_LOCK');
+  }
+  throw new MigrationSafetyError('migration recovery claim blocks acquisition', 'ERR_MIGRATION_LOCK');
+}
+
 function journalBody(journal) {
   return {
     version: 1,
@@ -855,6 +869,7 @@ async function callHook(hooks, name, ...args) {
 
 async function acquireMigrationLock(backupRoot, metadata = {}) {
   await rejectReparseAbsolute(backupRoot);
+  await assertRecoveryClaimAbsent(backupRoot);
   await mkdir(backupRoot, { recursive: true });
   await rejectReparseAbsolute(backupRoot, { allowMissing: false });
   const lockPath = join(backupRoot, '.migration.lock');
@@ -881,6 +896,21 @@ async function acquireMigrationLock(backupRoot, metadata = {}) {
     await handle.close();
     handle = undefined;
     await rejectReparseAbsolute(lockPath, { allowMissing: false });
+    if (await pathExists(join(lock.backupRoot, '.migration.claim'))) {
+      try {
+        await releaseMigrationLock(lockPath, {
+          backupRoot: lock.backupRoot,
+          journalPath: lock.journalPath,
+          planHash: lock.planHash,
+          recoveryId: lock.recoveryId,
+          ownerNonce: lock.ownerNonce,
+        });
+      } catch {
+        // Keep a replaced/unknown lock fail-closed; never delete another
+        // owner's lock while fencing the concurrently appeared claim.
+      }
+      throw new MigrationSafetyError('migration recovery claim blocks acquisition', 'ERR_MIGRATION_LOCK');
+    }
     return { path: lockPath, ownerNonce: lock.ownerNonce };
   } catch (error) {
     if (handle) await handle.close().catch(() => {});
@@ -1454,6 +1484,7 @@ export async function rollbackLocalMigration(receipt, options = {}) {
   let claimPath;
   let lockOwnerNonce;
   let claimantNonce;
+  const hooks = object(options.hooks) ? options.hooks : {};
   try {
     const lockHandle = await acquireMigrationLock(validated.backupRoot, lockExpected);
     lock = lockHandle.path;
@@ -1467,12 +1498,16 @@ export async function rollbackLocalMigration(receipt, options = {}) {
     claimantNonce = adopted.claim.claimantNonce;
   }
   try {
-    const result = await restoreReceipt(validated, { hooks: object(options.hooks) ? options.hooks : {}, lockHeld: true });
+    const result = await restoreReceipt(validated, { hooks, lockHeld: true });
     await releaseMigrationLock(lock, { ...lockExpected, ownerNonce: lockOwnerNonce });
     // Keep the owned claim as the recovery witness until the primary lock has
     // reached its terminal/removal state.  This avoids a claimless
     // recoverable-lock window if cleanup is interrupted between the two files.
-    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce, claimantNonce });
+    if (claimPath) {
+      await callHook(hooks, 'afterLockRelease', { lockPath: lock, claimPath, recoveryId: lockExpected.recoveryId });
+      await callHook(hooks, 'beforeClaimRelease', { lockPath: lock, claimPath, recoveryId: lockExpected.recoveryId });
+      await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce, claimantNonce });
+    }
     if (options.cleanupRecovery === true) await cleanupRecoveryArtifacts(validated, options.recoveryId ?? recoveryIdFor(validated.receipt.planHash));
     return result;
   } catch (error) {
@@ -1512,6 +1547,41 @@ async function cleanupRecoveryArtifacts(validated, recoveryId) {
   }
 }
 
+async function cleanupClaimOnlyTerminal(validated, recoveryId) {
+  const lockPath = join(validated.backupRoot, '.migration.lock');
+  const claimPath = join(validated.backupRoot, '.migration.claim');
+  if (await pathExists(lockPath) || !(await pathExists(claimPath))) return null;
+  const journal = validated.journal ?? await readCanonicalJournal(validated.journalPath, {
+    home: validated.home,
+    backupRoot: validated.backupRoot,
+    journalPath: validated.journalPath,
+    planHash: validated.receipt.planHash,
+    recoveryId,
+  });
+  if (!['restored', 'rolled-back'].includes(journal.status)) {
+    throw new MigrationSafetyError('claim-only recovery is not terminal', 'ERR_RECOVERY_REQUIRED');
+  }
+  const claim = await readCanonicalClaim(claimPath, {
+    backupRoot: validated.backupRoot,
+    journalPath: validated.journalPath,
+    planHash: validated.receipt.planHash,
+    recoveryId,
+  });
+  // Recheck the primary lock immediately before deleting the owned claim.  A
+  // concurrent normal acquire must not be allowed to race this terminal path.
+  if (await pathExists(lockPath)) return null;
+  await releaseRecoveryClaim(claimPath, {
+    backupRoot: validated.backupRoot,
+    journalPath: validated.journalPath,
+    planHash: validated.receipt.planHash,
+    recoveryId,
+    lockOwnerNonce: claim.lockOwnerNonce,
+    claimantNonce: claim.claimantNonce,
+  });
+  await cleanupRecoveryArtifacts(validated, recoveryId);
+  return Object.freeze({ ok: true, restored: validated.receipt.written });
+}
+
 /**
  * Resume rollback from a deterministic recovery id or a validated receipt.
  * Recovery ids are intentionally scoped by an explicit backupRoot so a bare
@@ -1528,6 +1598,8 @@ export async function resumeLocalMigration(recovery, options = {}) {
     const journalPath = join(backupRoot, `migration-${recovery.slice('recovery-'.length)}.journal.json`);
     const journal = await readCanonicalJournal(journalPath, { backupRoot, journalPath, planHash: recovery.slice('recovery-'.length), recoveryId: recovery });
     receipt = buildReceiptFromJournal(journal);
+    const claimOnly = await cleanupClaimOnlyTerminal(await validateReceiptAuthority(validateReceipt(receipt)), recovery);
+    if (claimOnly) return claimOnly;
   }
   return rollbackLocalMigration(receipt, { ...options, cleanupRecovery: true, recoveryId: recovery });
 }

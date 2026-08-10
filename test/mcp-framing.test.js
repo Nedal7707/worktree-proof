@@ -48,8 +48,9 @@ test('line decoder reports malformed JSON-RPC and bounded oversize input without
 
   assert.equal(messages.length, 1);
   assert.equal(messages[0].id, 1);
-  assert.ok(errors.some((error) => error instanceof McpError && error.code === -32600));
-  assert.ok(errors.some((error) => error instanceof McpError && error.code === -32600));
+  assert.equal(errors.length, 2);
+  assert.equal(errors[0].message, 'message too large');
+  assert.equal(errors[1].message, 'invalid request');
 });
 
 test('line decoder rejects invalid UTF-8, invalid ids, and non-object messages deterministically', () => {
@@ -76,4 +77,12 @@ test('incomplete EOF is discarded cleanly and parser is strict', () => {
     () => parseJsonRpcLine('{"jsonrpc":"2.0","id":{},"method":"x"}'),
     (error) => error instanceof McpError && error.code === -32600,
   );
+});
+
+test('boundedText-style UTF-8 framing never exceeds the byte limit at a multibyte boundary', async () => {
+  const { sanitizeJson } = await import('../src/mcp/tools.js');
+  for (const maxStringBytes of [1, 2, 3, 4, 5, 6, 7]) {
+    const value = sanitizeJson('€€€€', { maxStringBytes });
+    assert.ok(Buffer.byteLength(value, 'utf8') <= maxStringBytes, `limit ${maxStringBytes}`);
+  }
 });

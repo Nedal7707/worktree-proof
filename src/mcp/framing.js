@@ -1,226 +1,156 @@
-/**
- * Bounded JSON-RPC newline framing for the optional MCP stdio transport.
- *
- * This module intentionally knows nothing about WorktreeProof state or I/O
- * side effects. It only decodes complete UTF-8 lines and validates the public
- * JSON-RPC request shape.
- */
+/** Bounded, dependency-free JSON-RPC line framing for MCP stdio. */
 
 export const DEFAULT_MAX_MESSAGE_BYTES = 16 * 1024;
+export const MAX_MESSAGE_BYTES_HARD = 64 * 1024;
 export const MAX_METHOD_LENGTH = 128;
 export const MAX_ID_LENGTH = 128;
 
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/u;
+const REQUEST_KEYS = new Set(['jsonrpc', 'id', 'method', 'params']);
 
-/** A stable, public protocol error with no unbounded diagnostic payload. */
+/** Stable public protocol/transport error with bounded diagnostics. */
 export class McpError extends Error {
-  constructor(code, message, data) {
+  constructor(code, message, data, { transport = false } = {}) {
     super(String(message).slice(0, 160));
     this.name = 'McpError';
     this.code = Number.isInteger(code) ? code : -32603;
+    this.transport = transport === true;
     if (data !== undefined) this.data = data;
   }
 }
 
 function plainObject(value) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
+  try {
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  } catch {
+    return false;
+  }
 }
 
 function validId(value) {
-  if (typeof value === 'string') {
-    return value.length > 0 && value.length <= MAX_ID_LENGTH && !CONTROL_CHARS.test(value);
-  }
-  // JSON-RPC permits numbers, but not null, NaN, Infinity, or values that
-  // cannot be represented deterministically by JSON.stringify.
+  if (typeof value === 'string') return value.length > 0 && value.length <= MAX_ID_LENGTH && !CONTROL_CHARS.test(value);
   return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER;
 }
 
 function validMethod(value) {
-  return typeof value === 'string'
-    && value.length > 0
-    && value.length <= MAX_METHOD_LENGTH
-    && !CONTROL_CHARS.test(value);
+  return typeof value === 'string' && value.length > 0 && value.length <= MAX_METHOD_LENGTH && !CONTROL_CHARS.test(value);
 }
 
-/**
- * Parse and validate one newline-delimited JSON-RPC request or notification.
- * Responses, batches, and extension envelopes are intentionally rejected.
- */
-export function parseJsonRpcLine(line, { maxBytes = DEFAULT_MAX_MESSAGE_BYTES } = {}) {
-  if (typeof line !== 'string') throw new McpError(-32700, 'parse error');
-  if (!Number.isInteger(maxBytes) || maxBytes < 1) throw new McpError(-32600, 'invalid request');
-  if (Buffer.byteLength(line, 'utf8') > maxBytes) throw new McpError(-32600, 'message too large');
-
-  let value;
+/** Parse JSON only, retaining an object for server-side notification routing. */
+export function parseRawJsonLine(line, { maxBytes = DEFAULT_MAX_MESSAGE_BYTES } = {}) {
+  if (typeof line !== 'string' || !Number.isInteger(maxBytes) || maxBytes < 1) throw new McpError(-32700, 'parse error');
+  if (Buffer.byteLength(line, 'utf8') > maxBytes) throw new McpError(-32600, 'message too large', undefined, { transport: true });
   try {
-    value = JSON.parse(line);
+    return JSON.parse(line);
   } catch {
     throw new McpError(-32700, 'parse error');
   }
-  if (!plainObject(value) || value.jsonrpc !== '2.0' || !validMethod(value.method)) {
-    throw new McpError(-32600, 'invalid request');
-  }
+}
 
-  if (Object.prototype.hasOwnProperty.call(value, 'id') && !validId(value.id)) {
-    throw new McpError(-32600, 'invalid request');
-  }
+/** Parse and strictly validate one request/notification for direct callers. */
+export function parseJsonRpcLine(line, { maxBytes = DEFAULT_MAX_MESSAGE_BYTES } = {}) {
+  const value = parseRawJsonLine(line, { maxBytes });
+  if (!plainObject(value) || value.jsonrpc !== '2.0' || !validMethod(value.method)) throw new McpError(-32600, 'invalid request');
+  if (Object.prototype.hasOwnProperty.call(value, 'id') && !validId(value.id)) throw new McpError(-32600, 'invalid request');
   if (Object.prototype.hasOwnProperty.call(value, 'params')) {
-    const params = value.params;
-    if (params === null || (typeof params !== 'object') || (!plainObject(params) && !Array.isArray(params))) {
+    if (value.params === null || typeof value.params !== 'object' || (!plainObject(value.params) && !Array.isArray(value.params))) {
       throw new McpError(-32600, 'invalid request');
     }
   }
-  const allowed = new Set(['jsonrpc', 'id', 'method', 'params']);
-  if (Object.keys(value).some((key) => !allowed.has(key))) {
-    throw new McpError(-32600, 'invalid request');
-  }
+  if (Object.keys(value).some((key) => !REQUEST_KEYS.has(key))) throw new McpError(-32600, 'invalid request');
   return value;
 }
 
 function callError(onError, error) {
   if (typeof onError !== 'function') return;
-  try {
-    onError(error instanceof McpError ? error : new McpError(-32700, 'parse error'));
-  } catch {
-    // A diagnostic callback must never break the input stream.
-  }
+  try { onError(error instanceof McpError ? error : new McpError(-32700, 'parse error')); } catch { /* diagnostics are best effort */ }
 }
 
 /**
- * Create a bounded decoder. `write` accepts strings, Buffers, and Uint8Arrays;
- * `end` discards an incomplete trailing line and flushes UTF-8 state. An
- * oversize or malformed line is reported once and discarded through its next
- * newline so later valid messages remain processable.
+ * Decode bounded newline-delimited UTF-8. By default lines are strictly
+ * validated for backwards compatibility; the MCP server sets validate:false
+ * so it can distinguish a malformed notification from a parseable request
+ * object that carries no id.
  */
 export function createLineDecoder({
   maxBytes = DEFAULT_MAX_MESSAGE_BYTES,
   onMessage,
   onError,
   onEnd,
+  validate = true,
 } = {}) {
-  if (!Number.isInteger(maxBytes) || maxBytes < 1) throw new RangeError('maxBytes must be a positive integer');
+  if (!Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > MAX_MESSAGE_BYTES_HARD) throw new RangeError('maxBytes is outside the bounded range');
   if (typeof onMessage !== 'function') throw new TypeError('onMessage must be a function');
-
   let decoder = new TextDecoder('utf-8', { fatal: true });
   let buffered = '';
   let bufferedBytes = 0;
   let discarding = false;
   let ended = false;
 
-  const resetLine = () => {
-    buffered = '';
-    bufferedBytes = 0;
-    discarding = false;
-  };
-
-  const discardLine = (error) => {
-    buffered = '';
-    bufferedBytes = 0;
-    discarding = true;
-    callError(onError, error);
-  };
-
-  const emitLine = () => {
+  const reset = () => { buffered = ''; bufferedBytes = 0; discarding = false; };
+  const discard = (error) => { buffered = ''; bufferedBytes = 0; discarding = true; callError(onError, error); };
+  const emit = () => {
     let line = buffered;
     if (line.endsWith('\r')) line = line.slice(0, -1);
     buffered = '';
     bufferedBytes = 0;
     try {
-      const message = parseJsonRpcLine(line, { maxBytes });
-      try {
-        onMessage(message);
-      } catch (error) {
-        callError(onError, error);
-      }
-    } catch (error) {
-      callError(onError, error);
-    }
+      const message = validate ? parseJsonRpcLine(line, { maxBytes }) : parseRawJsonLine(line, { maxBytes });
+      try { onMessage(message); } catch (error) { callError(onError, error); }
+    } catch (error) { callError(onError, error); }
   };
-
-  const consumeText = (text) => {
+  const consume = (text) => {
     let start = 0;
     while (start <= text.length) {
       const newline = text.indexOf('\n', start);
       const segment = newline < 0 ? text.slice(start) : text.slice(start, newline);
       const segmentBytes = Buffer.byteLength(segment, 'utf8');
-
       if (!discarding) {
-        if (bufferedBytes + segmentBytes > maxBytes) {
-          discardLine(new McpError(-32600, 'message too large'));
-        } else {
-          buffered += segment;
-          bufferedBytes += segmentBytes;
-        }
+        if (bufferedBytes + segmentBytes > maxBytes) discard(new McpError(-32600, 'message too large', undefined, { transport: true }));
+        else { buffered += segment; bufferedBytes += segmentBytes; }
       }
-
       if (newline < 0) break;
-      if (discarding) {
-        resetLine();
-      } else {
-        emitLine();
-      }
+      if (discarding) reset();
+      else emit();
       start = newline + 1;
       if (start === text.length) break;
     }
   };
-
   const write = (chunk) => {
     if (ended) return false;
-    let bytes;
-    if (typeof chunk === 'string') bytes = Buffer.from(chunk, 'utf8');
-    else if (Buffer.isBuffer(chunk)) bytes = chunk;
-    else if (chunk instanceof Uint8Array) bytes = Buffer.from(chunk);
-    else throw new TypeError('chunk must be a string, Buffer, or Uint8Array');
-
+    const bytes = typeof chunk === 'string' ? Buffer.from(chunk, 'utf8') : Buffer.isBuffer(chunk) ? chunk : chunk instanceof Uint8Array ? Buffer.from(chunk) : null;
+    if (!bytes) throw new TypeError('chunk must be a string, Buffer, or Uint8Array');
     let text;
-    try {
-      text = decoder.decode(bytes, { stream: true });
-    } catch {
+    try { text = decoder.decode(bytes, { stream: true }); }
+    catch {
       decoder = new TextDecoder('utf-8', { fatal: true });
-      // A fatal decoder has consumed an unknown number of bytes. Drop this
-      // malformed line and restart at the next line. If this chunk also
-      // carries complete lines after a newline, retain only that safe suffix.
-      resetLine();
-      callError(onError, new McpError(-32700, 'invalid UTF-8'));
+      reset();
+      callError(onError, new McpError(-32700, 'invalid UTF-8', undefined, { transport: true }));
       const newline = bytes.lastIndexOf(0x0a);
       if (newline >= 0 && newline + 1 < bytes.length) {
-        try {
-          text = decoder.decode(bytes.subarray(newline + 1), { stream: true });
-          consumeText(text);
-        } catch {
-          decoder = new TextDecoder('utf-8', { fatal: true });
-          resetLine();
-          callError(onError, new McpError(-32700, 'invalid UTF-8'));
-        }
+        try { consume(decoder.decode(bytes.subarray(newline + 1), { stream: true })); }
+        catch { decoder = new TextDecoder('utf-8', { fatal: true }); reset(); callError(onError, new McpError(-32700, 'invalid UTF-8', undefined, { transport: true })); }
       }
       return false;
     }
-    consumeText(text);
+    consume(text);
     return true;
   };
-
   const end = () => {
     if (ended) return;
     ended = true;
     try {
       const text = decoder.decode();
-      if (text) consumeText(text);
+      if (text) consume(text);
     } catch {
-      callError(onError, new McpError(-32700, 'invalid UTF-8'));
+      reset();
+      callError(onError, new McpError(-32700, 'incomplete UTF-8', undefined, { transport: true }));
     }
-    // A partial trailing request cannot be safely associated with an id. It is
-    // intentionally discarded and the transport may close cleanly.
-    buffered = '';
-    bufferedBytes = 0;
-    if (typeof onEnd === 'function') {
-      try { onEnd(); } catch { /* lifecycle callbacks are best effort */ }
-    }
+    reset();
+    try { onEnd?.(); } catch { /* lifecycle callbacks are best effort */ }
   };
-
-  // The callable shape mirrors the small helper in the implementation plan,
-  // while named methods make stream integrations and tests self-documenting.
   write.write = write;
   write.push = write;
   write.end = end;
@@ -229,11 +159,12 @@ export function createLineDecoder({
 }
 
 export function jsonRpcError(id, code, message, data) {
-  const response = { jsonrpc: '2.0', id: id ?? null, error: { code, message } };
+  const response = { jsonrpc: '2.0', id: id ?? null, error: { code, message: String(message).slice(0, 160) } };
   if (data !== undefined) response.error.data = data;
   return response;
 }
 
 export function isJsonRpcNotification(message) {
-  return plainObject(message) && !Object.prototype.hasOwnProperty.call(message, 'id');
+  try { return plainObject(message) && !Object.prototype.hasOwnProperty.call(message, 'id'); }
+  catch { return false; }
 }

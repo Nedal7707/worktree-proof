@@ -49,7 +49,7 @@ process.once('SIGTERM', stop);
 try {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
-    process.stderr.write('worktree-proof-mcp [--enable-lease-mutation] [--max-message-bytes N] [--max-output-bytes N]\n');
+    process.stderr.write('worktree-proof-mcp [--enable-lease-mutation] [--max-message-bytes N] [--max-input-bytes N] [--max-output-bytes N] [--max-queued-messages N]\n');
     process.exitCode = 0;
   } else {
     const server = createMcpServer({

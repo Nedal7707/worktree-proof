@@ -200,6 +200,69 @@ test('recovery fails closed for duplicate, overlapping, or non-expired active st
   );
 });
 
+test('inspect and recovery fail closed on malformed registries without mutation', async (t) => {
+  const registryPath = await temporaryRegistry(t);
+  const malformed = '{not-json';
+  await writeFile(registryPath, malformed, 'utf8');
+  await assert.rejects(
+    inspectLeaseRegistry(registryPath, { clock: () => NOW }),
+    (error) => error.code === 'ERR_MALFORMED_REGISTRY',
+  );
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_MALFORMED_REGISTRY',
+  );
+  assert.equal(await readFile(registryPath, 'utf8'), malformed);
+
+  const structurallyMalformed = JSON.stringify({ version: 1, leases: [{ status: 'active' }] });
+  await writeFile(registryPath, structurallyMalformed, 'utf8');
+  await assert.rejects(
+    inspectLeaseRegistry(registryPath, { clock: () => NOW }),
+    (error) => error.code === 'ERR_MALFORMED_REGISTRY',
+  );
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_MALFORMED_REGISTRY',
+  );
+  assert.equal(await readFile(registryPath, 'utf8'), structurallyMalformed);
+});
+
+test('recovery leaves mixed expired-target and live same-lane bytes unchanged', async (t) => {
+  const registryPath = await temporaryRegistry(t);
+  const mixed = JSON.stringify({ version: 1, leases: [
+    {
+      leaseId: 'expired-target',
+      laneId: 'blocked',
+      fileScope: 'src/blocked.js',
+      owner: 'owner',
+      session: 'session',
+      timestamp: '2032-05-18T03:33:20.000Z',
+      ttlMs: 1_000,
+      expiresAt: '2032-05-18T03:33:21.000Z',
+      status: 'active',
+      active: true,
+    },
+    {
+      leaseId: 'live-same-lane',
+      laneId: 'blocked',
+      fileScope: 'src/live.js',
+      owner: 'owner',
+      session: 'session',
+      timestamp: '2032-05-18T03:33:20.000Z',
+      ttlMs: 10_000,
+      expiresAt: '2032-05-18T03:33:30.000Z',
+      status: 'active',
+      active: true,
+    },
+  ] });
+  await writeFile(registryPath, mixed, 'utf8');
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_LEASE_NOT_EXPIRED',
+  );
+  assert.equal(await readFile(registryPath, 'utf8'), mixed);
+});
+
 test('concurrent reservations serialize through an atomic mkdir lock', async (t) => {
   const registryPath = await temporaryRegistry(t);
   const clock = () => 1_800_000_000_000;

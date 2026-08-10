@@ -148,4 +148,1235 @@ export class CliUsageError extends Error {
   }
 }
 
-/** An operational error returned by a runtime adapter×žzöÚ$z{-®éÜj×Ç°¢–b‡&W7VÇCòçfW'6–öâ’&WGW&â&W7VÇBçfW'6–öã°¢–b‡&W7VÇCòçÆææVBbb&W7VÇCòæW†V7WFVBÓÓÒfÇ6R’°¢&WGW&âG·'6VBæ6öÖÖæGÓ¢ÆææVB†æ÷BW†V7WFVB–°¢Ð¢–b‡&W7VÇCòçÆææVBbb&W7VÇCòç7V&Ö—GFVBÓÓÒfÇ6R’°¢&WGW&âG·'6VBæ6öÖÖæGÓ¢ÆææVB‚G·&W7VÇBç&V6öçÒ–°¢Ð¢–b‡&W7VÇCòç7W÷'FVBÓÓÒfÇ6R’&WGW&âG·'6VBæ6öÖÖæGÓ¢G·&W7VÇBç&V6öçÖ°¢–b‡&W7VÇBÓÓÒVæFVf–æVBÇÂ&W7VÇBÓÓÒçVÆÂ’&WGW&âG·'6VBæ6öÖÖæGÓ¢ö¶°¢òòFòæ÷BV6†ò&&—G&'’FFW"7G&–æw2†'VææW"6÷VÆB†fR&WGW&æVB6†–Æ@¢òò&ö6W72÷WGWB6öçF–æ–ær7&VFVçF–Â÷"÷F†W"6Vç6—F—fRfÇVR’à¢–b‡G—Vöb&W7VÇBÓÓÒw7G&–ærr’&WGW&âG·'6VBæ6öÖÖæGÓ¢ö¶°¢–b‡G—Vöb&W7VÇBÓÓÒvçVÖ&W"rÇÂG—Vöb&W7VÇBÓÓÒv&ööÆVâr’&WGW&â7G&–ær‡&W7VÇB“°¢òò‡VÖâ÷WGWB–çFVçF–öæÆÇ’6öçF–ç2¶W—2æB7FGW2öæÇ’Âæ÷B&&—G&'¢òòfÇVW2&WGW&æVB'’FFW'2à¢6öç7B¶W—2Òö&¦V7Bæ¶W—2‡6fU&W7VÇBóò·Ò’ç6÷'B‚“°¢&WGW&âG·'6VBæ6öÖÖæGÓ¢ö²G¶¶W—2æÆVæwF‚ò‚G¶¶W—2æ¦ö–â‚rÂr—Ò–¢rwÖ°§Ð ¢ò¢ ¢¢'VâöæR4Ä’–çfö6F–öââF†R&WGW&âfÇVR—27V—F&ÆRf÷"&–â÷v÷&·G&VR×&ööbæ§0¢¢æBf÷"FW7G3²æò&ö6W72W†—Bö67W'2†W&Rà¢¢ð¦W‡÷'B7–æ2gVæ7F–öâ'Vä6Æ’†&wbÒ&ö6W72æ&wbç6Æ–6Rƒ"’Â÷F–öç2Ò·Ò’°¢6öç7B–òÒ÷F–öç2æ–òóòFVfVÇD–ò‚“°¢ÆWB'6VC°¢G'’°¢'6VBÒ'6T&w2†&wb“°¢Ò6F6‚†W'&÷"’°¢6öç7BÖW76vRÒW'&÷$ÖW76vR†W'&÷"“°¢6öç7BfÆÆ&6²Ò²ö³¢fÇ6RÂW'&÷#¢ÖW76vRÂ6öFS¢U„•Eô4ôDU2åU4tRÓ°¢–b†&wbæ–æ6ÇVFW2‚rÒÖ§6öâr’’–òç7FF÷WB‡6fT§6öâ†fÆÆ&6²’“°¢VÇ6R–òç7FFW'"†W'&÷#¢G¶ÖW76vWÕÆâG·W6vR‚—Ö“°¢&WGW&âfÆÆ&6³°¢Ð ¢–b‡'6VBæ6öÖÖæBÓÓÒVæFVf–æVBÇÂ'6VBæ6öÖÖæD†VÇÇÂ'6VBæ6öÖÖæEfW'6–öâ’°¢6öç7B&W7VÇBÒ'6VBæ6öÖÖæEfW'6–öâò²fW'6–öã¢fW'6–öåFW‡B‚’Ò¢²†VÇ¢W6vR‚’Ó°¢–òç7FF÷WB‡'6VBæ÷F–öç2æ§6öâò6fT§6öâ‡²ö³¢G'VRÂ6öÖÖæC¢'6VBæ6öÖÖæBóòçVÆÂÂ&W7VÇBÒ’¢‡&W7VÇBçfW'6–öâóò&W7VÇBæ†VÇ’“°¢&WGW&â²ö³¢G'VRÂ6öFS¢U„•Eô4ôDU2äô²Â&W7VÇBÓ°¢Ð ¢6öç7B&WòÒ&W6öÇfR†÷F–öç2ç&Wòóò'6VBæ÷F–öç2ç&Wòóò&ö6W72æ7vB‚’“°¢ÆWB6öæf–tFF°¢G'’°¢6öæf–tFFÒv—B†÷F–öç2æÆöD6öæf–p¢ò÷F–öç2æÆöD6öæf–r‡&WòÂ'6VBæ÷F–öç2æ6öæf–r¢¢ÆöD6öæf–r‡&WòÂ'6VBæ÷F–öç2æ6öæf–r’“°¢6öç7BFW2Òv—BÆöE'VçF–ÖTFWVæFVæ6–W2†÷F–öç2æFW2óò·Ò“°¢6öç7B&W7VÇBÒv—BW†V7WFT6öÖÖæB‡'6VBÂ²&WòÂ6öæf–tFFÂFW2Ò“°¢–òç7FF÷WB‡&VæFW%&W7VÇB‡'6VBÂ&W7VÇB’“°¢&WGW&â²ö³¢G'VRÂ6öFS¢U„•Eô4ôDU2äô²Â&W7VÇBÓ°¢Ò6F6‚†W'&÷"’°¢6öç7BÖW76vRÒW'&÷$ÖW76vR†W'&÷"“°¢6öç7B6öFRÒW'&÷#òæ6öFRÓÓÒU„•Eô4ôDU2åU4tRòU„•Eô4ôDU2åU4tR¢U„•Eô4ôDU2äU%$õ#°¢–b‡'6VBæ÷F–öç2æ§6öâ’–òç7FF÷WB‡6fT§6öâ‡²ö³¢fÇ6RÂ6öÖÖæC¢'6VBæ6öÖÖæBÂW'&÷#¢ÖW76vRÂ6öFRÒ’“°¢VÇ6R–òç7FFW'"†W'&÷#¢G¶ÖW76vWÖ“°¢&WGW&â²ö³¢fÇ6RÂ6öFRÂW'&÷#¢ÖW76vRÓ°¢Ð§Ð ¦W‡÷'B7–æ2gVæ7F–öâÖ–â†&wbÒ&ö6W72æ&wbç6Æ–6Rƒ"’Â÷F–öç2Ò·Ò’°¢6öç7B&W7VÇBÒv—B'Vä6Æ’†&wbÂ÷F–öç2“°¢&WGW&â&W7VÇBæ6öFRóò‡&W7VÇBæö²òU„•Eô4ôDU2äô²¢U„•Eô4ôDU2äU%$õ"“°§Ð
+/** An operational error returned by a runtime adapter. */
+export class CliOperationError extends Error {
+  constructor(message, cause) {
+    super(message, cause ? { cause } : undefined);
+    this.name = 'CliOperationError';
+    this.code = EXIT_CODES.ERROR;
+  }
+}
+
+function defaultIo() {
+  return {
+    stdout: (text) => process.stdout.write(`${text}\n`),
+    stderr: (text) => process.stderr.write(`${text}\n`),
+  };
+}
+
+function canonicalOption(option) {
+  return OPTION_ALIASES.get(option) ?? option;
+}
+
+function parseOptionToken(token) {
+  const equalAt = token.indexOf('=');
+  if (equalAt < 0) return { name: canonicalOption(token), inlineValue: undefined };
+  return {
+    name: canonicalOption(token.slice(0, equalAt)),
+    inlineValue: token.slice(equalAt + 1),
+  };
+}
+
+function parseBoolean(value, option) {
+  if (value === undefined) return true;
+  if (value === 'true' || value === '1') return true;
+  if (value === 'false' || value === '0') return false;
+  throw new CliUsageError(`${option} expects a boolean when using =value`);
+}
+
+/**
+ * Parse argv without interpreting command arguments after `--`.
+ *
+ * Values are kept as strings so callers can choose their own validation.  The
+ * parser rejects every unknown option, including options on a known command;
+ * that is intentional so a typo cannot silently change lane state.
+ */
+export function parseArgs(argv = []) {
+  if (!Array.isArray(argv)) throw new TypeError('argv must be an array');
+
+  const tokens = [...argv];
+  let command;
+  let commandHelp = false;
+  let commandVersion = false;
+  let passthrough = [];
+  const options = {
+    json: false,
+    dryRun: false,
+    noSubmit: false,
+    force: false,
+    all: false,
+  };
+  const positionals = [];
+  let afterSeparator = false;
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (afterSeparator) {
+      passthrough.push(token);
+      continue;
+    }
+    if (token === '--') {
+      afterSeparator = true;
+      continue;
+    }
+    if (token.startsWith('-')) {
+      const { name, inlineValue } = parseOptionToken(token);
+      if (!VALUE_OPTIONS.has(name) && !BOOLEAN_OPTIONS.has(name)) {
+        throw new CliUsageError(`unknown option: ${token}`);
+      }
+      if (VALUE_OPTIONS.has(name)) {
+        let value = inlineValue;
+        if (value === undefined) {
+          value = tokens[index + 1];
+          if (value === undefined || value === '--' || value.startsWith('-')) {
+            throw new CliUsageError(`${name} expects a value`);
+          }
+          index += 1;
+        }
+        const key = name.slice(2).replaceAll('-', '');
+        // Keep command-facing camelCase keys while preserving an options map.
+        const keyMap = {
+          repo: 'repo',
+          config: 'config',
+          input: 'input',
+          receipt: 'receipt',
+          schema: 'schema',
+          laneid: 'laneId',
+          filescope: 'fileScope',
+          scope: 'fileScope',
+          branch: 'branch',
+          integrationtarget: 'integrationTarget',
+          leaseid: 'leaseId',
+          lease: 'lease',
+          owner: 'owner',
+          session: 'session',
+          ttl: 'ttl',
+          capacity: 'capacity',
+          resources: 'resources',
+          backlog: 'backlog',
+          lanes: 'lanes',
+          timeout: 'timeout',
+          maxoutputbytes: 'maxOutputBytes',
+          canonicalref: 'canonicalRef',
+          reason: 'reason',
+          task: 'task',
+          mode: 'mode',
+          output: 'output',
+          goal: 'goal',
+          target: 'target',
+          targets: 'targets',
+          preset: 'preset',
+          profile: 'profile',
+          allowedroot: 'allowedRoot',
+          allowedroots: 'allowedRoots',
+          maxdepth: 'maxDepth',
+          maxentries: 'maxEntries',
+          catalog: 'catalog',
+          manifest: 'manifest',
+          concurrency: 'concurrency',
+          workload: 'workload',
+          sender: 'sender',
+          recipient: 'recipient',
+          agent: 'agent',
+          messageid: 'messageId',
+          type: 'type',
+          summary: 'summary',
+          replyto: 'replyTo',
+          capabilities: 'capabilities',
+          receiptref: 'receiptRef',
+          resultstatus: 'resultStatus',
+          ttlms: 'ttlMs',
+          claimms: 'claimMs',
+          idempotencykey: 'idempotencyKey',
+          actor: 'actor',
+          status: 'status',
+          bridgeroot: 'bridgeRoot',
+          hostceiling: 'hostCeiling',
+          othertaskreservations: 'otherTaskReservations',
+          namespace: 'namespace',
+          currenttaskid: 'currentTaskId',
+        };
+        const mappedKey = keyMap[key] ?? key;
+        if (mappedKey === 'goal' || mappedKey === 'allowedRoot') {
+          const prior = options[mappedKey];
+          options[mappedKey] = prior === undefined ? value : [...(Array.isArray(prior) ? prior : [prior]), value];
+        } else {
+          options[mappedKey] = value;
+        }
+      } else {
+        const key = name === '--help'
+          ? 'help'
+          : name === '--version'
+            ? 'version'
+            : name.slice(2).replaceAll('-', '');
+        const keyMap = {
+          json: 'json',
+          help: 'help',
+          version: 'version',
+          dryrun: 'dryRun',
+          nosubmit: 'noSubmit',
+          force: 'force',
+          all: 'all',
+          apply: 'apply',
+          confirm: 'confirm',
+          includeunavailable: 'includeUnavailable',
+        };
+        options[keyMap[key] ?? key] = parseBoolean(inlineValue, name);
+      }
+      continue;
+    }
+
+    if (!command) {
+      command = token;
+    } else {
+      positionals.push(token);
+    }
+  }
+
+  if (command === 'help' || options.help === true) commandHelp = true;
+  if (command === 'version' || options.version === true) commandVersion = true;
+  if (command && !COMMANDS.includes(command) && !commandHelp && !commandVersion) {
+    throw new CliUsageError(`unknown command: ${command}`);
+  }
+  if (afterSeparator && command !== 'run') {
+    throw new CliUsageError('`--` command arguments are only valid for run');
+  }
+
+  return {
+    command,
+    commandHelp,
+    commandVersion,
+    options,
+    positionals,
+    passthrough,
+  };
+}
+
+function usage() {
+  return [
+    'WorktreeProof â€” Evidence-backed guardrails for AI coding agents.',
+    'Vibe fast. Ship with proof.',
+    '',
+    'Usage:',
+    '  worktree-proof <command> [options]',
+    '  worktree-proof run [options] -- <program> [args...]',
+    '',
+    'Commands:',
+    '  doctor, plan, reserve, release, run, status, close, cleanup, validate',
+    '  tools list|scan|recommend',
+    '  resources scan|plan',
+    '  recipes list|show <name>',
+    '  init preview|apply (apply requires --confirm)',
+    '  bridge send|inbox|claim|ack|complete|fail|cancel',
+    '  tasks inspect --input <host-snapshot.json>',
+    '',
+    'Global options:',
+    '  --repo <path>       Repository root (default: current directory)',
+    '  --config <path>     JSON configuration file',
+    '  --json              Emit one JSON result',
+    '  --dry-run           Plan without mutating state',
+    '  --no-submit         Do not submit or reserve external state',
+    '  --help, --version   Show help or version',
+    '  --confirm           Explicitly authorize init writes; preview is default',
+  ].join('\n');
+}
+
+export function helpText() {
+  return usage();
+}
+
+function versionText() {
+  return `worktree-proof ${VERSION}`;
+}
+
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function redact(value, key = '') {
+  const sensitive = /(secret|token|password|passwd|cookie|authorization|credential|private.?key|api.?key|access.?key|refresh.?token|session)/i;
+  if (sensitive.test(key)) return '[redacted]';
+  if (Array.isArray(value)) return value.map((item) => redact(item));
+  if (isObject(value)) {
+    const output = {};
+    for (const [childKey, childValue] of Object.entries(value)) {
+      output[childKey] = redact(childValue, childKey);
+    }
+    return output;
+  }
+  if (typeof value === 'bigint') return Number(value);
+  if (typeof value === 'function') return '[function]';
+  return value;
+}
+
+function safeJson(value) {
+  try {
+    return JSON.stringify(redact(value));
+  } catch {
+    return JSON.stringify({ ok: false, error: 'result is not serializable' });
+  }
+}
+
+function errorMessage(error) {
+  if (error instanceof CliUsageError || error instanceof CliOperationError) return error.message;
+  if (error instanceof SyntaxError) return 'invalid JSON input';
+  // Adapter errors can contain command output, paths, or user-provided values.
+  // Keep those details out of CLI logs; runtime modules should return a safe
+  // structured error when callers need actionable diagnostics.
+  return 'operation failed';
+}
+
+async function pathExists(path) {
+  try {
+    await access(path, fsConstants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function loadConfig(repo, configOption) {
+  const candidate = configOption
+    ? (isAbsolute(configOption) ? configOption : resolve(repo, configOption))
+    : join(repo, 'worktree-proof.config.json');
+  if (!(await pathExists(candidate))) return { path: candidate, config: {} };
+  let text;
+  try {
+    text = await readFile(candidate, 'utf8');
+  } catch (error) {
+    throw new CliOperationError(`cannot read config: ${candidate}`, error);
+  }
+  let config;
+  try {
+    config = JSON.parse(text);
+  } catch (error) {
+    throw new CliOperationError(`invalid config JSON: ${candidate}`, error);
+  }
+  if (!isObject(config)) throw new CliOperationError('config must contain a JSON object');
+  return { path: candidate, config };
+}
+
+async function loadRuntimeDependencies(overrides = {}) {
+  const deps = { ...overrides };
+  const cliDirectory = dirname(fileURLToPath(import.meta.url));
+  for (const [group, file] of Object.entries(MODULE_FILES)) {
+    if (hasOwn(deps, group)) continue;
+    try {
+      deps[group] = await import(pathToFileURL(join(cliDirectory, file)).href);
+    } catch (error) {
+      // A command can still provide a useful read-only response while an
+      // optional runtime module is being assembled.  Keep this isolated here;
+      // the adapter below is the only place that knows module export names.
+      if (error?.code !== 'ERR_MODULE_NOT_FOUND' && error?.code !== 'MODULE_NOT_FOUND') {
+        deps[group] = { __loadError: error };
+      } else {
+        deps[group] = {};
+      }
+    }
+  }
+  return deps;
+}
+
+function findExport(module, names) {
+  if (!module) return undefined;
+  for (const name of names) {
+    if (typeof module[name] === 'function') return module[name];
+    if (typeof module.default?.[name] === 'function') return module.default[name];
+  }
+  if (typeof module.default === 'function') return module.default;
+  return undefined;
+}
+
+/**
+ * Isolated compatibility adapter for the runtime modules.  Runtime workers can
+ * rename an export or change its object signature without changing the CLI
+ * parser or command behavior; update this table only at integration time.
+ */
+export const ADAPTER_EXPORTS = Object.freeze({
+  doctor: [['scope', ['doctorScope', 'inspectScope', 'checkScope', 'doctor']], ['git', ['discoverGitRepository', 'findGitRepository']]],
+  plan: [['planner', ['plan', 'createPlan', 'buildPlan']]],
+  reserve: [['leases', ['reserveLease', 'reserve', 'acquireLease']]],
+  release: [['leases', ['releaseLease', 'release', 'revokeLease']]],
+  run: [['runner', ['executeArgv', 'runArgv', 'execute', 'run']]],
+  status: [['leases', ['status', 'statusLeases', 'listLeases', 'inspectLeases']], ['scope', ['status', 'scopeStatus']]],
+  close: [['evidence', ['closeLane', 'close', 'createClosureReceipt', 'writeClosureReceipt']]],
+  cleanup: [['worktree', ['cleanupManagedWorktrees', 'cleanup', 'removeManagedWorktrees']]],
+  validate: [['evidence', ['validateClosureReceipt', 'validateReceipt', 'validate']], ['scope', ['validateLane', 'validate']]],
+});
+
+async function invokeFirst(deps, command, payload) {
+  const candidates = ADAPTER_EXPORTS[command] ?? [];
+  for (const [group, names] of candidates) {
+    const fn = findExport(deps[group], names);
+    if (!fn) continue;
+    return await fn(payload);
+  }
+  return { supported: false, command, reason: 'runtime adapter unavailable' };
+}
+
+function configuredPath(repo, value, fallback) {
+  const selected = value ?? fallback;
+  return isAbsolute(selected) ? selected : resolve(repo, selected);
+}
+
+function projectStatePath(repo, value, fallback, label) {
+  const root = resolve(repo);
+  const candidate = configuredPath(root, value, fallback);
+  const rel = relative(root, candidate);
+  if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+    throw new CliUsageError(`${label} must stay inside the repository`);
+  }
+  return candidate;
+}
+
+function leasePath(payload) {
+  return configuredPath(
+    payload.repo,
+    payload.config.leaseStore ?? payload.config.leaseRegistry,
+    join('.worktree-proof', 'leases.json'),
+  );
+}
+
+function bridgePath(payload) {
+  return configuredPath(
+    payload.repo,
+    payload.options.bridgeRoot ?? payload.config.bridgeDirectory,
+    join('.worktree-proof', 'bridge'),
+  );
+}
+
+function laneFromPayload(payload) {
+  const defaults = isObject(payload.config.defaults) ? payload.config.defaults : {};
+  const laneId = payload.options.laneId ?? payload.laneId ?? defaults.laneId;
+  const fileScope = payload.options.fileScope ?? defaults.fileScope;
+  if (typeof laneId !== 'string' || !laneId.trim()) {
+    throw new CliUsageError('reserve requires --lane-id');
+  }
+  if (typeof fileScope !== 'string' || !fileScope.trim()) {
+    throw new CliUsageError('reserve requires --file-scope');
+  }
+  const lane = { laneId, fileScope };
+  const owner = payload.options.owner ?? payload.config.owner ?? defaults.owner;
+  const session = payload.options.session ?? payload.config.session ?? defaults.session;
+  // Local-only defaults keep the documented one-command demo usable while
+  // allowing callers to provide stable owner/session labels in configuration.
+  // They are metadata, never credentials, and are not rendered by the CLI.
+  lane.owner = owner ?? 'local';
+  lane.session = session ?? `process-${process.pid}`;
+  return lane;
+}
+
+function numericOption(value, fallback) {
+  if (value === undefined) return fallback;
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw new CliUsageError(`invalid numeric option: ${value}`);
+  return number;
+}
+
+async function readJsonInput(repo, value, label) {
+  if (value === undefined) return undefined;
+  const inputPath = configuredPath(repo, value, value);
+  try {
+    if ((await stat(inputPath)).isDirectory()) return undefined;
+  } catch (error) {
+    throw new CliOperationError(`cannot read ${label}`, error);
+  }
+  let text;
+  try {
+    text = await readFile(inputPath, 'utf8');
+  } catch (error) {
+    throw new CliOperationError(`cannot read ${label}: ${inputPath}`, error);
+  }
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new CliOperationError(`invalid ${label} JSON`, error);
+  }
+}
+
+function parseJsonOption(value, option) {
+  if (value === undefined) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    throw new CliUsageError(`${option} expects valid JSON`);
+  }
+}
+
+async function writeJsonAtomic(filePath, value) {
+  const destination = resolve(filePath);
+  await mkdir(dirname(destination), { recursive: true });
+  const temporary = `${destination}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+    await rename(temporary, destination);
+  } catch (error) {
+    // Best effort cleanup; the original destination is never removed.
+    try {
+      const { rm } = await import('node:fs/promises');
+      await rm(temporary, { force: true });
+    } catch {
+      // Keep the original write error as the actionable result.
+    }
+    throw new CliOperationError('unable to persist local lane state', error);
+  }
+  return destination;
+}
+
+async function listJsonRecords(directory) {
+  try {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const records = [];
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.json')) continue;
+      const path = join(directory, entry.name);
+      try {
+        records.push({ path, value: JSON.parse(await readFile(path, 'utf8')) });
+      } catch (error) {
+        throw new CliOperationError(`invalid state JSON: ${entry.name}`, error);
+      }
+    }
+    return records;
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    if (error instanceof CliOperationError) throw error;
+    throw new CliOperationError('unable to read local lane state', error);
+  }
+}
+
+function optionList(value, option) {
+  if (value === undefined) return undefined;
+  const parsed = typeof value === 'string' && value.trim().startsWith('[')
+    ? parseJsonOption(value, option)
+    : String(value).split(',').map((item) => item.trim()).filter(Boolean);
+  if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string' || !item.trim())) {
+    throw new CliUsageError(`${option} expects a comma-separated list or JSON string array`);
+  }
+  return parsed;
+}
+
+async function listRecipeFiles(repo) {
+  const localDirectory = join(repo, 'recipes');
+  const directory = await pathExists(localDirectory) ? localDirectory : join(PACKAGE_ROOT, 'recipes');
+  try {
+    const entries = await readdir(directory, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.json'))
+      .map((entry) => entry.name)
+      .sort((left, right) => left.localeCompare(right));
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    throw new CliOperationError('unable to read recipe catalog', error);
+  }
+}
+
+async function readRecipe(repo, name) {
+  if (typeof name !== 'string' || !name.trim()) throw new CliUsageError('recipes show requires a recipe name');
+  const normalized = name.trim().replace(/\.json$/i, '');
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(normalized)) throw new CliUsageError('recipe name contains unsupported characters');
+  const localDirectory = resolve(repo, 'recipes');
+  const directory = await pathExists(localDirectory) ? localDirectory : join(PACKAGE_ROOT, 'recipes');
+  const file = resolve(directory, `${normalized}.json`);
+  if (file !== resolve(directory, `${normalized}.json`)) throw new CliUsageError('recipe path escaped the repository');
+  try {
+    return JSON.parse(await readFile(file, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw new CliOperationError('recipe was not found', error);
+    throw new CliOperationError('recipe JSON is invalid', error);
+  }
+}
+
+function stateDirectory(payload) {
+  return configuredPath(payload.repo, payload.config.stateDirectory, '.worktree-proof');
+}
+
+function runDirectory(payload) {
+  return configuredPath(payload.repo, payload.config.runStore, join(stateDirectory(payload), 'runs'));
+}
+
+function planDirectory(payload) {
+  return configuredPath(payload.repo, payload.config.planStore, join(stateDirectory(payload), 'plans'));
+}
+
+function closureDirectory(payload) {
+  return configuredPath(payload.repo, payload.config.closureStore, join(stateDirectory(payload), 'closures'));
+}
+
+async function persistPlan(payload, plan) {
+  if (!payload.submit || payload.dryRun) return undefined;
+  const stamp = new Date().toISOString().replaceAll(/[^0-9]/g, '').slice(0, 17);
+  const path = join(planDirectory(payload), `plan-${stamp}-${process.pid}.json`);
+  return writeJsonAtomic(path, {
+    schemaVersion: '1',
+    createdAt: new Date().toISOString(),
+    plan,
+  });
+}
+
+async function persistRun(payload, result) {
+  if (!payload.submit || payload.dryRun) return undefined;
+  const laneId = payload.options.laneId ?? payload.laneId;
+  if (!laneId) return undefined;
+  const stamp = new Date().toISOString().replaceAll(/[^0-9]/g, '').slice(0, 17);
+  const path = join(runDirectory(payload), `run-${laneId}-${stamp}-${process.pid}.json`);
+  const record = {
+    schemaVersion: '1',
+    laneId,
+    recordedAt: new Date().toISOString(),
+    ok: result?.ok === true,
+    code: Number.isInteger(result?.code) ? result.code : null,
+    status: Number.isInteger(result?.status) ? result.status : null,
+    signal: typeof result?.signal === 'string' ? result.signal : null,
+    timedOut: result?.timedOut === true,
+    stdoutBytes: Number.isInteger(result?.stdoutBytes) ? result.stdoutBytes : 0,
+    stderrBytes: Number.isInteger(result?.stderrBytes) ? result.stderrBytes : 0,
+    errorCode: typeof result?.errorCode === 'string' ? result.errorCode : undefined,
+  };
+  return writeJsonAtomic(path, record);
+}
+
+async function validateLocalState(repo, payload, deps, requestedPath) {
+  const target = requestedPath ? configuredPath(repo, requestedPath, requestedPath) : repo;
+  let targetStats;
+  try {
+    targetStats = await stat(target);
+  } catch (error) {
+    throw new CliOperationError('validation input was not found', error);
+  }
+
+  const checked = [];
+  const receipts = [];
+  const receiptPaths = [];
+  const validateReceipt = findExport(deps.evidence, ['validateClosureReceipt', 'validateReceipt', 'validate']);
+  const validateLane = findExport(deps.scope, ['normalizeLane', 'validateLane', 'validate']);
+  const checkReceipt = (value, path) => {
+    if (validateReceipt) validateReceipt(value);
+    receipts.push(value);
+    receiptPaths.push(path);
+    checked.push(path);
+  };
+
+  if (!targetStats.isDirectory()) {
+    let value;
+    try {
+      value = JSON.parse(await readFile(target, 'utf8'));
+    } catch (error) {
+      throw new CliOperationError('invalid validation JSON', error);
+    }
+    if (target.toLowerCase().endsWith('leases.json')) {
+      const Registry = deps.leases?.LeaseRegistry;
+      if (typeof Registry === 'function') await new Registry(target).read();
+      checked.push(target);
+    } else if (target.toLowerCase().includes('lane') && Array.isArray(value)) {
+      if (validateLane) value.forEach((lane) => validateLane(lane));
+      checked.push(target);
+    } else {
+      checkReceipt(value, target);
+    }
+    return { valid: true, path: target, checked, receipts: receipts.length, receiptPaths };
+  }
+
+  const state = stateDirectory(payload);
+  const closureRecords = [
+    ...(await listJsonRecords(closureDirectory(payload))),
+    ...(await listJsonRecords(join(state, 'receipts'))),
+  ];
+  for (const record of closureRecords) checkReceipt(record.value, record.path);
+  const registryPath = leasePath(payload);
+  if (await pathExists(registryPath)) {
+    const Registry = deps.leases?.LeaseRegistry;
+    if (typeof Registry === 'function') await new Registry(registryPath).read();
+    checked.push(registryPath);
+  }
+  const plans = await listJsonRecords(planDirectory(payload));
+  for (const record of plans) {
+    if (!record.value || typeof record.value !== 'object' || !record.value.plan) {
+      throw new CliOperationError(`invalid plan state: ${record.path}`);
+    }
+    checked.push(record.path);
+  }
+  return { valid: true, path: target, checked, receipts: receipts.length, receiptPaths };
+}
+
+function planInput(payload, input) {
+  const explicitLaneId = payload.options.laneId ?? payload.laneId;
+  const explicitScope = payload.options.fileScope;
+  if (explicitLaneId !== undefined || explicitScope !== undefined) {
+    if (typeof explicitLaneId !== 'string' || !explicitLaneId.trim()) {
+      throw new CliUsageError('plan requires a lane id');
+    }
+    if (typeof explicitScope !== 'string' || !explicitScope.trim()) {
+      throw new CliUsageError('plan requires --scope');
+    }
+    return {
+      lanes: [{
+        laneId: explicitLaneId,
+        fileScope: explicitScope,
+        ...(payload.options.task ? { task: payload.options.task } : {}),
+        ...(payload.options.mode ? { mode: payload.options.mode } : {}),
+      }],
+    };
+  }
+  const source = input ?? payload.config;
+  if (Array.isArray(source)) return { lanes: source };
+  if (!isObject(source)) return {};
+  return {
+    lanes: source.lanes ?? [],
+    backlog: source.backlog ?? [],
+    capacity: source.capacity,
+    resources: source.resources,
+  };
+}
+
+function sanitizeRunnerResult(result) {
+  if (!isObject(result)) return { ok: Boolean(result) };
+  const stdout = typeof result.stdout === 'string' ? Buffer.byteLength(result.stdout, 'utf8') : undefined;
+  const stderr = typeof result.stderr === 'string' ? Buffer.byteLength(result.stderr, 'utf8') : undefined;
+  return {
+    ok: result.ok === true,
+    code: Number.isInteger(result.code) ? result.code : null,
+    status: Number.isInteger(result.status) ? result.status : null,
+    signal: typeof result.signal === 'string' ? result.signal : null,
+    timedOut: result.timedOut === true,
+    stdoutBytes: stdout,
+    stderrBytes: stderr,
+    errorCode: typeof result.error?.code === 'string' ? result.error.code : undefined,
+  };
+}
+
+async function invokeAdapter(deps, command, payload, input) {
+  // These calls form the only compatibility boundary between the CLI and the
+  // runtime modules.  Keep all signature adaptation here when a runtime API is
+  // changed; parser behavior and command safety remain independent.
+  if (command === 'tasks') {
+    const action = payload.positionals[0] ?? 'inspect';
+    if (action !== 'inspect') throw new CliUsageError(`unknown tasks action: ${action}`);
+    if (!isObject(input) && !Array.isArray(input)) throw new CliUsageError('tasks inspect requires --input with a host snapshot');
+    const tasksApi = deps.tasks;
+    if (!tasksApi) return { supported: false, command, reason: 'task awareness adapter unavailable' };
+    return {
+      action,
+      snapshot: tasksApi.sanitizeTaskSnapshot(input, {
+        namespace: payload.options.namespace,
+        currentTaskId: payload.options.currentTaskId,
+      }),
+    };
+  }
+
+  if (command === 'bridge') {
+    const action = payload.positionals[0] ?? 'inbox';
+    const bridgeApi = deps.bridge;
+    if (!bridgeApi) return { supported: false, command, reason: 'bridge adapter unavailable' };
+    const root = projectStatePath(
+      payload.repo,
+      payload.options.bridgeRoot ?? payload.config.bridgeRoot,
+      join('.worktree-proof', 'bridge'),
+      'bridge root',
+    );
+    const messageId = payload.options.messageId ?? payload.positionals[1];
+    if (action === 'send') {
+      const source = isObject(input) ? input : {};
+      return {
+        action,
+        message: await bridgeApi.sendBridgeMessage(root, {
+          ...source,
+          sender: payload.options.sender ?? source.sender,
+          recipient: payload.options.recipient ?? source.recipient,
+          type: payload.options.type ?? source.type ?? 'task',
+          summary: payload.options.summary ?? source.summary,
+          laneId: payload.options.laneId ?? source.laneId,
+          fileScope: payload.options.fileScope ?? source.fileScope,
+          capabilities: optionList(payload.options.capabilities, '--capabilities') ?? source.capabilities,
+          replyTo: payload.options.replyTo ?? source.replyTo,
+          idempotencyKey: payload.options.idempotencyKey ?? source.idempotencyKey,
+          ttlMs: numericOption(payload.options.ttlMs, source.ttlMs),
+        }),
+      };
+    }
+    if (action === 'inbox') {
+      const recipient = payload.options.recipient ?? payload.options.agent;
+      if (!recipient) throw new CliUsageError('bridge inbox requires --recipient or --agent');
+      return {
+        action,
+        messages: await bridgeApi.listBridgeInbox(root, { recipient, status: payload.options.status }),
+      };
+    }
+    if (!messageId) throw new CliUsageError(`bridge ${action} requires --message-id or a message id positional`);
+    if (action === 'claim') {
+      const receiver = payload.options.agent ?? payload.options.recipient;
+      if (!receiver) throw new CliUsageError('bridge claim requires --agent or --recipient');
+      return {
+        action,
+        message: await bridgeApi.claimBridgeMessage(root, {
+          messageId,
+          receiver,
+          claimMs: numericOption(payload.options.claimMs, undefined),
+        }),
+      };
+    }
+    if (action === 'ack') {
+      const actor = payload.options.actor ?? payload.options.agent;
+      if (!actor) throw new CliUsageError('bridge ack requires --actor or --agent');
+      return { action, message: await bridgeApi.ackBridgeMessage(root, { messageId, actor }) };
+    }
+    if (['complete', 'fail', 'cancel'].includes(action)) {
+      const source = isObject(input) ? input : {};
+      const actor = payload.options.actor ?? payload.options.agent;
+      if (!actor) throw new CliUsageError(`bridge ${action} requires --actor or --agent`);
+      const result = {
+        ...(payload.options.summary ?? source.summary ? { summary: payload.options.summary ?? source.summary } : {}),
+        ...(payload.options.receiptRef ?? source.receiptRef ? { receiptRef: payload.options.receiptRef ?? source.receiptRef } : {}),
+        ...(Array.isArray(source.evidence) ? { evidence: source.evidence } : {}),
+      };
+      return {
+        action,
+        message: await bridgeApi.completeBridgeMessage(root, {
+          messageId,
+          actor,
+          status: payload.options.resultStatus ?? source.status ?? (action === 'fail' ? 'failed' : action === 'cancel' ? 'cancelled' : 'completed'),
+          result: Object.keys(result).length ? result : undefined,
+        }),
+      };
+    }
+    throw new CliUsageError(`unknown bridge action: ${action}`);
+  }
+
+  if (command === 'tools') {
+    const action = payload.positionals[0] ?? 'list';
+    const toolsApi = deps.tools;
+    if (!toolsApi) return { supported: false, command, reason: 'tool catalog adapter unavailable' };
+    const catalog = toolsApi.loadToolCatalog({
+      catalogPath: payload.options.catalog ? configuredPath(payload.repo, payload.options.catalog, payload.options.catalog) : undefined,
+    });
+    if (action === 'list') {
+      return {
+        action,
+        count: catalog.length,
+        tools: catalog.map((tool) => ({ id: tool.id, name: tool.name, categories: tool.categories, capabilities: tool.capabilities })),
+      };
+    }
+    if (action === 'scan') {
+      const scanOptions = {};
+      if (payload.options.concurrency !== undefined) scanOptions.concurrency = numericOption(payload.options.concurrency);
+      const inventory = await toolsApi.scanTools(catalog, scanOptions);
+      return { action, inventory: toolsApi.summarizeInventory(inventory), results: inventory };
+    }
+    if (action === 'recommend') {
+      const goals = optionList(payload.options.goal ?? payload.positionals.slice(1), '--goal') ?? [];
+      if (goals.length === 0) throw new CliUsageError('tools recommend requires --goal or a goal positional');
+      const inventory = payload.options.input
+        ? JSON.parse(await readFile(configuredPath(payload.repo, payload.options.input, payload.options.input), 'utf8'))
+        : undefined;
+      return { action, goals, recommendations: toolsApi.recommendTools(goals, inventory, { catalog, includeUnavailable: payload.options.includeUnavailable === true }) };
+    }
+    throw new CliUsageError(`unknown tools action: ${action}`);
+  }
+
+  if (command === 'resources') {
+    const action = payload.positionals[0] ?? 'scan';
+    const resourcesApi = deps.resources;
+    if (!resourcesApi) return { supported: false, command, reason: 'resource diagnostics adapter unavailable' };
+    const resourcePolicy = isObject(payload.config.resourcePolicy) ? payload.config.resourcePolicy : {};
+    const scan = input && isObject(input) ? input : await resourcesApi.scanResources({
+      repoPath: payload.repo,
+      maxDepth: numericOption(payload.options.maxDepth, undefined),
+      maxEntries: numericOption(payload.options.maxEntries, undefined),
+    });
+    if (action === 'scan') {
+      return {
+        action,
+        scan,
+        profile: resourcesApi.chooseResourceProfile(scan, payload.options.profile),
+        sessionGuard: resourcesApi.planSessionGuard(scan, {
+          requested: numericOption(payload.options.concurrency, resourcePolicy.requested),
+          configuredMax: resourcePolicy.configuredMax,
+          hostCeiling: numericOption(payload.options.hostCeiling, resourcePolicy.hostCeiling),
+          otherTaskReservations: numericOption(payload.options.otherTaskReservations, undefined),
+        }),
+        summary: resourcesApi.summarizeResources(scan),
+      };
+    }
+    if (action === 'plan') {
+      const roots = optionList(payload.options.allowedRoots ?? payload.options.allowedRoot, '--allowed-roots') ?? ['.'];
+      return {
+        action,
+        scan,
+        sessionGuard: resourcesApi.planSessionGuard(scan, {
+          requested: numericOption(payload.options.concurrency, resourcePolicy.requested),
+          configuredMax: resourcePolicy.configuredMax,
+          hostCeiling: numericOption(payload.options.hostCeiling, resourcePolicy.hostCeiling),
+          otherTaskReservations: numericOption(payload.options.otherTaskReservations, undefined),
+        }),
+        cleanup: resourcesApi.planProjectCleanup(scan, { allowedRoots: roots }),
+      };
+    }
+    throw new CliUsageError(`unknown resources action: ${action}`);
+  }
+
+  if (command === 'recipes') {
+    const action = payload.positionals[0] ?? 'list';
+    const files = await listRecipeFiles(payload.repo);
+    if (action === 'list') return { action, recipes: files.map((file) => file.replace(/\.json$/i, '')) };
+    if (action === 'show') return { action, recipe: await readRecipe(payload.repo, payload.positionals[1]) };
+    throw new CliUsageError(`unknown recipes action: ${action}`);
+  }
+
+  if (command === 'init') {
+    const action = payload.positionals[0] ?? 'preview';
+    const initApi = deps.init;
+    if (!initApi) return { supported: false, command, reason: 'init adapter unavailable' };
+    const targets = optionList(payload.options.targets ?? payload.options.target, '--targets');
+    const plan = await initApi.buildInitPlan({ repo: payload.repo, targets, preset: payload.options.preset });
+    if (action === 'preview' || payload.dryRun) {
+      return { action: 'preview', dryRun: true, plan: await initApi.applyInitPlan(plan, { dryRun: true }) };
+    }
+    if (action !== 'apply') throw new CliUsageError(`unknown init action: ${action}`);
+    if (payload.options.confirm !== true) throw new CliUsageError('init apply requires --confirm');
+    return { action, dryRun: false, result: await initApi.applyInitPlan(plan, { dryRun: false, confirm: true }) };
+  }
+
+  if (command === 'plan') {
+    const fn = findExport(deps.planner, ['planCapacity', 'plan', 'createPlan', 'buildPlan']);
+    if (fn) {
+      const requested = planInput(payload, input);
+      if (payload.options.lanes !== undefined) requested.lanes = parseJsonOption(payload.options.lanes, '--lanes');
+      if (payload.options.backlog !== undefined) requested.backlog = parseJsonOption(payload.options.backlog, '--backlog');
+      if (payload.options.capacity !== undefined) requested.capacity = numericOption(payload.options.capacity);
+      if (payload.options.resources !== undefined) requested.resources = parseJsonOption(payload.options.resources, '--resources');
+      return await fn(requested);
+    }
+  }
+
+  if (command === 'reserve') {
+    const fn = findExport(deps.leases, ['reserveLease']);
+    if (fn) {
+      const lane = laneFromPayload(payload);
+      const ttl = numericOption(payload.options.ttl, undefined);
+      if (ttl !== undefined) lane.ttlMs = ttl;
+      return await fn(leasePath(payload), lane, ttl === undefined ? {} : { ttlMs: ttl });
+    }
+    const registry = deps.leases?.LeaseRegistry;
+    if (typeof registry === 'function') {
+      const ttl = numericOption(payload.options.ttl, undefined);
+      const instance = new registry(leasePath(payload), ttl === undefined ? {} : { ttlMs: ttl });
+      return await instance.reserve(laneFromPayload(payload));
+    }
+  }
+
+  if (command === 'release') {
+    const fn = findExport(deps.leases, ['releaseLease']);
+    const selector = {
+      ...(payload.options.leaseId ? { leaseId: payload.options.leaseId } : {}),
+      ...(payload.options.laneId || payload.laneId ? { laneId: payload.options.laneId ?? payload.laneId } : {}),
+      ...(payload.options.owner ? { owner: payload.options.owner } : {}),
+      ...(payload.options.session ? { session: payload.options.session } : {}),
+      ...(payload.options.reason ? { reason: payload.options.reason } : {}),
+    };
+    if (Object.keys(selector).length === 0 && payload.options.lease) selector.leaseId = payload.options.lease;
+    if (Object.keys(selector).length === 0) throw new CliUsageError('release requires --lease-id or --lane-id');
+    if (fn) return await fn(leasePath(payload), selector);
+    const Registry = deps.leases?.LeaseRegistry;
+    if (typeof Registry === 'function') return await new Registry(leasePath(payload)).release(selector);
+  }
+
+  if (command === 'run') {
+    const fn = findExport(deps.runner, ['executeArgv', 'runArgv', 'runCommand', 'execute', 'run']);
+    if (fn) {
+      const laneId = payload.options.laneId ?? payload.laneId;
+      if (laneId) {
+        const Registry = deps.leases?.LeaseRegistry;
+        if (typeof Registry === 'function') {
+          const active = await new Registry(leasePath(payload)).active();
+          if (!active.some((entry) => entry.laneId === laneId)) {
+            throw new CliOperationError('run requires an active reservation for the lane');
+          }
+        }
+      }
+      const runnerOptions = {
+        cwd: payload.repo,
+        timeoutMs: numericOption(payload.options.timeout, undefined),
+        maxOutputBytes: numericOption(payload.options.maxOutputBytes, undefined),
+      };
+      return sanitizeRunnerResult(await fn(payload.argv, runnerOptions));
+    }
+  }
+
+  if (command === 'doctor') {
+    const fn = findExport(deps.scope, ['doctorScope', 'inspectScope', 'checkScope', 'doctor']);
+    if (fn) return await fn(payload);
+    const discover = findExport(deps.git, ['discoverGitRepository', 'findGitRepository', 'discoverRepository']);
+    if (discover) {
+      try {
+        const repository = await discover(payload.repo, {
+          canonicalRef: payload.options.canonicalRef ?? payload.config.canonicalRef,
+        });
+        return { ok: true, repository, nodeMajor: Number(process.versions.node.split('.')[0]) };
+      } catch {
+        // Doctor is useful before a repository exists.  Report a concise
+        // prerequisite result instead of surfacing git's command output.
+        return {
+          ok: Number(process.versions.node.split('.')[0]) >= 20,
+          repository: payload.repo,
+          git: false,
+          nodeMajor: Number(process.versions.node.split('.')[0]),
+          stateDirectory: configuredPath(payload.repo, payload.config.stateDirectory, '.worktree-proof'),
+        };
+      }
+    }
+    return {
+      ok: Number(process.versions.node.split('.')[0]) >= 20,
+      repository: payload.repo,
+      nodeMajor: Number(process.versions.node.split('.')[0]),
+      stateDirectory: configuredPath(payload.repo, payload.config.stateDirectory, '.worktree-proof'),
+    };
+  }
+
+  if (command === 'status') {
+    const fn = findExport(deps.leases, ['status', 'statusLeases', 'listLeases', 'inspectLeases']);
+    if (fn) {
+      const result = await fn({ registryPath: leasePath(payload), ...payload });
+      const runs = await listJsonRecords(runDirectory(payload));
+      const closures = await listJsonRecords(closureDirectory(payload));
+      return {
+        ...(isObject(result) ? result : { value: result }),
+        runs: runs.map((entry) => entry.value),
+        closures: closures.map((entry) => entry.value),
+        awaitingClosure: (isObject(result) && Array.isArray(result.active) ? result.active : []).filter(
+          (entry) => !closures.some((closure) => closure.value?.laneId === entry.laneId),
+        ),
+      };
+    }
+    const Registry = deps.leases?.LeaseRegistry;
+    if (typeof Registry === 'function') {
+      const instance = new Registry(leasePath(payload));
+      const leases = await instance.list();
+      const active = leases.filter((entry) => entry.status === 'active');
+      const runs = await listJsonRecords(runDirectory(payload));
+      const closures = await listJsonRecords(closureDirectory(payload));
+      return {
+        leases,
+        active,
+        runs: runs.map((entry) => entry.value),
+        closures: closures.map((entry) => entry.value),
+        awaitingClosure: active.filter((entry) => !closures.some((closure) => closure.value?.laneId === entry.laneId)),
+      };
+    }
+    const scopeFn = findExport(deps.scope, ['status', 'scopeStatus']);
+    if (scopeFn) return await scopeFn(payload);
+  }
+
+  if (command === 'close') {
+    const fn = findExport(deps.evidence, ['closeLane', 'close', 'createClosureReceipt', 'writeClosureReceipt']);
+    if (fn) return await fn({ ...payload, receipt: input });
+    const validate = findExport(deps.evidence, ['validateClosureReceipt', 'assertClosureReceipt']);
+    if (validate && input !== undefined) return await validate(input);
+  }
+
+  if (command === 'cleanup') {
+    const fn = findExport(deps.worktree, ['cleanupManagedWorktrees', 'cleanupWorktrees', 'cleanup', 'removeManagedWorktrees']);
+    if (fn) {
+      return await fn({
+        repoRoot: payload.repo,
+        worktreeRoot: configuredPath(payload.repo, payload.config.worktreeRoot, join('.worktree-proof', 'worktrees')),
+        dryRun: payload.dryRun,
+        lanes: payload.options.lanes === undefined ? [] : parseJsonOption(payload.options.lanes, '--lanes'),
+        force: payload.options.force === true,
+        config: payload.config,
+      });
+    }
+  }
+
+  if (command === 'validate') {
+    const fn = findExport(deps.evidence, ['validateClosureReceipt', 'validateReceipt', 'validate']);
+    if (fn && input !== undefined) return await fn(input);
+    const scopeFn = findExport(deps.scope, ['validateLane', 'validate']);
+    if (scopeFn && input !== undefined) return await scopeFn(input);
+    return await validateLocalState(payload.repo, payload, deps, payload.options.input ?? payload.options.receipt ?? payload.positionals[0]);
+  }
+
+  return await invokeFirst(deps, command, payload);
+}
+
+function commandPayload(parsed, repo, configData) {
+  return {
+    repo,
+    config: configData.config,
+    configPath: configData.path,
+    options: { ...parsed.options },
+    positionals: [...parsed.positionals],
+    argv: [...parsed.passthrough],
+    dryRun: parsed.options.dryRun === true,
+    submit: parsed.options.noSubmit !== true && parsed.options.dryRun !== true,
+    noSubmit: parsed.options.noSubmit === true,
+  };
+}
+
+function requireValue(options, name, command) {
+  const value = options[name];
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new CliUsageError(`${command} requires --${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`);
+  }
+  return value;
+}
+
+function checkCommandPositionals(parsed) {
+  const { command, positionals } = parsed;
+  if (command === 'run') {
+    if (positionals.length > 1) throw new CliUsageError('run accepts at most one positional lane id');
+    if (parsed.passthrough.length === 0 && !parsed.options.dryRun) {
+      throw new CliUsageError('run requires a program after `--`');
+    }
+  }
+  if (['reserve', 'release', 'close'].includes(command)
+      && positionals.length > 1) {
+    throw new CliUsageError(`${command} accepts at most one positional lane id`);
+  }
+  if (command === 'validate' && positionals.length > 1) {
+    throw new CliUsageError('validate accepts at most one receipt path');
+  }
+  if (command === 'bridge' && positionals.length > 2) {
+    throw new CliUsageError('bridge accepts an action and at most one message id');
+  }
+  if (command === 'tasks' && positionals.length > 1) {
+    throw new CliUsageError('tasks accepts one action');
+  }
+}
+
+async function executeCommand(parsed, context) {
+  const { command, options } = parsed;
+  if (command === undefined || parsed.commandHelp) return { help: usage() };
+  if (parsed.commandVersion) return { version: versionText() };
+  checkCommandPositionals(parsed);
+
+  const payload = commandPayload(parsed, context.repo, context.configData);
+  if (parsed.positionals.length === 1 && !options.laneId) payload.laneId = parsed.positionals[0];
+  if (command === 'run') {
+    // The runner receives an argv array, never a shell command string.  A dry
+    // run reports shape only so command arguments cannot leak into logs.
+    if (parsed.passthrough.length === 0 || options.dryRun) {
+      return {
+        planned: true,
+        executed: false,
+        argvCount: parsed.passthrough.length,
+        submit: payload.submit,
+      };
+    }
+  }
+
+  if (['reserve', 'release', 'close', 'cleanup'].includes(command)
+      && (!payload.submit || options.dryRun)) {
+    return {
+      planned: true,
+      submitted: false,
+      command,
+      reason: options.dryRun ? 'dry-run' : 'no-submit',
+    };
+  }
+  if (command === 'bridge'
+      && (parsed.positionals[0] ?? 'inbox') !== 'inbox'
+      && (!payload.submit || options.dryRun)) {
+    return {
+      planned: true,
+      submitted: false,
+      command,
+      action: parsed.positionals[0],
+      reason: options.dryRun ? 'dry-run' : 'no-submit',
+    };
+  }
+
+  const inputOption = options.input ?? options.receipt
+    ?? (command === 'validate' ? parsed.positionals[0] : undefined);
+  const configuredReceipt = command === 'close' ? context.configData.config.receipt : undefined;
+  const input = inputOption === undefined
+    ? (typeof configuredReceipt === 'string'
+      ? await readJsonInput(context.repo, configuredReceipt, 'receipt')
+      : configuredReceipt)
+    : await readJsonInput(context.repo, inputOption, command === 'validate' ? 'receipt' : 'input');
+  const result = await invokeAdapter(context.deps, command, payload, input);
+  if (command === 'plan') {
+    const persisted = await persistPlan(payload, result);
+    return persisted ? { ...(isObject(result) ? result : { value: result }), planPath: persisted } : result;
+  }
+  if (command === 'run') {
+    const sanitized = sanitizeRunnerResult(result);
+    const persisted = await persistRun(payload, sanitized);
+    return persisted ? { ...sanitized, runPath: persisted } : sanitized;
+  }
+  return result === undefined ? { ok: true, command } : result;
+}
+
+function renderResult(parsed, result) {
+  const safeResult = redact(result);
+  if (parsed.options.json) {
+    return safeJson({ ok: true, command: parsed.command ?? null, result: safeResult });
+  }
+  if (result?.help) return result.help;
+  if (result?.version) return result.version;
+  if (result?.planned && result?.executed === false) {
+    return `${parsed.command}: planned (not executed)`;
+  }
+  if (result?.planned && result?.submitted === false) {
+    return `${parsed.command}: planned (${result.reason})`;
+  }
+  if (result?.supported === false) return `${parsed.command}: ${result.reason}`;
+  if (result === undefined || result === null) return `${parsed.command}: ok`;
+  // Do not echo arbitrary adapter strings (a runner could have returned child
+  // process output containing a credential or other sensitive value).
+  if (typeof result === 'string') return `${parsed.command}: ok`;
+  if (typeof result === 'number' || typeof result === 'boolean') return String(result);
+  // Human output intentionally contains keys and status only, not arbitrary
+  // values returned by adapters.
+  const keys = Object.keys(safeResult ?? {}).sort();
+  return `${parsed.command}: ok${keys.length ? ` (${keys.join(', ')})` : ''}`;
+}
+
+/**
+ * Run one CLI invocation.  The return value is suitable for bin/worktree-proof.js
+ * and for tests; no process exit occurs here.
+ */
+export async function runCli(argv = process.argv.slice(2), options = {}) {
+  const io = options.io ?? defaultIo();
+  let parsed;
+  try {
+    parsed = parseArgs(argv);
+  } catch (error) {
+    const message = errorMessage(error);
+    const fallback = { ok: false, error: message, code: EXIT_CODES.USAGE };
+    if (argv.includes('--json')) io.stdout(safeJson(fallback));
+    else io.stderr(`error: ${message}\n${usage()}`);
+    return fallback;
+  }
+
+  if (parsed.command === undefined || parsed.commandHelp || parsed.commandVersion) {
+    const result = parsed.commandVersion ? { version: versionText() } : { help: usage() };
+    io.stdout(parsed.options.json ? safeJson({ ok: true, command: parsed.command ?? null, result }) : (result.version ?? result.help));
+    return { ok: true, code: EXIT_CODES.OK, result };
+  }
+
+  const repo = resolve(options.repo ?? parsed.options.repo ?? process.cwd());
+  let configData;
+  try {
+    configData = await (options.loadConfig
+      ? options.loadConfig(repo, parsed.options.config)
+      : loadConfig(repo, parsed.options.config));
+    const deps = await loadRuntimeDependencies(options.deps ?? {});
+    const result = await executeCommand(parsed, { repo, configData, deps });
+    io.stdout(renderResult(parsed, result));
+    return { ok: true, code: EXIT_CODES.OK, result };
+  } catch (error) {
+    const message = errorMessage(error);
+    const code = error?.code === EXIT_CODES.USAGE ? EXIT_CODES.USAGE : EXIT_CODES.ERROR;
+    if (parsed.options.json) io.stdout(safeJson({ ok: false, command: parsed.command, error: message, code }));
+    else io.stderr(`error: ${message}`);
+    return { ok: false, code, error: message };
+  }
+}
+
+export async function main(argv = process.argv.slice(2), options = {}) {
+  const result = await runCli(argv, options);
+  return result.code ?? (result.ok ? EXIT_CODES.OK : EXIT_CODES.ERROR);
+}

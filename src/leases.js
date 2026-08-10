@@ -88,4 +88,351 @@ function validateLeaseEntry(entry, index, now) {
     throw new RegistryStateError(`registry lease ${index} must be an object`);
   }
   const leaseId = registryToken(entry.leaseId, `registry lease ${index}.leaseId`);
-  const laneId = registryLaneId(entry.laneId, `registry leaseßow¶‰ËkºwµçM•ÉÉ½È¡±…¹”€‘í)M=8¹ÍÑÉ¥¹¥™ä¡±•…Í”¹±…¹•%¥ô…±É•…‘ä¡…Ì…¸…Ñ¥Ù”±•…Í•€°€II}1M}=91%Pœ¤ì(€€€€€€€ô(€€€€€€€¥˜€¡Í½Á•Í=Ù•É±…À¡•á¥ÍÑ¥¹œ¹™¥±•M½Á”°±•…Í”¹™¥±•M½Á”¤¤ì(€€€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È (€€€€€€€€€€€™¥±•M½Á”€‘í)M=8¹ÍÑÉ¥¹¥™ä¡±•…Í”¹™¥±•M½Á”¥ô½Ù•É±…ÁÌ…Ñ¥Ù”±•…Í”€‘í)M=8¹ÍÑÉ¥¹¥™ä¡•á¥ÍÑ¥¹œ¹™¥±•M½Á”¥õ€°(€€€€€€€€€€€€II}1M}=91%Pœ°(€€€€€€€€€€¤ì(€€€€€€€ô(€€€€€ô(€€€€€½¹ÍĞ¹•áĞ€ôì€¸¸¹ÍÑ…Ñ”°±•…Í•Ìèl¸¸¹ÍÑ…Ñ”¹±•…Í•Ì°±•…Í•tôì(€€€€€…İ…¥ĞİÉ¥Ñ•I•¥ÍÑÉå¥±”¡Ñ¡¥Ì¹É•¥ÍÑÉåA…Ñ °¹•áĞ¤ì(€€€€€É•ÑÕÉ¸±•…Í”ì(€€€ô°Ñ¡¥Ì¹±½­=ÁÑ¥½¹Ì¤ì(€ô((€…Íå¹ŒÉ•±•…Í”¡Í•±•Ñ½È¤ì(€€€É•ÑÕÉ¸İ¥Ñ¡I•¥ÍÑÉå1½¬¡Ñ¡¥Ì¹É•¥ÍÑÉåA…Ñ °…Íå¹Œ€ ¤€ôøì(€€€€€½¹ÍĞ¹½Ü€ôÕÉÉ•¹ÑQ¥µ”¡Ñ¡¥Ì¹±½¬¤ì(€€€€€½¹ÍĞÍÑ…Ñ”€ô…İ…¥ĞÉ•…‘I•¥ÍÑÉå¥±”¡Ñ¡¥Ì¹É•¥ÍÑÉåA…Ñ °¹½Ü¤ì(€€€€€½¹ÍĞÅÕ•Éä€ôÑåÁ•½˜Í•±•Ñ½È€ôôô€ÍÑÉ¥¹œœ€üì±•…Í•%èÍ•±•Ñ½Èô€èÍ•±•Ñ½Èì(€€€€€¥˜€ …ÅÕ•ÉäñğÑåÁ•½˜ÅÕ•Éä€„ôô€½‰©•ĞœñğÉÉ…ä¹¥ÍÉÉ…ä¡ÅÕ•Éä¤¤ì(€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È É•±•…Í”Í•±•Ñ½ÈµÕÍĞ‰”„±•…Í•%½È½‰©•Ğœ°€II}%9Y1%}I1Mœ¤ì(€€€€€ô(€€€€€½¹ÍĞµ…Ñ¡•Ì€ôÍÑ…Ñ”¹±•…Í•Ì¹™¥±Ñ•È ¡•¹ÑÉä¤€ôø€ (€€€€€€€•¹ÑÉä¹ÍÑ…ÑÕÌ€ôôô€…Ñ¥Ù”œ(€€€€€€€€˜˜€¡ÅÕ•Éä¹±•…Í•%€ôôôÕ¹‘•™¥¹•ñğ•¹ÑÉä¹±•…Í•%€ôôôÅÕ•Éä¹±•…Í•%¤(€€€€€€€€˜˜€¡ÅÕ•Éä¹±…¹•%€ôôôÕ¹‘•™¥¹•ñğ•¹ÑÉä¹±…¹•%€ôôôÅÕ•Éä¹±…¹•%¤(€€€€€€¤¤ì(€€€€€¥˜€¡µ…Ñ¡•Ì¹±•¹Ñ €ôôô€À¤ì(€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È …Ñ¥Ù”±•…Í”İ…Ì¹½Ğ™½Õ¹œ°€II}1M}9=Q}=U9œ¤ì(€€€€€ô(€€€€€¥˜€¡µ…Ñ¡•Ì¹±•¹Ñ €ø€Ä¤ì(€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È É•±•…Í”Í•±•Ñ½È¥Ì…µ‰¥Õ½ÕÌœ°€II}I1M}5	%U=ULœ¤ì(€€€€€ô(€€€€€½¹ÍĞÑ…É•Ğ€ôµ…Ñ¡•ÍlÁtì(€€€€€™½È€¡½¹ÍĞ™¥•±½˜l½İ¹•Èœ°€Í•ÍÍ¥½¸t¤ì(€€€€€€€¥˜€¡ÅÕ•Éåm™¥•±‘t€„ôôÕ¹‘•™¥¹•€˜˜ÅÕ•Éåm™¥•±‘t€„ôôÑ…É•Ñm™¥•±‘t¤ì(€€€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È¡É•±•…Í”€‘í™¥•±‘ô‘½•Ì¹½Ğµ…Ñ ±•…Í”½İ¹•É€°€II}I1M}=I	%8œ¤ì(€€€€€€€ô(€€€€€ô(€€€€€±•ĞÉ•…Í½¸ì(€€€€€¥˜€¡ÅÕ•Éä¹É•…Í½¸€„ôôÕ¹‘•™¥¹•¤ì(€€€€€€€¥˜€¡ÑåÁ•½˜ÅÕ•Éä¹É•…Í½¸€„ôô€ÍÑÉ¥¹œœñğ€…ÅÕ•Éä¹É•…Í½¸¹ÑÉ¥´ ¤ñğÅÕ•Éä¹É•…Í½¸€„ôôÅÕ•Éä¹É•…Í½¸¹ÑÉ¥´ ¤¤ì(€€€€€€€€€Ñ¡É½Ü¹•Ü1•…Í•ÉÉ½È É•±•…Í”É•…Í½¸µÕÍĞ‰”„¹½¸µ•µÁÑäÑÉ¥µµ•ÍÑÉ¥¹œœ°€II}%9Y1%}I1Mœ¤ì(€€€€€€€ô(€€€€€€€É•…Í½¸€ôÅÕ•Éä¹É•…Í½¸ì(€€€€€ô(€€€€€½¹ÍĞÉ•±•…Í•‘Ğ€ô¹•Ü…Ñ”¡¹½Ü¤¹Ñ½%M=MÑÉ¥¹œ ¤ì(€€€€€½¹ÍĞÉ•±•…Í•€ôì(€€€€€€€€¸¸¹Ñ…É•Ğ°(€€€€€€€ÍÑ…ÑÕÌè€É•±•…Í•œ°(€€€€€€€…Ñ¥Ù”è™…±Í”°(€€€€€€€É•±•…Í•‘Ğ°(€€€€€€€ÕÁ‘…Ñ•‘ĞèÉ•±•…Í•‘Ğ°(€€€€€€€€¸¸¸¡É•…Í½¸€ôôôÕ¹‘•™¥¹•€üíô€èìÉ•…Í½¸ô¤°(€€€€€ôì(€€€€€½¹ÍĞ¹•áĞ€ôì(€€€€€€€€¸¸¹ÍÑ…Ñ”°(€€€€€€€±•…Í•ÌèÍÑ…Ñ”¹±•…Í•Ì¹µ…À ¡•¹ÑÉä¤€ôø•¹ÑÉä¹±•…Í•%€ôôôÑ…É•Ğ¹±•…Í•%€üÉ•±•…Í•€è•¹ÑÉä¤°(€€€€€ôì(€€€€€…İ…¥ĞİÉ¥Ñ•I•¥ÍÑÉå¥±”¡Ñ¡¥Ì¹É•¥ÍÑÉåA…Ñ °¹•áĞ¤ì(€€€€€É•ÑÕÉ¸É•±•…Í•ì(€€€ô°Ñ¡¥Ì¹±½­=ÁÑ¥½¹Ì¤ì(€ô)ô()•áÁ½ÉĞ…Íå¹Œ™Õ¹Ñ¥½¸É•Í•ÉÙ•1•…Í”¡É•¥ÍÑÉåA…Ñ °¥¹ÁÕĞ°½ÁÑ¥½¹Ì€ôíô¤ì(€É•ÑÕÉ¸¹•Ü1•…Í•I•¥ÍÑÉä¡É•¥ÍÑÉåA…Ñ °½ÁÑ¥½¹Ì¤¹É•Í•ÉÙ”¡¥¹ÁÕĞ¤ì)ô()•áÁ½ÉĞ…Íå¹Œ™Õ¹Ñ¥½¸É•±•…Í•1•…Í”¡É•¥ÍÑÉåA…Ñ °Í•±•Ñ½È°½ÁÑ¥½¹Ì€ôíô¤ì(€É•ÑÕÉ¸¹•Ü1•…Í•I•¥ÍÑÉä¡É•¥ÍÑÉåA…Ñ °½ÁÑ¥½¹Ì¤¹É•±•…Í”¡Í•±•Ñ½È¤ì)ô()•áÁ½ÉĞ½¹ÍĞÉ•¥ÍÑÉåY•ÉÍ¥½¸€ôI%MQIe}YIM%=8ì
+  const laneId = registryLaneId(entry.laneId, `registry lease ${index}.laneId`);
+  const fileScope = registryFileScope(entry.fileScope, `registry lease ${index}.fileScope`);
+  const owner = registryToken(entry.owner, `registry lease ${index}.owner`);
+  const session = registryToken(entry.session, `registry lease ${index}.session`);
+  const timestampMs = timestamp(entry.timestamp, `registry lease ${index}.timestamp`);
+  if (!Number.isSafeInteger(entry.ttlMs) || entry.ttlMs <= 0) {
+    throw new RegistryStateError(`registry lease ${index}.ttlMs must be a positive integer`);
+  }
+  const expiresAtMs = timestamp(entry.expiresAt, `registry lease ${index}.expiresAt`);
+  if (expiresAtMs !== timestampMs + entry.ttlMs) {
+    throw new RegistryStateError(`registry lease ${index}.expiresAt does not match timestamp + ttlMs`);
+  }
+  if (entry.status !== 'active' && entry.status !== 'released') {
+    throw new RegistryStateError(`registry lease ${index}.status must be active or released`);
+  }
+  if (typeof entry.active !== 'boolean' || entry.active !== (entry.status === 'active')) {
+    throw new RegistryStateError(`registry lease ${index}.active must match status`);
+  }
+  if (entry.status === 'active' && expiresAtMs <= now) {
+    throw new RegistryStateError(
+      `registry lease ${JSON.stringify(leaseId)} is stale (expired at ${entry.expiresAt})`,
+      'ERR_STALE_REGISTRY',
+    );
+  }
+  if (entry.releasedAt !== undefined) {
+    timestamp(entry.releasedAt, `registry lease ${index}.releasedAt`);
+  }
+  return {
+    ...entry,
+    leaseId,
+    laneId,
+    fileScope,
+    owner,
+    session,
+    timestamp: new Date(timestampMs).toISOString(),
+    expiresAt: new Date(expiresAtMs).toISOString(),
+  };
+}
+
+function validateRegistry(value, now) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new RegistryStateError('registry root must be an object');
+  }
+  if (value.version !== REGISTRY_VERSION) {
+    throw new RegistryStateError(`registry version must be ${REGISTRY_VERSION}`);
+  }
+  if (!Array.isArray(value.leases)) {
+    throw new RegistryStateError('registry leases must be an array');
+  }
+  const leases = value.leases.map((entry, index) => validateLeaseEntry(entry, index, now));
+  const active = leases.filter((entry) => entry.status === 'active');
+  const seenIds = new Set();
+  for (const lease of active) {
+    if (seenIds.has(lease.leaseId)) {
+      throw new RegistryStateError(`duplicate active leaseId ${JSON.stringify(lease.leaseId)}`);
+    }
+    seenIds.add(lease.leaseId);
+  }
+  try {
+    // normalizeLanes checks duplicate IDs and overlapping file scopes among
+    // active leases while allowing historical released entries to remain.
+    normalizeLanes(active.map(({ laneId, fileScope }) => ({ laneId, fileScope })));
+  } catch (error) {
+    throw new RegistryStateError(`active registry leases conflict: ${error.message}`, 'ERR_CONFLICTING_REGISTRY');
+  }
+  return { ...value, version: REGISTRY_VERSION, leases };
+}
+
+async function ensureParent(registryPath) {
+  await mkdir(dirname(registryPath), { recursive: true });
+}
+
+function lockPath(registryPath) {
+  return `${registryPath}.lock`;
+}
+
+function wait(milliseconds) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
+}
+
+/** Acquire an exclusive directory lock with bounded retries. */
+export async function acquireRegistryLock(registryPath, {
+  attempts = DEFAULT_LOCK_ATTEMPTS,
+  delayMs = DEFAULT_LOCK_DELAY_MS,
+} = {}) {
+  const target = resolve(registryPath);
+  if (!Number.isSafeInteger(attempts) || attempts < 1) {
+    throw new LeaseError('lock attempts must be a positive integer', 'ERR_INVALID_LOCK_OPTIONS');
+  }
+  if (!Number.isSafeInteger(delayMs) || delayMs < 0) {
+    throw new LeaseError('lock delayMs must be a non-negative integer', 'ERR_INVALID_LOCK_OPTIONS');
+  }
+  await ensureParent(target);
+  const directory = lockPath(target);
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await mkdir(directory, { recursive: false });
+      return { path: directory, attempts: attempt };
+    } catch (error) {
+      if (error?.code !== 'EEXIST') {
+        throw new LeaseError(`unable to acquire registry lock: ${error.message}`, 'ERR_LOCK_ACQUIRE');
+      }
+      if (attempt === attempts) {
+        throw new LeaseError(
+          `registry lock is busy after ${attempts} attempts: ${directory}`,
+          'ERR_LOCK_TIMEOUT',
+        );
+      }
+      if (delayMs > 0) {
+        await wait(delayMs);
+      }
+    }
+  }
+  throw new LeaseError('registry lock acquisition failed', 'ERR_LOCK_ACQUIRE');
+}
+
+export async function releaseRegistryLock(lock) {
+  if (!lock || typeof lock.path !== 'string') {
+    throw new LeaseError('invalid registry lock handle', 'ERR_LOCK_RELEASE');
+  }
+  try {
+    await rmdir(lock.path);
+  } catch (error) {
+    throw new LeaseError(`unable to release registry lock ${lock.path}: ${error.message}`, 'ERR_LOCK_RELEASE');
+  }
+}
+
+export async function withRegistryLock(registryPath, operation, options = {}) {
+  if (typeof operation !== 'function') {
+    throw new LeaseError('lock operation must be a function', 'ERR_INVALID_LOCK_OPERATION');
+  }
+  const lock = await acquireRegistryLock(registryPath, options);
+  let operationResult;
+  let operationError;
+  try {
+    operationResult = await operation();
+  } catch (error) {
+    operationError = error;
+  }
+  try {
+    await releaseRegistryLock(lock);
+  } catch (releaseError) {
+    if (operationError) {
+      operationError.lockReleaseError = releaseError;
+      throw operationError;
+    }
+    throw releaseError;
+  }
+  if (operationError) throw operationError;
+  return operationResult;
+}
+
+async function readRegistryFile(registryPath, now) {
+  let raw;
+  try {
+    raw = await readFile(registryPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return stateSkeleton();
+    }
+    throw new RegistryStateError(`unable to read registry: ${error.message}`, 'ERR_REGISTRY_READ');
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new RegistryStateError(`registry JSON is malformed: ${error.message}`);
+  }
+  return validateRegistry(parsed, now);
+}
+
+async function writeRegistryFile(registryPath, state) {
+  await ensureParent(registryPath);
+  const temporary = join(
+    dirname(registryPath),
+    `.${basename(registryPath)}.${process.pid}.${randomUUID()}.tmp`,
+  );
+  const content = `${JSON.stringify(state, null, 2)}\n`;
+  try {
+    await writeFile(temporary, content, { encoding: 'utf8', flag: 'wx' });
+    try {
+      await rename(temporary, registryPath);
+    } catch (error) {
+      // Windows refuses to rename over an existing file.  The directory lock
+      // makes this fallback safe from other registry writers.
+      if (error?.code !== 'EEXIST' && error?.code !== 'EPERM' && error?.code !== 'ENOTEMPTY') {
+        throw error;
+      }
+      await rm(registryPath, { force: true });
+      await rename(temporary, registryPath);
+    }
+  } catch (error) {
+    throw new LeaseError(`unable to write registry: ${error.message}`, 'ERR_REGISTRY_WRITE');
+  } finally {
+    await rm(temporary, { force: true }).catch(() => {});
+  }
+}
+
+function leaseInput(input, now, defaultTtlMs, idFactory) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new LeaseError('lease input must be an object', 'ERR_INVALID_LEASE_INPUT');
+  }
+  const normalized = normalizeLane(input);
+  const owner = token(input.owner, 'owner');
+  const session = token(input.session, 'session');
+  const ttlMs = input.ttlMs ?? defaultTtlMs;
+  if (!Number.isSafeInteger(ttlMs) || ttlMs <= 0) {
+    throw new LeaseError('ttlMs must be a positive integer', 'ERR_INVALID_LEASE_INPUT');
+  }
+  const leaseId = token(input.leaseId ?? idFactory(), 'leaseId');
+  const timestampValue = new Date(now).toISOString();
+  return {
+    leaseId,
+    laneId: normalized.laneId,
+    fileScope: normalized.fileScope,
+    owner,
+    session,
+    timestamp: timestampValue,
+    ttlMs,
+    expiresAt: new Date(now + ttlMs).toISOString(),
+    status: 'active',
+    active: true,
+  };
+}
+
+export class LeaseRegistry {
+  constructor(registryPath, {
+    clock = Date.now,
+    ttlMs = DEFAULT_TTL_MS,
+    idFactory = randomUUID,
+    lockAttempts = DEFAULT_LOCK_ATTEMPTS,
+    lockDelayMs = DEFAULT_LOCK_DELAY_MS,
+  } = {}) {
+    if (typeof registryPath !== 'string' || !registryPath.trim()) {
+      throw new LeaseError('registryPath must be a non-empty string', 'ERR_INVALID_REGISTRY_PATH');
+    }
+    if (!Number.isSafeInteger(ttlMs) || ttlMs <= 0) {
+      throw new LeaseError('default ttlMs must be a positive integer', 'ERR_INVALID_LEASE_INPUT');
+    }
+    if (typeof clock !== 'function' || typeof idFactory !== 'function') {
+      throw new LeaseError('clock and idFactory must be functions', 'ERR_INVALID_LEASE_OPTIONS');
+    }
+    this.registryPath = resolve(registryPath);
+    this.clock = clock;
+    this.ttlMs = ttlMs;
+    this.idFactory = idFactory;
+    this.lockOptions = { attempts: lockAttempts, delayMs: lockDelayMs };
+  }
+
+  async read() {
+    return withRegistryLock(this.registryPath, async () => (
+      readRegistryFile(this.registryPath, currentTime(this.clock))
+    ), this.lockOptions);
+  }
+
+  async list() {
+    const state = await this.read();
+    return state.leases;
+  }
+
+  async active() {
+    const state = await this.read();
+    return state.leases.filter((lease) => lease.status === 'active');
+  }
+
+  async reserve(input) {
+    return withRegistryLock(this.registryPath, async () => {
+      const now = currentTime(this.clock);
+      const state = await readRegistryFile(this.registryPath, now);
+      const lease = leaseInput(input, now, this.ttlMs, this.idFactory);
+      const active = state.leases.filter((entry) => entry.status === 'active');
+      for (const existing of active) {
+        if (existing.leaseId === lease.leaseId || existing.laneId === lease.laneId) {
+          throw new LeaseError(`lane ${JSON.stringify(lease.laneId)} already has an active lease`, 'ERR_LEASE_CONFLICT');
+        }
+        if (scopesOverlap(existing.fileScope, lease.fileScope)) {
+          throw new LeaseError(
+            `fileScope ${JSON.stringify(lease.fileScope)} overlaps active lease ${JSON.stringify(existing.fileScope)}`,
+            'ERR_LEASE_CONFLICT',
+          );
+        }
+      }
+      const next = { ...state, leases: [...state.leases, lease] };
+      await writeRegistryFile(this.registryPath, next);
+      return lease;
+    }, this.lockOptions);
+  }
+
+  async release(selector) {
+    return withRegistryLock(this.registryPath, async () => {
+      const now = currentTime(this.clock);
+      const state = await readRegistryFile(this.registryPath, now);
+      const query = typeof selector === 'string' ? { leaseId: selector } : selector;
+      if (!query || typeof query !== 'object' || Array.isArray(query)) {
+        throw new LeaseError('release selector must be a leaseId or object', 'ERR_INVALID_RELEASE');
+      }
+      const matches = state.leases.filter((entry) => (
+        entry.status === 'active'
+        && (query.leaseId === undefined || entry.leaseId === query.leaseId)
+        && (query.laneId === undefined || entry.laneId === query.laneId)
+      ));
+      if (matches.length === 0) {
+        throw new LeaseError('active lease was not found', 'ERR_LEASE_NOT_FOUND');
+      }
+      if (matches.length > 1) {
+        throw new LeaseError('release selector is ambiguous', 'ERR_RELEASE_AMBIGUOUS');
+      }
+      const target = matches[0];
+      for (const field of ['owner', 'session']) {
+        if (query[field] !== undefined && query[field] !== target[field]) {
+          throw new LeaseError(`release ${field} does not match lease owner`, 'ERR_RELEASE_FORBIDDEN');
+        }
+      }
+      let reason;
+      if (query.reason !== undefined) {
+        if (typeof query.reason !== 'string' || !query.reason.trim() || query.reason !== query.reason.trim()) {
+          throw new LeaseError('release reason must be a non-empty trimmed string', 'ERR_INVALID_RELEASE');
+        }
+        reason = query.reason;
+      }
+      const releasedAt = new Date(now).toISOString();
+      const released = {
+        ...target,
+        status: 'released',
+        active: false,
+        releasedAt,
+        updatedAt: releasedAt,
+        ...(reason === undefined ? {} : { reason }),
+      };
+      const next = {
+        ...state,
+        leases: state.leases.map((entry) => entry.leaseId === target.leaseId ? released : entry),
+      };
+      await writeRegistryFile(this.registryPath, next);
+      return released;
+    }, this.lockOptions);
+  }
+}
+
+export async function reserveLease(registryPath, input, options = {}) {
+  return new LeaseRegistry(registryPath, options).reserve(input);
+}
+
+export async function releaseLease(registryPath, selector, options = {}) {
+  return new LeaseRegistry(registryPath, options).release(selector);
+}
+
+export const registryVersion = REGISTRY_VERSION;

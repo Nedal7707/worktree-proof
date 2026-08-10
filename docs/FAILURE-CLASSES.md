@@ -69,7 +69,77 @@ and proves the operation fails before changing a file.
 **Symptom:** Two active lanes claim the same file, a parent directory and its
 child, or equivalent paths written in different forms.
 
-**Invariant:** Active lanes must hav˜ém¢Gß≤⁄Óù∆≠y–and preserved before any
+**Invariant:** Active lanes must have unique, normalized, non-overlapping
+relative scopes.
+
+**Mechanical control:** Normalize separators and traversal, reject duplicate or
+nested scopes at reservation time, and keep one owner for each mutable scope.
+
+**Recovery:** Release the conflicting reservation, re-scope one lane to an
+independent area, and re-run the overlap check before resuming.
+
+**Testable acceptance:** A reservation test rejects duplicate, parent-child,
+and normalized-equivalent scopes while accepting independent siblings.
+
+## Hierarchy or authority deadlock
+
+**Symptom:** Executors wait on one another for supervisory approval, a second
+key, or an authority that was never assigned.
+
+**Invariant:** One coordinator owns decisions; executors return
+evidence but cannot gate one another.
+
+**Mechanical control:** Assign one decision owner, give each executor a closed
+scope and terminal output, and prohibit approval chains that can wait
+indefinitely.
+
+**Recovery:** Remove the waiting edge, decide from the available artifacts, and
+issue at most one bounded correction with a clear owner.
+
+**Testable acceptance:** Two independent lanes cannot block one another by
+withholding approval; a returned artifact is sufficient for the coordinator to
+decide.
+
+## Misleading diff or completion claims
+
+**Symptom:** A commit, diff, branch, or progress statement is described as fixed
+or complete despite unmerged, unrelated, or unverified changes.
+
+**Invariant:** A claim must match the observed diff and terminal evidence in the
+named target.
+
+**Mechanical control:** Compare the change summary with the actual diff, verify
+the target revision, and distinguish pending, landed, and verified states.
+
+**Recovery:** Correct the record, relabel pending work, and run the missing
+checks before making a completion claim.
+
+**Testable acceptance:** A test with an unmerged change keeps the status pending
+until the target revision and required evidence match.
+
+## Unmerged branch or worktree accumulation
+
+**Symptom:** Branches or worktrees remain after a lane appears finished, making
+ownership, divergence, and cleanup unclear.
+
+**Invariant:** Every branch and worktree is temporary until it is merged and
+cleaned or explicitly abandoned and deleted.
+
+**Mechanical control:** Inventory active refs before new work, pair every lane
+with integration and cleanup, and delete only validated superseded surfaces.
+
+**Recovery:** For each stale surface choose merge, resume-and-clean, or
+abandon-and-delete; record the outcome before reusing its scope.
+
+**Testable acceptance:** A close operation leaves no owned stale surface, or
+returns an explicit abandonment record with cleanup proof.
+
+## Dirty-work loss
+
+**Symptom:** A reset, cleanup, checkout, or overwrite erases uncommitted work
+before its owner can recover it.
+
+**Invariant:** Uncommitted state must be detected and preserved before any
 destructive operation.
 
 **Mechanical control:** Check cleanliness, create a patch or other rescue

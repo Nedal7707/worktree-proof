@@ -78,7 +78,46 @@ export function executeArgv(argv, options = {}) {
     shell: false,
   };
 
-  return new Promã­í¢G§²ÚîÆ­yÒ?.on?.('data', (chunk) => append(stderr, chunk));
+  return new Promise((resolve) => {
+    const result = baseResult(argv, { ...options, maxOutputBytes });
+    const stdout = [];
+    const stderr = [];
+    let child;
+    let timer;
+    let killTimer;
+    let settled = false;
+    let timedOut = false;
+    let timeoutError;
+
+    const append = (buffer, chunk) => {
+      if (Buffer.byteLength(buffer.join(''), 'utf8') >= maxOutputBytes) return;
+      buffer.push(Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk));
+    };
+    const finalize = (code = null, signal = null, error = undefined) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      if (killTimer) clearTimeout(killTimer);
+      result.code = Number.isInteger(code) ? code : null;
+      result.status = result.code;
+      result.signal = signal ?? null;
+      result.timedOut = timedOut;
+      result.stdout = sanitizeText(stdout.join(''), maxOutputBytes);
+      result.stderr = sanitizeText(stderr.join(''), maxOutputBytes);
+      result.error = normalizedError(error ?? timeoutError);
+      result.ok = !result.timedOut && result.code === 0 && !result.signal && !result.error;
+      resolve(result);
+    };
+
+    try {
+      child = spawnImpl(command, args, spawnOptions);
+    } catch (error) {
+      finalize(null, null, error);
+      return;
+    }
+
+    child?.stdout?.on?.('data', (chunk) => append(stdout, chunk));
+    child?.stderr?.on?.('data', (chunk) => append(stderr, chunk));
     child?.once?.('error', (error) => finalize(null, null, error));
     child?.once?.('close', (code, signal) => finalize(code, signal));
     child?.once?.('exit', (code, signal) => finalize(code, signal));

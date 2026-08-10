@@ -76,4 +76,202 @@ function normalizeContext(context = {}) {
   const project = context.project && typeof context.project === 'object' ? context.project : context;
   const stack = project.stack && typeof project.stack === 'object' ? project.stack : {};
   const languages = stringList(stack.languages ?? project.languages);
-  const f×Íø¶‰žËkºwµç}ÁÑ¥½¹ÌèìÝè€œ‘íÝ½É­ÍÁ…•½±‘•Éôœô°(€€€€€ÁÉ½‰±•µ5…Ñ¡•Èèmt°(€€€€€ÁÉ•Í•¹Ñ…Ñ¥½¸èìÉ•Ù•…°è€Í¥±•¹Ðœ°Á…¹•°è€Í¡…É•œô°(€€€õt°(€ô°¹Õ±°°€È¥õq¹€ì)ô()™Õ¹Ñ¥½¸¥]½É­™±½Ü¡½¹Ñ•áÐ¤ì(€€¼¼Q¡¥Ì¥Ì„‘•±¥‰•É…Ñ•±ä½ÁÐµ¥¸±½…°Ù…±¥‘…Ñ¥½¸Í¹¥ÁÁ•Ð¸€%Ð‘½•Ì¹½Ð(€€¼¼¥¹ÍÑ…±°‘•Á•¹‘•¹¥•Ì½È…‘¡•­½ÕÐ½Í•ÑÕÀ…Ñ¥½¹Ìì„É•Á½Í¥Ñ½Éä½Ý¹•È(€€¼¼µÕÍÐÝ¥É”¥Ð¥¹Ñ¼…¸•á¥ÍÑ¥¹œ$©½ˆÝ¥Ñ „ÁÉ½Ù¥Í¥½¹•9½‘”ÉÕ¹Ñ¥µ”¸(€É•ÑÕÉ¸€Œ]½É­ÑÉ••AÉ½½˜Ù…±¥‘…Ñ¥½¸Í¹¥ÁÁ•Ð™½È€‘í½¹Ñ•áÐ¹¹…µ•ô(Œ=ÁÐ¥¸‰äÁ±…¥¹œÑ¡¥ÌÍÑ•À¥¸…¸•á¥ÍÑ¥¹œ$©½ˆÝ¥Ñ 9½‘”¹©Ì€ÈÀ¬…Ù…¥±…‰±”¸(Œ9¼Í½™ÑÝ…É”¥Ì¥¹ÍÑ…±±•…¹¹¼¹•ÑÝ½É¬¥Ì…±±•‰äÑ¡¥ÌÍ¹¥ÁÁ•Ð¸(´¹…µ”è]½É­ÑÉ••AÉ½½˜Ù…±¥‘…Ñ”(€¥˜èp‘íì¡…Í¡¥±•Ì ‰¥¸½Ý½É­ÑÉ•”µÁÉ½½˜¹©Ìœ¤€„ô€œœõô(€ÉÕ¸è¹½‘”€¸½‰¥¸½Ý½É­ÑÉ•”µÁÉ½½˜¹©ÌÙ…±¥‘…Ñ”€¸)€ì)ô((¼¨¨(€¨I•¹‘•È½¹”¡½ÍÐµ¹•ÕÑÉ…°…‘…ÁÑ•È¸€Q¡”É•ÍÕ±Ð¥Ì‘…Ñ„µ½¹±ä…¹…¸‰”Á…ÍÍ•(€¨Ñ¼‰Õ¥±‘%¹¥ÑA±…¸ì¹¼™¥±•ÍåÍÑ•´½È¹•ÑÝ½É¬…•ÍÌ½ÕÉÌ¡•É”¸(€¨¼)•áÁ½ÉÐ™Õ¹Ñ¥½¸É•¹‘•É‘…ÁÑ•È¡Ñ…É•Ð°½¹Ñ•áÐ€ôíô¤ì(€½¹ÍÐ…¹½¹¥…°€ô…¹½¹¥…±Q…É•Ð¡Ñ…É•Ð¤ì(€½¹ÍÐ¹½Éµ…±¥é•€ô¹½Éµ…±¥é•½¹Ñ•áÐ¡½¹Ñ•áÐ¤ì(€±•Ð™¥±•Ìì(€±•Ð…Á…‰¥±¥Ñ¥•Ìì(€ÍÝ¥Ñ €¡…¹½¹¥…°¤ì(€€€…Í”€…•¹ÐµÍ­¥±±Ìœè(€€€€€™¥±•Ì€ôl(€€€€€€€ìÁ…Ñ è€œ¹…•¹ÑÌ½Í­¥±±Ì½Ý½É­ÑÉ•”µÁÉ½½˜½M-%10¹µœ°½¹Ñ•¹Ðè¹•ÕÑÉ…±M­¥±°¡¹½Éµ…±¥é•°€•¹ÐM­¥±±Ì½½‘•àœ¤°µ½‘”è€É•…Ñ”œô°(€€€€€€€ìÁ…Ñ è€œ¹…•¹ÑÌ½Í­¥±±Ì½Ý½É­ÑÉ•”µÁÉ½½˜½…•¹ÑÌ½½Á•¹…¤¹å…µ°œ°½¹Ñ•¹Ðè½‘•á5•Ñ…‘…Ñ„¡¹½Éµ…±¥é•¤°µ½‘”è€É•…Ñ”œô°(€€€€€tì(€€€€€…Á…‰¥±¥Ñ¥•Ì€ôì…•¹ÑM­¥±±ÌèÑÉÕ”°½‘•àèÑÉÕ”ôì(€€€€€‰É•…¬ì(€€€…Í”€±…Õ‘”µ½‘”œè(€€€€€™¥±•Ì€ôl(€€€€€€€ìÁ…Ñ è€1U¹µœ°½¹Ñ•¹Ðè±…Õ‘•5•Ñ…‘…Ñ„¡¹½Éµ…±¥é•¤°µ½‘”è€É•…Ñ”œô°(€€€€€€€ìÁ…Ñ è€œ¹±…Õ‘”½Í­¥±±Ì½Ý½É­ÑÉ•”µÁÉ½½˜½M-%10¹µœ°½¹Ñ•¹Ðè¹•ÕÑÉ…±M­¥±°¡¹½Éµ…±¥é•°€±…Õ‘”½‘”œ¤°µ½‘”è€É•…Ñ”œô°(€€€€€tì(€€€€€…Á…‰¥±¥Ñ¥•Ì€ôì±…Õ‘•½‘”èÑÉÕ”ôì(€€€€€‰É•…¬ì(€€€…Í”€•¹•É¥ŒµÁÉ½µÁÐœè(€€€€€™¥±•Ì€ômìÁ…Ñ è€]=I-QI}AI==}AI=5AP¹µœ°½¹Ñ•¹Ðè•¹•É¥AÉ½µÁÐ¡¹½Éµ…±¥é•¤°µ½‘”è€É•…Ñ”œõtì(€€€€€…Á…‰¥±¥Ñ¥•Ì€ôì•¹•É¥AÉ½µÁÐèÑÉÕ”ôì(€€€€€‰É•…¬ì(€€€…Í”€ÙÍ½‘”œè(€€€€€™¥±•Ì€ômìÁ…Ñ è€œ¹ÙÍ½‘”½Ñ…Í­Ì¹©Í½¸œ°½¹Ñ•¹ÐèÙÍ½‘•Q…Í­Ì¡¹½Éµ…±¥é•¤°µ½‘”è€É•…Ñ”œõtì(€€€€€…Á…‰¥±¥Ñ¥•Ì€ôìÙÍ½‘•Q…Í­ÌèÑÉÕ”ôì(€€€€€‰É•…¬ì(€€€…Í”€¤œè(€€€€€™¥±•Ì€ômìÁ…Ñ è€œ¹¥Ñ¡Õˆ½Ý½É­™±½ÝÌ½Ý½É­ÑÉ•”µÁÉ½½˜¹åµ°œ°½¹Ñ•¹Ðè¥]½É­™±½Ü¡¹½Éµ…±¥é•¤°µ½‘”è€É•…Ñ”œõtì(€€€€€…Á…‰¥±¥Ñ¥•Ì€ôì¥M¹¥ÁÁ•ÐèÑÉÕ”ôì(€€€€€‰É•…¬ì(€€€‘•™…Õ±Ðè(€€€€€Ñ¡É½Ü¹•Ü‘…ÁÑ•ÉÉÉ½È¡Õ¹­¹½Ý¸…‘…ÁÑ•ÈÑ…É•Ðè€‘íÑ…É•Ñõ€°€II}U9-9=]9}AQHœ¤ì(€ô(€½¹ÍÐÉ•ÍÕ±Ð€ôì(€€€Ñ…É•Ðè…¹½¹¥…°°(€€€É•ÅÕ•ÍÑ•‘Q…É•ÐèÑ…É•Ð°(€€€™¥±•Ìè=‰©•Ð¹™É••é”¡™¥±•Ì¹µ…À ¡™¥±”¤€ôø=‰©•Ð¹™É••é”¡ì€¸¸¹™¥±”ô¤¤¤°(€€€Ý…É¹¥¹Ìè=‰©•Ð¹™É••é”¡l‘…ÁÑ•È½ÕÑÁÕÐ¥Ì…‘Ù¥Í½Éä…¹¡½ÍÐµ¹•ÕÑÉ…°ìÙ•É¥™ä…Á…‰¥±¥Ñ¥•Ì±½…±±ä‰•™½É”ÕÍ”¸t¤°(€€€…Á…‰¥±¥Ñ¥•Ìè=‰©•Ð¹™É••é”¡…Á…‰¥±¥Ñ¥•Ì¤°(€ôì(€¥˜€¡É•ÍÕ±Ð¹™¥±•Ì¹±•¹Ñ €ôôô€Ä¤ì(€€€É•ÍÕ±Ð¹Á…Ñ €ôÉ•ÍÕ±Ð¹™¥±•ÍlÁt¹Á…Ñ ì(€€€É•ÍÕ±Ð¹½¹Ñ•¹Ð€ôÉ•ÍÕ±Ð¹™¥±•ÍlÁt¹½¹Ñ•¹Ðì(€ô(€É•ÑÕÉ¸=‰©•Ð¹™É••é”¡É•ÍÕ±Ð¤ì)ô()•áÁ½ÉÐì…¹½¹¥…±Q…É•Ð…Ì¹½Éµ…±¥é•‘…ÁÑ•ÉQ…É•Ðôì
+  const frameworks = stringList(stack.frameworks ?? project.frameworks);
+  const packageManagers = stringList(stack.packageManagers ?? project.packageManagers);
+  const name = projectName(project);
+  const preset = typeof context.preset === 'string' && context.preset.trim()
+    ? context.preset.trim()
+    : 'project-onboarding';
+  const capabilities = context.capabilities && typeof context.capabilities === 'object'
+    ? Object.fromEntries(Object.entries(context.capabilities).filter(([key, value]) => typeof key === 'string' && typeof value === 'boolean'))
+    : {};
+
+  // Context is data supplied by a caller.  Reject secret-shaped values before
+  // interpolation so a prompt/template cannot become a secret capture sink.
+  assertNoSecrets({ name, preset, languages, frameworks, packageManagers, capabilities });
+  return { name, preset, languages, frameworks, packageManagers, capabilities };
+}
+
+function assertNoSecrets(value, keyPath = '') {
+  if (typeof value === 'string') {
+    if (SECRET_VALUE_RE.test(value)) {
+      throw new AdapterError(`secret-like value at ${keyPath || 'context'}`, 'ERR_SECRET_INPUT');
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertNoSecrets(item, `${keyPath}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  for (const [key, child] of Object.entries(value)) {
+    const safeBooleanFlag = typeof child === 'boolean' && /^(?:has)?(?:auth|sensitive)(?:files)?$/i.test(key);
+    if (SECRET_KEY_RE.test(key) && !safeBooleanFlag) {
+      throw new AdapterError(`secret-like context key: ${key}`, 'ERR_SECRET_INPUT');
+    }
+    assertNoSecrets(child, keyPath ? `${keyPath}.${key}` : key);
+  }
+}
+
+function stackSummary(context) {
+  const parts = [
+    ...context.languages,
+    ...context.frameworks,
+    ...context.packageManagers,
+  ];
+  return parts.length ? parts.join(', ') : 'the detected project stack';
+}
+
+function neutralSkill(context, host) {
+  return `# WorktreeProof onboarding (${host})
+
+This is an optional, local guide for **${context.name}**. It describes WorktreeProof
+artifacts; it does not install software, contact a service, read credentials, or
+claim that this host has a particular agent capability.
+
+## Suggested use
+
+1. Inspect the repository and confirm the proposed file scope.
+2. Run WorktreeProof commands that are already available in this checkout.
+3. Keep plans in dry-run mode until a human explicitly confirms creation.
+4. Treat a missing command, provider, or host feature as unavailable; do not
+   emulate it or silently fall back to a network service.
+
+## Shared WorktreeProof protocol
+
+- Keep laneId and a relative POSIX fileScope in .worktree-proof/ state.
+- Use the shared lease/resource-budget records; never create a second sidebar
+  session or a vendor relay as overflow.
+- Close with a redacted receipt validated by
+  schemas/closure-receipt.schema.json after checks and evidence are recorded.
+- resources scan and resources plan are read-only diagnostics; their public
+  recommendation is bounded and may refuse new work under host pressure.
+- bridge inbox/claim/complete uses bounded files for explicit handoffs. It
+  never starts another assistant or forwards hidden context.
+- tasks inspect accepts a one-shot host snapshot, hashes task IDs, discards
+  private task text, and reports a mode only when the host explicitly supplies
+  it.
+
+Detected stack: ${stackSummary(context)}.
+
+Generated preset: ${context.preset}.
+`;
+}
+
+function codexMetadata(context) {
+  return `interface:
+  display_name: WorktreeProof
+  short_description: Conflict-safe local lanes and closure receipts
+  default_prompt: Inspect this repository, propose a dry-run WorktreeProof plan, and wait for explicit confirmation before creating files.
+  project: ${context.name}
+`;
+}
+
+function claudeMetadata(context) {
+  return `# WorktreeProof for Claude Code\n\nUse the same vendor-neutral .worktree-proof/ state as every other adapter.\nKeep laneId, fileScope, lease, resource-budget, bridge-message, task-awareness, and closure-receipt fields unchanged.\nBridge commands are explicit local file handoffs; they do not start Codex or share hidden context.\nTask modes are host-reported only and remain unknown when absent.\nThis file does not authenticate or call a network.\n\nProject: ${context.name}\n`;
+}
+
+function genericPrompt(context) {
+  return `# WorktreeProof prompt for ${context.name}
+
+Use WorktreeProof as a local, host-neutral planning aid for this repository.
+
+- Start with a read-only project inspection.
+- Propose non-overlapping relative scopes and a dry-run initialization plan.
+- Never read, print, or copy secrets, credentials, auth files, lockfiles, or
+  private session material.
+- Never install software or call a network as part of onboarding.
+- Ask for explicit confirmation before writing any new file; refuse collisions,
+  path traversal, symlink escapes, and destructive changes.
+- If a host feature is missing, report it as unavailable rather than pretending
+  to provide it.
+
+Detected stack: ${stackSummary(context)}.
+`;
+}
+
+function vscodeTasks(context) {
+  const label = `WorktreeProof: validate ${context.name}`;
+  // The task intentionally calls only a local script.  It does not install a
+  // CLI, invoke a shell string, or assert that a provider is present.
+  return `${JSON.stringify({
+    version: '2.0.0',
+    tasks: [{
+      label,
+      type: 'process',
+      command: 'node',
+      args: ['./bin/worktree-proof.js', 'validate', '.'],
+      options: { cwd: '${workspaceFolder}' },
+      problemMatcher: [],
+      presentation: { reveal: 'silent', panel: 'shared' },
+    }],
+  }, null, 2)}\n`;
+}
+
+function ciWorkflow(context) {
+  // This is a deliberately opt-in local validation snippet.  It does not
+  // install dependencies or add checkout/setup actions; a repository owner
+  // must wire it into an existing CI job with a provisioned Node runtime.
+  return `# WorktreeProof validation snippet for ${context.name}
+# Opt in by placing this step in an existing CI job with Node.js 20+ available.
+# No software is installed and no network is called by this snippet.
+- name: WorktreeProof validate
+  if: \${{ hashFiles('bin/worktree-proof.js') != '' }}
+  run: node ./bin/worktree-proof.js validate .
+`;
+}
+
+/**
+ * Render one host-neutral adapter.  The result is data-only and can be passed
+ * to buildInitPlan; no filesystem or network access occurs here.
+ */
+export function renderAdapter(target, context = {}) {
+  const canonical = canonicalTarget(target);
+  const normalized = normalizeContext(context);
+  let files;
+  let capabilities;
+  switch (canonical) {
+    case 'agent-skills':
+      files = [
+        { path: '.agents/skills/worktree-proof/SKILL.md', content: neutralSkill(normalized, 'Agent Skills/Codex'), mode: 'create' },
+        { path: '.agents/skills/worktree-proof/agents/openai.yaml', content: codexMetadata(normalized), mode: 'create' },
+      ];
+      capabilities = { agentSkills: true, codex: true };
+      break;
+    case 'claude-code':
+      files = [
+        { path: 'CLAUDE.md', content: claudeMetadata(normalized), mode: 'create' },
+        { path: '.claude/skills/worktree-proof/SKILL.md', content: neutralSkill(normalized, 'Claude Code'), mode: 'create' },
+      ];
+      capabilities = { claudeCode: true };
+      break;
+    case 'generic-prompt':
+      files = [{ path: 'WORKTREE_PROOF_PROMPT.md', content: genericPrompt(normalized), mode: 'create' }];
+      capabilities = { genericPrompt: true };
+      break;
+    case 'vscode':
+      files = [{ path: '.vscode/tasks.json', content: vscodeTasks(normalized), mode: 'create' }];
+      capabilities = { vscodeTasks: true };
+      break;
+    case 'ci':
+      files = [{ path: '.github/workflows/worktree-proof.yml', content: ciWorkflow(normalized), mode: 'create' }];
+      capabilities = { ciSnippet: true };
+      break;
+    default:
+      throw new AdapterError(`unknown adapter target: ${target}`, 'ERR_UNKNOWN_ADAPTER');
+  }
+  const result = {
+    target: canonical,
+    requestedTarget: target,
+    files: Object.freeze(files.map((file) => Object.freeze({ ...file }))),
+    warnings: Object.freeze(['Adapter output is advisory and host-neutral; verify capabilities locally before use.']),
+    capabilities: Object.freeze(capabilities),
+  };
+  if (result.files.length === 1) {
+    result.path = result.files[0].path;
+    result.content = result.files[0].content;
+  }
+  return Object.freeze(result);
+}
+
+export { canonicalTarget as normalizeAdapterTarget };

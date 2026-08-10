@@ -100,7 +100,35 @@ test('validator rejects shell expressions, arbitrary probe arguments, and instal
     (error) => error instanceof ToolManifestValidationError && error.code === 'ERR_UNSAFE_TOOL_PROBE',
   );
   assert.throws(
-    () => validateToolManifest(manifest(ão-¢G§²ÚîÆ­yÔ-identifier]');
+    () => validateToolManifest(manifest({ probes: [{ args: ['--version'], shell: true }] })),
+    ToolManifestValidationError,
+  );
+});
+
+test('custom manifests are accepted only as declarative probe definitions', () => {
+  const custom = manifest({ id: 'my-tool', command: 'my-tool', source: undefined });
+  const catalog = loadToolCatalog({ customManifests: [custom] });
+  const entry = catalog.find((candidate) => candidate.id === 'my-tool');
+  assert.equal(entry.source, 'custom');
+  assert.deepEqual(entry.probes[0].args, ['--version']);
+  assert.throws(
+    () => loadToolCatalog({ customManifests: [manifest({ id: 'git' })] }),
+    (error) => error instanceof ToolCatalogError && error.code === 'ERR_DUPLICATE_TOOL_ID',
+  );
+});
+
+test('detection never enables a shell and redacts paths and identifiers from probe output', async () => {
+  const calls = [];
+  const result = await detectTool(manifest(), {
+    catalog: [manifest()],
+    spawnImpl(command, args, options) {
+      calls.push({ command, args, options });
+      return fakeChild({ output: 'demo-tool 1.2.3 C:\\Users\\Alice\\project\\x.js 550e8400-e29b-41d4-a716-446655440000' });
+    },
+  });
+  assert.equal(result.available, true);
+  assert.equal(result.availability, 'available');
+  assert.equal(result.version, 'demo-tool 1.2.3 [redacted-path] [redacted-identifier]');
   assert.equal(calls[0].options.shell, false);
   assert.deepEqual(calls[0].args, ['--version']);
   assert.equal('env' in calls[0].options, false);

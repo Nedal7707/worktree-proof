@@ -82,4 +82,149 @@ export function runGit(args, options = {}) {
 
 function readText(result, label) {
   if (!result.ok) throw new GitCommandError(`Unable to read ${label}`, result);
-  return result.stdout.trim();×M8¶‰ËkºwµçP½˜É•±…Ñ¥Ù•M•µ•¹ÑÌ¤ì(€€€ÕÉÍ½È€ôÁ…Ñ ¹©½¥¸¡ÕÉÍ½È°Á…ÉĞ¤ì(€€€ÑÉäì(€€€€€½¹ÍĞÍÑ…ÑÌ€ô™Ì¹±ÍÑ…ÑMå¹Œ¡ÕÉÍ½È¤ì(€€€€€¥˜€¡¡…ÍI•Á…ÉÍ•1¥­•±…œ¡ÍÑ…ÑÌ¤¤Ñ¡É½Ü¹•ÜÉÉ½È¡Á…Ñ ½¹Ñ…¥¹ÌÍåµ±¥¹¬½ÈÉ•Á…ÉÍ”Á½¥¹Ğè€‘íÕÉÍ½Éõ€¤ì(€€€ô…Ñ €¡•ÉÉ½È¤ì(€€€€€¥˜€¡•ÉÉ½Èü¹½‘”€ôôô€9=9Pœñğ•ÉÉ½Èü¹½‘”€ôôô€9=Q%Hœ¤ì(€€€€€€€¥˜€ …½ÁÑ¥½¹Ì¹…±±½İ5¥ÍÍ¥¹œ¤Ñ¡É½Ü¹•ÜÉÉ½È¡Á…Ñ ‘½•Ì¹½Ğ•á¥ÍĞè€‘íÕÉÍ½Éõ€¤ì(€€€€€€€‰É•…¬ì(€€€€€ô(€€€€€Ñ¡É½Ü•ÉÉ½Èì(€€€ô(€ô((€½¹ÍĞ•á¥ÍÑ¥¹œ€ô¹•…É•ÍÑá¥ÍÑ¥¹¹•ÍÑ½È¡Ñ…É•ÑI•Í½±Ù•¤ì(€½¹ÍĞ•á¥ÍÑ¥¹I•…°€ô™Ì¹É•…±Á…Ñ¡Må¹Œ¡•á¥ÍÑ¥¹œ¤ì(€¥˜€ …¥ÍA…Ñ¡½¹Ñ…¥¹•¡É½½ÑI•…°°•á¥ÍÑ¥¹I•…°¤¤ì(€€€Ñ¡É½Ü¹•ÜÉÉ½È¡É•…±Á…Ñ •Í…Á•Ìµ…¹…•É½½Ğè€‘íÑ…É•ÑI•Í½±Ù•‘õ€¤ì(€ô(€¥˜€¡™Ì¹•á¥ÍÑÍMå¹Œ¡Ñ…É•ÑI•Í½±Ù•¤¤ì(€€€½¹ÍĞÑ…É•ÑI•…°€ô™Ì¹É•…±Á…Ñ¡Må¹Œ¡Ñ…É•ÑI•Í½±Ù•¤ì(€€€¥˜€ …¥ÍA…Ñ¡½¹Ñ…¥¹•¡É½½ÑI•…°°Ñ…É•ÑI•…°¤¤ì(€€€€€Ñ¡É½Ü¹•ÜÉÉ½È¡É•…±Á…Ñ •Í…Á•Ìµ…¹…•É½½Ğè€‘íÑ…É•ÑI•Í½±Ù•‘õ€¤ì(€€€ô(€ô(€É•ÑÕÉ¸ìÉ½½ĞèÉ½½ÑI•…°°Ñ…É•ĞèÑ…É•ÑI•Í½±Ù•°•á¥ÍÑ¥¹œè•á¥ÍÑ¥¹I•…°ôì)ô((¼¨¨(€¨¥Í½Ù•ÈÑ¡”É•Á½Í¥Ñ½ÉäÉ½½Ğ…¹¥Ğ½µµ½¸‘¥É•Ñ½Éä™É½´…¹ä‘•Í•¹‘…¹Ğ¸(€¨…¹½¹¥…±I•™€¥Ì¥¹Ñ•¹Ñ¥½¹…±±ä½¹™¥ÕÉ…‰±”Í¼…±±•ÉÌ…¸ÕÍ”!€°„(€¨±½…°‰É…¹ °½È„™•Ñ¡•É•µ½Ñ”É•˜İ¥Ñ¡½ÕĞÑ¡¥Ìµ½‘Õ±”…ÍÍÕµ¥¹œ½¹”¸(€¨¼)•áÁ½ÉĞ™Õ¹Ñ¥½¸‘¥Í½Ù•É¥ÑI•Á½Í¥Ñ½Éä¡ÍÑ…ÉÑA…Ñ €ôÁÉ½•ÍÌ¹İ ¤°½ÁÑ¥½¹Ì€ôíô¤ì(€½¹ÍĞİ€ôÁ…Ñ ¹É•Í½±Ù”¡ÍÑ…ÉÑA…Ñ ¤ì(€½¹ÍĞÉ½½Ğ€ôÉ•…‘Q•áĞ¡¥¹Ù½­•¥Ğ¡lÉ•ØµÁ…ÉÍ”œ°€œ´µÍ¡½ÜµÑ½Á±•Ù•°t°½ÁÑ¥½¹Ì°İ¤°€É•Á½Í¥Ñ½ÉäÉ½½Ğœ¤ì(€½¹ÍĞÉ•Á½I½½Ğ€ôÁ…Ñ ¹É•Í½±Ù”¡É½½Ğ¤ì(€±•Ğ½µµ½¹I•ÍÕ±Ğ€ô¥¹Ù½­•¥Ğ¡lÉ•ØµÁ…ÉÍ”œ°€œ´µÁ…Ñ µ™½Éµ…Ğõ…‰Í½±ÕÑ”œ°€œ´µ¥Ğµ½µµ½¸µ‘¥Èt°½ÁÑ¥½¹Ì°İ°ìÑ¡É½İ=¹ÉÉ½Èè™…±Í”ô¤ì(€¥˜€ …½µµ½¹I•ÍÕ±Ğ¹½¬¤½µµ½¹I•ÍÕ±Ğ€ô¥¹Ù½­•¥Ğ¡lÉ•ØµÁ…ÉÍ”œ°€œ´µ¥Ğµ½µµ½¸µ‘¥Èt°½ÁÑ¥½¹Ì°İ¤ì(€½¹ÍĞ½µµ½¹¥ÉQ•áĞ€ôÉ•…‘Q•áĞ¡½µµ½¹I•ÍÕ±Ğ°€¥Ğ½µµ½¸‘¥É•Ñ½Éäœ¤ì(€½¹ÍĞ½µµ½¹¥È€ôÁ…Ñ ¹É•Í½±Ù”¡İ°½µµ½¹¥ÉQ•áĞ¤ì(€€¼¼Q¡”½µµ½¸‘¥Èµ…ä‰”½ÕÑÍ¥‘”Ñ¡”İ½É­ÑÉ•”™½È±¥¹­•İ½É­ÑÉ••Ì°‰ÕĞ¥Ğ(€€¼¼µÕÍĞÍÑ¥±°‰”„É•…°‘¥É•Ñ½Éä…¹¹½Ğ„±¥¹¬Ñ¼…¸Õ¹•áÁ•Ñ•±½…Ñ¥½¸¸(€½¹ÍĞÉ•Á½I•…°€ô™Ì¹É•…±Á…Ñ¡Må¹Œ¡É•Á½I½½Ğ¤ì(€½¹ÍĞ½µµ½¹I•…°€ô™Ì¹É•…±Á…Ñ¡Må¹Œ¡½µµ½¹¥È¤ì(€½¹ÍĞ…¹½¹¥…±I•˜€ô½ÁÑ¥½¹Ì¹…¹½¹¥…±I•˜€üü€!œì(€½¹ÍĞ…¹½¹¥…±½µµ¥Ğ€ôÉ•…‘Q•áĞ¡¥¹Ù½­•¥Ğ¡lÉ•ØµÁ…ÉÍ”œ°€œ´µÙ•É¥™äœ°€‘í…¹½¹¥…±I•™õyí½µµ¥Ñõt°½ÁÑ¥½¹Ì°É•Á½I½½Ğ¤°€…¹½¹¥…°É•˜œ¤ì(€É•ÑÕÉ¸ì(€€€É½½ĞèÉ•Á½I½½Ğ°(€€€É•Á½I½½Ğ°(€€€É•…±I½½ĞèÉ•Á½I•…°°(€€€½µµ½¹¥È°(€€€É•…±½µµ½¹¥Èè½µµ½¹I•…°°(€€€…¹½¹¥…±I•˜°(€€€…¹½¹¥…±½µµ¥Ğ°(€ôì)ô()•áÁ½ÉĞ½¹ÍĞ™¥¹‘¥ÑI•Á½Í¥Ñ½Éä€ô‘¥Í½Ù•É¥ÑI•Á½Í¥Ñ½Éäì)•áÁ½ÉĞ½¹ÍĞ‘¥Í½Ù•ÉI•Á½Í¥Ñ½Éä€ô‘¥Í½Ù•É¥ÑI•Á½Í¥Ñ½Éäì()•áÁ½ÉĞ™Õ¹Ñ¥½¸É•Í½±Ù•…¹½¹¥…±I•˜¡É•Á½I½½Ğ°…¹½¹¥…±I•˜€ô€!œ°½ÁÑ¥½¹Ì€ôíô¤ì(€É•ÑÕÉ¸É•…‘Q•áĞ¡¥¹Ù½­•¥Ğ¡lÉ•ØµÁ…ÉÍ”œ°€œ´µÙ•É¥™äœ°€‘í…¹½¹¥…±I•™õyí½µµ¥Ñõt°½ÁÑ¥½¹Ì°É•Á½I½½Ğ¤°€…¹½¹¥…°É•˜œ¤ì)ô()•áÁ½ÉĞ™Õ¹Ñ¥½¸•Ñ¥ÑMÑ…ÑÕÌ¡İ½É­ÑÉ••A…Ñ °½ÁÑ¥½¹Ì€ôíô¤ì(€É•ÑÕÉ¸¥¹Ù½­•¥Ğ¡lÍÑ…ÑÕÌœ°€œ´µÁ½É•±…¥¸õØÄœ°€œ´µÕ¹ÑÉ…­•µ™¥±•Ìõ…±°t°½ÁÑ¥½¹Ì°İ½É­ÑÉ••A…Ñ °ì(€€€Ñ¡É½İ=¹ÉÉ½Èè½ÁÑ¥½¹Ì¹Ñ¡É½İ=¹ÉÉ½È€üü™…±Í”°(€ô¤ì)ô(
+  return result.stdout.trim();
+}
+
+function invokeGit(args, options = {}, cwd = options.cwd, extra = {}) {
+  const runner = options.gitRunner ?? runGit;
+  return runner(args, { ...options, ...extra, cwd });
+}
+
+/**
+ * Return true if target is the root itself or is a descendant of root.
+ * Both paths are resolved first and comparison is case-insensitive on
+ * Windows, where the filesystem is normally case-insensitive.
+ */
+export function isPathContained(root, target) {
+  if (!root || !target) return false;
+  const rootResolved = path.resolve(root);
+  const targetResolved = path.resolve(target);
+  const relative = path.relative(rootResolved, targetResolved);
+  if (relative === '') return true;
+  if (path.isAbsolute(relative)) return false;
+  return relative !== '..' && !relative.startsWith(`..${path.sep}`);
+}
+
+function nearestExistingAncestor(target) {
+  let current = path.resolve(target);
+  while (true) {
+    try {
+      fs.lstatSync(current);
+      return current;
+    } catch (error) {
+      if (error?.code !== 'ENOENT' && error?.code !== 'ENOTDIR') throw error;
+      const parent = path.dirname(current);
+      if (parent === current) return current;
+      current = parent;
+    }
+  }
+}
+
+function hasReparseLikeFlag(stats) {
+  // Node reports junctions and symbolic links as symbolic links on current
+  // Windows versions. A reparse point flag is also represented by the high
+  // file attribute bits when available; checking it is harmless elsewhere.
+  if (stats.isSymbolicLink?.()) return true;
+  const attributes = stats.attributes;
+  return Number.isInteger(attributes) && (attributes & 0x400) !== 0;
+}
+
+/**
+ * Validate that a path remains physically inside a root. Every existing path
+ * segment is inspected, not just the final realpath, so a junction/reparse
+ * point cannot be used to escape between checks. Missing descendants are
+ * allowed when `allowMissing` is true (the existing parent is still checked).
+ */
+export function assertContainedRealPath(root, target, options = {}) {
+  const rootResolved = path.resolve(root);
+  const targetResolved = path.resolve(target);
+  if (!isPathContained(rootResolved, targetResolved)) {
+    throw new Error(`path escapes managed root: ${targetResolved}`);
+  }
+
+  const rootExisting = nearestExistingAncestor(rootResolved);
+  const rootReal = fs.realpathSync(rootExisting);
+  if (!isPathContained(rootReal, rootExisting)) {
+    // A symlinked root is not a safe containment boundary.
+    throw new Error('managed root is a symlink or reparse point');
+  }
+
+  let cursor = rootResolved;
+  const relativeSegments = path.relative(rootResolved, targetResolved).split(path.sep).filter(Boolean);
+  // Check the root itself and each existing descendant segment for links.
+  if (fs.existsSync(rootResolved)) {
+    const rootStats = fs.lstatSync(rootResolved);
+    if (hasReparseLikeFlag(rootStats)) throw new Error('managed root is a symlink or reparse point');
+  } else if (!options.allowMissing) {
+    throw new Error(`path does not exist: ${rootResolved}`);
+  }
+  for (const part of relativeSegments) {
+    cursor = path.join(cursor, part);
+    try {
+      const stats = fs.lstatSync(cursor);
+      if (hasReparseLikeFlag(stats)) throw new Error(`path contains symlink or reparse point: ${cursor}`);
+    } catch (error) {
+      if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') {
+        if (!options.allowMissing) throw new Error(`path does not exist: ${cursor}`);
+        break;
+      }
+      throw error;
+    }
+  }
+
+  const existing = nearestExistingAncestor(targetResolved);
+  const existingReal = fs.realpathSync(existing);
+  if (!isPathContained(rootReal, existingReal)) {
+    throw new Error(`realpath escapes managed root: ${targetResolved}`);
+  }
+  if (fs.existsSync(targetResolved)) {
+    const targetReal = fs.realpathSync(targetResolved);
+    if (!isPathContained(rootReal, targetReal)) {
+      throw new Error(`realpath escapes managed root: ${targetResolved}`);
+    }
+  }
+  return { root: rootReal, target: targetResolved, existing: existingReal };
+}
+
+/**
+ * Discover the repository root and git common directory from any descendant.
+ * `canonicalRef` is intentionally configurable so callers can use `HEAD`, a
+ * local branch, or a fetched remote ref without this module assuming one.
+ */
+export function discoverGitRepository(startPath = process.cwd(), options = {}) {
+  const cwd = path.resolve(startPath);
+  const root = readText(invokeGit(['rev-parse', '--show-toplevel'], options, cwd), 'repository root');
+  const repoRoot = path.resolve(root);
+  let commonResult = invokeGit(['rev-parse', '--path-format=absolute', '--git-common-dir'], options, cwd, { throwOnError: false });
+  if (!commonResult.ok) commonResult = invokeGit(['rev-parse', '--git-common-dir'], options, cwd);
+  const commonDirText = readText(commonResult, 'git common directory');
+  const commonDir = path.resolve(cwd, commonDirText);
+  // The common dir may be outside the worktree for linked worktrees, but it
+  // must still be a real directory and not a link to an unexpected location.
+  const repoReal = fs.realpathSync(repoRoot);
+  const commonReal = fs.realpathSync(commonDir);
+  const canonicalRef = options.canonicalRef ?? 'HEAD';
+  const canonicalCommit = readText(invokeGit(['rev-parse', '--verify', `${canonicalRef}^{commit}`], options, repoRoot), 'canonical ref');
+  return {
+    root: repoRoot,
+    repoRoot,
+    realRoot: repoReal,
+    commonDir,
+    realCommonDir: commonReal,
+    canonicalRef,
+    canonicalCommit,
+  };
+}
+
+export const findGitRepository = discoverGitRepository;
+export const discoverRepository = discoverGitRepository;
+
+export function resolveCanonicalRef(repoRoot, canonicalRef = 'HEAD', options = {}) {
+  return readText(invokeGit(['rev-parse', '--verify', `${canonicalRef}^{commit}`], options, repoRoot), 'canonical ref');
+}
+
+export function getGitStatus(worktreePath, options = {}) {
+  return invokeGit(['status', '--porcelain=v1', '--untracked-files=all'], options, worktreePath, {
+    throwOnError: options.throwOnError ?? false,
+  });
+}

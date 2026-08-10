@@ -81,4 +81,146 @@ function outcomeOf(receipt) {
   }
   const value = outcome ?? status;
   if (value !== 'merged' && value !== 'abandoned') {
-    throw new EvidenceValidationError('outcome must be "merged" or "abandoned"', 'ERR_INVALID_×Mz¶‰žËkºwµç`œ¤ì(€ô(€½¹ÍÐ¹½Éµ…±¥é•€ôÙ…±¥‘…Ñ•±½ÍÕÉ•I••¥ÁÐ¡É••¥ÁÐ¤ì(€½¹ÍÐ‘•ÍÑ¥¹…Ñ¥½¸€ôÉ•Í½±Ù”¡™¥±•A…Ñ ¤ì(€½¹ÍÐÁ…É•¹Ð€ô‘¥É¹…µ”¡‘•ÍÑ¥¹…Ñ¥½¸¤ì(€…Ý…¥Ðµ­‘¥È¡Á…É•¹Ð°ìÉ•ÕÉÍ¥Ù”èÑÉÕ”ô¤ì(€½¹ÍÐÑ•µÁ½É…Éä€ô€‘í‘•ÍÑ¥¹…Ñ¥½¹ô¸‘íÁÉ½•ÍÌ¹Á¥‘ô¸‘í…Ñ”¹¹½Ü ¥ô¹ÑµÁ€ì(€½¹ÍÐÑ•áÐ€ô€‘í)M=8¹ÍÑÉ¥¹¥™ä¡¹½Éµ…±¥é•°¹Õ±°°€È¥õq¹€ì(€ÑÉäì(€€€…Ý…¥ÐÝÉ¥Ñ•¥±”¡Ñ•µÁ½É…Éä°Ñ•áÐ°ì•¹½‘¥¹œè€ÕÑ˜àœ°™±…œè€Ýàœô¤ì(€€€…Ý…¥ÐÉ•¹…µ”¡Ñ•µÁ½É…Éä°‘•ÍÑ¥¹…Ñ¥½¸¤ì(€ô…Ñ €¡•ÉÉ½È¤ì(€€€…Ý…¥ÐÉ´¡Ñ•µÁ½É…Éä°ì™½É”èÑÉÕ”ô¤¹…Ñ   ¤€ôøíô¤ì(€€€½¹ÍÐÝÉ…ÁÁ•€ô¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È¡Õ¹…‰±”Ñ¼ÝÉ¥Ñ”±½ÍÕÉ”É••¥ÁÐè€‘í•ÉÉ½È¹µ•ÍÍ…•õ€°€II}1=MUI}]I%Qœ¤ì(€€€ÝÉ…ÁÁ•¹…ÕÍ”€ô•ÉÉ½Èì(€€€Ñ¡É½ÜÝÉ…ÁÁ•ì(€ô(€É•ÑÕÉ¸ìÁ…Ñ è‘•ÍÑ¥¹…Ñ¥½¸°É••¥ÁÐè¹½Éµ…±¥é•°ÝÉ¥ÑÑ•¸èÑÉÕ”°É•Á±…•è½ÁÑ¥½¹Ì¹É•Á±…”€„ôô™…±Í”ôì)ô((¼¨¨(€¨±½Í”½¹”±…¹”™É½´„Ù…±¥‘…Ñ•É••¥ÁÐ¸€Q¡”Á…å±½…Í¡…Á”µ¥ÉÉ½ÉÌÑ¡”1$(€¨½µµ…¹…‘…ÁÑ•È…¹¥Ì‘•±¥‰•É…Ñ•±ä•áÁ±¥¥Ð…‰½ÕÐÑ¡”É•Á½Í¥Ñ½Éä…¹(€¨±½ÍÕÉ”ÍÑ½É”¸€µ¥ÍÍ¥¹œÉ••¥ÁÐ¥Ì…¸•ÉÉ½Èè„±½Í”½Á•É…Ñ¥½¸µÕÍÐ¹•Ù•È(€¨¥¹Ù•¹ÐÑ•Éµ¥¹…°•Ù¥‘•¹”¸(€¨¼)•áÁ½ÉÐ…Íå¹Œ™Õ¹Ñ¥½¸±½Í•1…¹”¡Á…å±½…€ôíô¤ì(€¥˜€ …Á…å±½…ñðÑåÁ•½˜Á…å±½…€„ôô€½‰©•ÐœñðÉÉ…ä¹¥ÍÉÉ…ä¡Á…å±½…¤¤ì(€€€Ñ¡É½Ü¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È ±½Í”Á…å±½…µÕÍÐ‰”…¸½‰©•Ðœ°€II}%9Y1%}1=M}Ae1=œ¤ì(€ô(€½¹ÍÐÉ••¥ÁÐ€ôÁ…å±½…¹É••¥ÁÐì(€¥˜€ …É••¥ÁÐñðÑåÁ•½˜É••¥ÁÐ€„ôô€½‰©•ÐœñðÉÉ…ä¹¥ÍÉÉ…ä¡É••¥ÁÐ¤¤ì(€€€Ñ¡É½Ü¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È ±½Í”É•ÅÕ¥É•Ì„)M=8É••¥ÁÐœ°€II}5%MM%9}1=MUI}I%APœ¤ì(€ô(€½¹ÍÐ¹½Éµ…±¥é•€ôÙ…±¥‘…Ñ•±½ÍÕÉ•I••¥ÁÐ¡É••¥ÁÐ¤ì(€¥˜€¡ÑåÁ•½˜¹½Éµ…±¥é•¹±…¹•%€„ôô€ÍÑÉ¥¹œœñð€…¹½Éµ…±¥é•¹±…¹•%¹ÑÉ¥´ ¤¤ì(€€€Ñ¡É½Ü¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È ±½ÍÕÉ”É••¥ÁÐÉ•ÅÕ¥É•Ì±…¹•%œ°€II}%9Y1%}1=MUI}%1œ¤ì(€ô(€¥˜€¡ÑåÁ•½˜¹½Éµ…±¥é•¹±½Í•‘Ð€„ôô€ÍÑÉ¥¹œœñð€…¹½Éµ…±¥é•¹±½Í•‘Ð¹ÑÉ¥´ ¤¤ì(€€€Ñ¡É½Ü¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È ±½ÍÕÉ”É••¥ÁÐÉ•ÅÕ¥É•Ì±½Í•‘Ðœ°€II}%9Y1%}1=MUI}%1œ¤ì(€ô(€±•Ð±…¹•%ì(€ÑÉäì(€€€±…¹•%€ô¹½Éµ…±¥é•1…¹•%¡¹½Éµ…±¥é•¹±…¹•%¤ì(€ô…Ñ €¡•ÉÉ½È¤ì(€€€½¹ÍÐÝÉ…ÁÁ•€ô¹•ÜÙ¥‘•¹•Y…±¥‘…Ñ¥½¹ÉÉ½È¡¥¹Ù…±¥±½ÍÕÉ”±…¹•%è€‘í•ÉÉ½È¹µ•ÍÍ…•õ€°€II}%9Y1%}1=MUI}%1œ¤ì(€€€ÝÉ…ÁÁ•¹…ÕÍ”€ô•ÉÉ½Èì(€€€Ñ¡É½ÜÝÉ…ÁÁ•ì(€ô((€½¹ÍÐ½¹™¥œ€ôÁ…å±½…¹½¹™¥œ€˜˜ÑåÁ•½˜Á…å±½…¹½¹™¥œ€ôôô€½‰©•Ðœ€üÁ…å±½…¹½¹™¥œ€èíôì(€½¹ÍÐ½ÁÑ¥½¹Ì€ôÁ…å±½…¹½ÁÑ¥½¹Ì€˜˜ÑåÁ•½˜Á…å±½…¹½ÁÑ¥½¹Ì€ôôô€½‰©•Ðœ€üÁ…å±½…¹½ÁÑ¥½¹Ì€èíôì(€½¹ÍÐÉ•Á½Í¥Ñ½Éä€ôÑåÁ•½˜Á…å±½…¹É•Á¼€ôôô€ÍÑÉ¥¹œœ€˜˜Á…å±½…¹É•Á¼¹ÑÉ¥´ ¤€üÁ…å±½…¹É•Á¼€èÁÉ½•ÍÌ¹Ý ¤ì(€½¹ÍÐÍÑ½É”€ô½ÁÑ¥½¹Ì¹±½ÍÕÉ•MÑ½É”€üü½¹™¥œ¹±½ÍÕÉ•MÑ½É”€üü€œ¹Ý½É­ÑÉ•”µÁÉ½½˜½±½ÍÕÉ•Ìœì(€½¹ÍÐÍÑ½É•A…Ñ €ôÉ•Í½±Ù”¡É•Á½Í¥Ñ½Éä°ÍÑ½É”¤ì(€½¹ÍÐ‘•ÍÑ¥¹…Ñ¥½¸€ô½ÁÑ¥½¹Ì¹½ÕÑÁÕÐ(€€€€üÉ•Í½±Ù”¡É•Á½Í¥Ñ½Éä°½ÁÑ¥½¹Ì¹½ÕÑÁÕÐ¤(€€€€è€‘íÍÑ½É•A…Ñ¡ô¼‘í±…¹•%‘ô¹©Í½¹€ì(€½¹ÍÐÉ•ÍÕ±Ð€ô…Ý…¥ÐÝÉ¥Ñ•±½ÍÕÉ•I••¥ÁÐ¡‘•ÍÑ¥¹…Ñ¥½¸°ì€¸¸¹¹½Éµ…±¥é•°±…¹•%ô°ìÉ•Á±…”èÑÉÕ”ô¤ì(€É•ÑÕÉ¸ì(€€€±½Í•èÑÉÕ”°(€€€±…¹•%°(€€€½ÕÑ½µ”èÉ•ÍÕ±Ð¹É••¥ÁÐ¹½ÕÑ½µ”°(€€€Á…Ñ èÉ•ÍÕ±Ð¹Á…Ñ °(€€€É••¥ÁÐèÉ•ÍÕ±Ð¹É••¥ÁÐ°(€ôì)ô(
+    throw new EvidenceValidationError('outcome must be "merged" or "abandoned"', 'ERR_INVALID_OUTCOME');
+  }
+  return value;
+}
+
+/**
+ * Validate and clone a terminal lane closure receipt.
+ *
+ * Merged receipts require canonicalRef, mergeSha and tests.  Abandoned
+ * receipts require both branchDeleted and worktreeClean to be explicit true.
+ * Optional deploy/evidence fields are accepted only when they are JSON-safe.
+ */
+export function validateClosureReceipt(receipt) {
+  if (!isPlainObject(receipt)) {
+    throw new EvidenceValidationError('closure receipt must be a plain object');
+  }
+  if (!isJsonSafe(receipt)) {
+    throw new EvidenceValidationError('closure receipt must contain only JSON-safe values', 'ERR_NON_JSON_RECEIPT');
+  }
+  const outcome = outcomeOf(receipt);
+  const normalized = cloneJson(receipt);
+  if (normalized.outcome === undefined) normalized.outcome = outcome;
+
+  if (outcome === 'merged') {
+    requiredText(normalized, 'canonicalRef');
+    requiredText(normalized, 'mergeSha');
+    if (!Object.prototype.hasOwnProperty.call(normalized, 'tests') || normalized.tests === undefined || normalized.tests === null) {
+      throw new EvidenceValidationError('merged receipt requires tests', 'ERR_MISSING_TEST_EVIDENCE');
+    }
+    if (normalized.branchDeleted !== undefined || normalized.worktreeClean !== undefined) {
+      throw new EvidenceValidationError('merged receipt must not include abandoned-only fields', 'ERR_CONFLICTING_OUTCOME');
+    }
+  } else {
+    if (normalized.branchDeleted !== true || normalized.worktreeClean !== true) {
+      throw new EvidenceValidationError(
+        'abandoned receipt requires branchDeleted=true and worktreeClean=true',
+        'ERR_MISSING_ABANDONMENT_PROOF',
+      );
+    }
+    for (const field of ['canonicalRef', 'mergeSha', 'tests']) {
+      if (normalized[field] !== undefined) {
+        throw new EvidenceValidationError('abandoned receipt must not include merged-only fields', 'ERR_CONFLICTING_OUTCOME');
+      }
+    }
+  }
+
+  for (const field of ['deploy', 'evidence']) {
+    if (normalized[field] !== undefined && !isJsonSafe(normalized[field])) {
+      throw new EvidenceValidationError(`${field} must be JSON-safe`, 'ERR_NON_JSON_EVIDENCE');
+    }
+  }
+  return normalized;
+}
+
+export function assertClosureReceipt(receipt) {
+  validateClosureReceipt(receipt);
+  return true;
+}
+
+export function validateClosureReceipts(receipts) {
+  if (!Array.isArray(receipts)) {
+    throw new EvidenceValidationError('closure receipts must be an array', 'ERR_INVALID_RECEIPTS');
+  }
+  return receipts.map(validateClosureReceipt);
+}
+
+/**
+ * Validate and atomically persist one closure receipt.
+ *
+ * The evidence module intentionally owns the write boundary so CLI adapters
+ * and embedders use the same validation before any file is replaced.  The
+ * destination is supplied by the caller; no network or implicit discovery is
+ * performed.
+ */
+export async function writeClosureReceipt(filePath, receipt, options = {}) {
+  if (typeof filePath !== 'string' || !filePath.trim()) {
+    throw new EvidenceValidationError('closure receipt path is required', 'ERR_INVALID_CLOSURE_PATH');
+  }
+  const normalized = validateClosureReceipt(receipt);
+  const destination = resolve(filePath);
+  const parent = dirname(destination);
+  await mkdir(parent, { recursive: true });
+  const temporary = `${destination}.${process.pid}.${Date.now()}.tmp`;
+  const text = `${JSON.stringify(normalized, null, 2)}\n`;
+  try {
+    await writeFile(temporary, text, { encoding: 'utf8', flag: 'wx' });
+    await rename(temporary, destination);
+  } catch (error) {
+    await rm(temporary, { force: true }).catch(() => {});
+    const wrapped = new EvidenceValidationError(`unable to write closure receipt: ${error.message}`, 'ERR_CLOSURE_WRITE');
+    wrapped.cause = error;
+    throw wrapped;
+  }
+  return { path: destination, receipt: normalized, written: true, replaced: options.replace !== false };
+}
+
+/**
+ * Close one lane from a validated receipt.  The payload shape mirrors the CLI
+ * command adapter and is deliberately explicit about the repository and
+ * closure store.  A missing receipt is an error: a close operation must never
+ * invent terminal evidence.
+ */
+export async function closeLane(payload = {}) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new EvidenceValidationError('close payload must be an object', 'ERR_INVALID_CLOSE_PAYLOAD');
+  }
+  const receipt = payload.receipt;
+  if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
+    throw new EvidenceValidationError('close requires a JSON receipt', 'ERR_MISSING_CLOSURE_RECEIPT');
+  }
+  const normalized = validateClosureReceipt(receipt);
+  if (typeof normalized.laneId !== 'string' || !normalized.laneId.trim()) {
+    throw new EvidenceValidationError('closure receipt requires laneId', 'ERR_INVALID_CLOSURE_FIELD');
+  }
+  if (typeof normalized.closedAt !== 'string' || !normalized.closedAt.trim()) {
+    throw new EvidenceValidationError('closure receipt requires closedAt', 'ERR_INVALID_CLOSURE_FIELD');
+  }
+  let laneId;
+  try {
+    laneId = normalizeLaneId(normalized.laneId);
+  } catch (error) {
+    const wrapped = new EvidenceValidationError(`invalid closure laneId: ${error.message}`, 'ERR_INVALID_CLOSURE_FIELD');
+    wrapped.cause = error;
+    throw wrapped;
+  }
+
+  const config = payload.config && typeof payload.config === 'object' ? payload.config : {};
+  const options = payload.options && typeof payload.options === 'object' ? payload.options : {};
+  const repository = typeof payload.repo === 'string' && payload.repo.trim() ? payload.repo : process.cwd();
+  const store = options.closureStore ?? config.closureStore ?? '.worktree-proof/closures';
+  const storePath = resolve(repository, store);
+  const destination = options.output
+    ? resolve(repository, options.output)
+    : `${storePath}/${laneId}.json`;
+  const result = await writeClosureReceipt(destination, { ...normalized, laneId }, { replace: true });
+  return {
+    closed: true,
+    laneId,
+    outcome: result.receipt.outcome,
+    path: result.path,
+    receipt: result.receipt,
+  };
+}

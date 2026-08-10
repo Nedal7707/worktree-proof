@@ -91,7 +91,33 @@
           "objective": { "$ref": "#/$defs/longText" },
           "mode": {
             "type": "string",
-            "enum": ["build", "integÛ¿-¢G§²ÚîÆ­yÚ      "minItems": 3,
+            "enum": ["build", "integrate", "cleanup", "audit", "run"]
+          },
+          "dependsOn": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/identifier" }
+          },
+          "deliverables": { "$ref": "#/$defs/stringList" },
+          "commands": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/command" }
+          }
+        }
+      }
+    },
+    "toolCapabilities": {
+      "type": "array",
+      "description": "Portable capability tags resolved by templates/tool-manifest.json; tags name abilities, not vendors.",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "qualityGates": {
+      "type": "array",
+      "description": "Observable checks that must pass before a lane can close.",
+      "minItems": 3,
       "items": {
         "type": "object",
         "additionalProperties": false,

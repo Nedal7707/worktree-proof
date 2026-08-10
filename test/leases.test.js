@@ -89,7 +89,13 @@ test('malformed and stale registry entries fail closed', async (t) => {
   const registry = new LeaseRegistry(registryPath, { clock: () => 2_000_000_000_000 });
 
   await writeFile(registryPath, '{not-json', 'utf8');
-  awa×o-¢G§²ÚîÆ­yÑit writeFile(registryPath, JSON.stringify({
+  await assert.rejects(registry.read(), (error) => error instanceof RegistryStateError && error.code === 'ERR_MALFORMED_REGISTRY');
+
+  await writeFile(registryPath, JSON.stringify({ version: 1, leases: [{ status: 'active' }] }), 'utf8');
+  await assert.rejects(registry.read(), (error) => error instanceof RegistryStateError);
+
+  const expiredTimestamp = '2032-05-18T03:33:20.000Z';
+  await writeFile(registryPath, JSON.stringify({
     version: 1,
     leases: [{
       leaseId: 'stale',

@@ -49,7 +49,19 @@ test('page is accessible and has one clear heading', () => {
     assert.ok(label || attribute(openingTag, 'aria-label'), `link needs visible text or an aria-label: ${openingTag}`);
   }
   assert.ok(tags('nav').length >= 2, 'primary and footer navigation landmarks are required');
-  assert.match(styles, /prefers-reduced-motion\s*:\s*reduÛÎ­¢G§²ÚîÆ­yßde.js');
+  assert.match(styles, /prefers-reduced-motion\s*:\s*reduce/i, 'reduced-motion handling is required');
+  assert.match(styles, /min-height:\s*48px/i, 'interactive targets should include 48px sizing');
+});
+
+test('JSON-LD contains only factual software and FAQ objects', () => {
+  const scripts = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  assert.equal(scripts.length, 2, 'SoftwareSourceCode and FAQPage JSON-LD are required');
+  const data = scripts.map((match) => JSON.parse(match[1]));
+  assert.deepEqual(data.map((item) => item['@type']).sort(), ['FAQPage', 'SoftwareSourceCode']);
+  const software = data.find((item) => item['@type'] === 'SoftwareSourceCode');
+  assert.equal(software.codeRepository, 'https://github.com/Nedal7707/worktree-proof');
+  assert.equal(software.programmingLanguage, 'JavaScript');
+  assert.equal(software.runtimePlatform, 'Node.js');
   const faq = data.find((item) => item['@type'] === 'FAQPage');
   assert.ok(Array.isArray(faq.mainEntity) && faq.mainEntity.length >= 3);
   for (const question of faq.mainEntity) assert.match(question.acceptedAnswer.text, /\S/);

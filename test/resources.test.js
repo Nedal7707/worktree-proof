@@ -77,4 +77,175 @@ test('mocked Windows low RAM and disk select low-resource and constrain workers'
       os: mockedOs({ platform: 'win32', logicalCount: 16, load: [0.1, 0.1, 0.1], total: bytes(4), free: bytes(0.25) }),
       disk: { totalBytes: bytes(1), freeBytes: bytes(0.05) },
       nodeMemory: { heapTotal: 100, heapUsed: 10 },
-×7¶‰žËkºwµçt¹…Ñ•½Éä€ôôô€…¡”œ¤¤ì(€€€…ÍÍ•ÉÐ¹½¬¡Á±…¸¹¥Ñ•µÌ¹•Ù•Éä ¡¥Ñ•´¤€ôø¥Ñ•´¹Í…™•Q½•±•Ñ”€ôôô™…±Í”€˜˜¥Ñ•´¹É•ÅÕ¥É•Í½¹™¥Éµ…Ñ¥½¸€ôôôÑÉÕ”¤¤ì(€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡…Ý…¥ÐÉ•…‘¥±”¡¹½‘•A…Ñ ¹©½¥¸¡É½½Ð°€I5¹ÑáÐœ¤°€ÕÑ˜àœ¤°‰•™½É”¤ì(€€€…Ý…¥Ð…ÍÍ•ÉÐ¹É•©•ÑÌ  ¤€ôøAÉ½µ¥Í”¹É•Í½±Ù”¡Á±…¹AÉ½©•Ñ±•…¹ÕÀ¡Í…¸°ì…±±½Ý•‘I½½ÑÌèlœ¸¹qq½ÕÑÍ¥‘”tô¤¤¹Ñ¡•¸ ¡É•ÍÕ±Ð¤€ôøÉ•ÍÕ±Ð¹‰±½­•€üAÉ½µ¥Í”¹É•©•Ð¡¹•ÜÉÉ½È ‰±½­•œ¤¤€èÉ•ÍÕ±Ð¤°€½‰±½­•¼¤ì(€€€…Ý…¥ÐÍÑ…Ð¡É½½Ð¤ì(€ô™¥¹…±±äì(€€€…Ý…¥ÐÉ´¡É½½Ð°ìÉ•ÕÉÍ¥Ù”èÑÉÕ”°™½É”èÑÉÕ”ô¤ì(€ô)ô¤ì()Ñ•ÍÐ Í•ÍÍ¥½¸Õ…É­••ÁÌÑ¡”ÁÕ‰±¥Œ‘•™…Õ±Ð…Ð€àÝ¡¥±”¡½ÍÐ…¹É•Í½ÕÉ”•¥±¥¹ÌÍÑ…ä…ÕÑ¡½É¥Ñ…Ñ¥Ù”œ°€ ¤€ôøì(€½¹ÍÐÕ…É€ôÁ±…¹M•ÍÍ¥½¹Õ…É¡ì(€€€ÁÔèì±½¥…±½Õ¹Ðè€ÌÈ°¹½Éµ…±¥é•‘1½…è€À¸Äô°(€€€µ•µ½Éäèì™É••	åÑ•Ìè‰åÑ•Ì ØÐ¤°ÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Èô°(€€€‘¥Í¬èìÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Äô°(€€€½¹ÕÉÉ•¹äèìÕÉÉ•¹Ðè€Àô°(€ô°ìÁÉ½™¥±”è€™…ÍÐœ°­¥¹è€¥¼œ°¡½ÍÑ•¥±¥¹œè€ÈÐô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹Á…É•¹Ñ½Õ¹Ð°€Ä¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹µÕÑ…Ñ¥¹œ°™…±Í”¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹É•ÅÕ•ÍÑ•‘Q…É•Ð°U1Q}IEUMQ}=9UII9d¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹½¹™¥ÕÉ•‘I•ÅÕ•ÍÑ5…á¥µÕ´°5a}IEUMQ}=9UII9d¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹Í…™•…Á…¥Ñä°€à¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹…•ÁÑ9•Ý1…¹•Ì°ÑÉÕ”¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹ÅÕ•Õ”°€‰½Õ¹‘•µ‰…­ÁÉ•ÍÍÕÉ”œ¤ì)ô¤ì()Ñ•ÍÐ „‘•±¥‰•É…Ñ”Á•ÈµÕÍ•È½ÁÐµ¥¸…¸É•ÅÕ•ÍÐ€ÈÀÝ¥Ñ¡½ÕÐ¡…¹¥¹œÑ¡”‘•™…Õ±Ðœ°€ ¤€ôøì(€½¹ÍÐÕ…É€ôÁ±…¹M•ÍÍ¥½¹Õ…É¡ì(€€€ÁÔèì±½¥…±½Õ¹Ðè€ÌÈ°¹½Éµ…±¥é•‘1½…è€À¸Äô°(€€€µ•µ½Éäèì™É••	åÑ•Ìè‰åÑ•Ì ØÐ¤°ÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Èô°(€€€‘¥Í¬èìÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Äô°(€€€½¹ÕÉÉ•¹äèìÕÉÉ•¹Ðè€Àô°(€ô°ìÁÉ½™¥±”è€™…ÍÐœ°­¥¹è€¥¼œ°É•ÅÕ•ÍÑ•è€ÈÀ°¡½ÍÑ•¥±¥¹œè€ÈÐô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡U1Q}IEUMQ}=9UII9d°€à¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹É•ÅÕ•ÍÑ•‘9•Ý1…¹•Ì°€ÈÀ¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹Í…™•…Á…¥Ñä°€ÈÀ¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹…•ÁÑ9•Ý1…¹•Ì°ÑÉÕ”¤ì)ô¤ì()Ñ•ÍÐ É•ÅÕ•ÍÑ•€ÈÐ¥Ì…ÁÁ•‰ä¡½ÍÐ€ÄØ…¹½Ñ¡•ÈÑ…Í¬É•Í•ÉÙ…Ñ¥½¹Ìœ°€ ¤€ôøì(€½¹ÍÐÍ…¸€ôì(€€€ÁÔèì±½¥…±½Õ¹Ðè€ÌÈ°¹½Éµ…±¥é•‘1½…è€À¸Äô°(€€€µ•µ½Éäèì™É••	åÑ•Ìè‰åÑ•Ì ØÐ¤°ÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Èô°(€€€‘¥Í¬èìÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Äô°(€€€½¹ÕÉÉ•¹äèìÕÉÉ•¹Ðè€Àô°(€ôì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡É•½µµ•¹‘½¹ÕÉÉ•¹ä¡Í…¸°ìÁÉ½™¥±”è€™…ÍÐœ°­¥¹è€¥¼œ°É•ÅÕ•ÍÑ•è€ÈÐ°¡½ÍÑ•¥±¥¹œè€ÄØô¤°€ÄØ¤ì(€½¹ÍÐÕ…É€ôÁ±…¹M•ÍÍ¥½¹Õ…É¡Í…¸°ì(€€€ÁÉ½™¥±”è€™…ÍÐœ°(€€€­¥¹è€¥¼œ°(€€€É•ÅÕ•ÍÑ•è€ÈÐ°(€€€¡½ÍÑ•¥±¥¹œè€ÄØ°(€€€½Ñ¡•ÉQ…Í­I•Í•ÉÙ…Ñ¥½¹Ìè€Ì°(€ô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹¡½ÍÑ•¥±¥¹MÑ…ÑÕÌ°€É•Á½ÉÑ•œ¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹…Ù…¥±…‰±•…Á…¥Ñä°€ÄÌ¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹…•ÁÑ9•Ý1…¹•Ì°™…±Í”¤ì)ô¤ì()Ñ•ÍÐ Õ¹­¹½Ý¸¡½ÍÐ•¥±¥¹œ¥ÌÉ•Á½ÉÑ•Ý¥Ñ¡½ÕÐ¥¹Ù•¹Ñ¥¹œ„ÉÕ¹Ñ¥µ”±¥µ¥Ðœ°€ ¤€ôøì(€½¹ÍÐÕ…É€ôÁ±…¹M•ÍÍ¥½¹Õ…É¡ì(€€€ÁÔèì±½¥…±½Õ¹Ðè€ÌÈ°¹½Éµ…±¥é•‘1½…è€À¸Äô°(€€€µ•µ½Éäèì™É••	åÑ•Ìè‰åÑ•Ì ØÐ¤°ÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Èô°(€€€‘¥Í¬èìÁÉ•ÍÍÕÉ•I…Ñ¥¼è€À¸Äô°(€€€½¹ÕÉÉ•¹äèìÕÉÉ•¹Ðè€Àô°(€ô°ìÁÉ½™¥±”è€™…ÍÐœ°­¥¹è€¥¼œ°É•ÅÕ•ÍÑ•è€ÈÐô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹¡½ÍÑ•¥±¥¹œ°¹Õ±°¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹¡½ÍÑ•¥±¥¹MÑ…ÑÕÌ°€Õ¹­¹½Ý¸œ¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡Õ…É¹Í…™•…Á…¥Ñä°€ÈÐ¤ì)ô¤ì
+      concurrency: 0,
+      maxEntries: 100,
+    });
+    assert.equal(scan.platform, 'win32');
+    assert.equal(chooseResourceProfile(scan).name, 'low-resource');
+    assert.equal(recommendConcurrency(scan, { kind: 'cpu', memoryPerWorkerBytes: bytes(1) }), 0);
+    assert.equal(recommendConcurrency(scan, { kind: 'cpu', memoryPerWorkerBytes: bytes(0.1) }), 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('Windows zero load averages are unavailable and recommendations stay capped', async () => {
+  const root = await makeFixture();
+  try {
+    const scan = await scanResources({
+      repoPath: root,
+      os: mockedOs({ platform: 'win32', logicalCount: 32, load: [0, 0, 0], total: bytes(64), free: bytes(32) }),
+      disk: { totalBytes: bytes(100), freeBytes: bytes(90) },
+      maxEntries: 100,
+    });
+    assert.equal(scan.cpu.loadAvailable, false);
+    assert.equal(scan.cpu.normalizedLoad, null);
+    assert.ok(recommendConcurrency(scan, { kind: 'io', min: 100 }) <= PUBLIC_MAX_CONCURRENCY);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('RAM and disk safety caps override a caller minimum', () => {
+  const scan = {
+    cpu: { logicalCount: 32, normalizedLoad: 0.1 },
+    memory: { freeBytes: bytes(0.5), pressureRatio: 0.96 },
+    disk: { pressureRatio: 0.99 },
+    concurrency: { current: 0 },
+  };
+  assert.equal(recommendConcurrency(scan, { min: 100, memoryPerWorkerBytes: bytes(1) }), 0);
+});
+
+test('huge directories are bounded without reading file contents', async () => {
+  const root = await mkdtemp(nodePath.join(nodeOs.tmpdir(), 'worktree-proof-resource-huge-'));
+  try {
+    await mkdir(nodePath.join(root, 'cache'), { recursive: true });
+    for (let index = 0; index < 30; index += 1) await writeFile(nodePath.join(root, 'cache', `item-${index}.txt`), `item-${index}`);
+    const scan = await scanResources({
+      repoPath: root,
+      os: mockedOs(),
+      disk: { totalBytes: 10_000, freeBytes: 9_000 },
+      maxEntries: 5,
+      maxDepth: 10,
+    });
+    assert.equal(scan.footprint.bounded, true);
+    assert.equal(scan.footprint.truncated, true);
+    assert.equal(scan.footprint.status, 'partial');
+    assert.ok(scan.footprint.scannedEntries <= 5);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('path escape and symlink entries fail closed', async (t) => {
+  const root = await mkdtemp(nodePath.join(nodeOs.tmpdir(), 'worktree-proof-resource-escape-'));
+  try {
+    const escapeFs = {
+      lstat: async (candidate) => candidate === root ? { isDirectory: () => true } : (() => { throw Object.assign(new Error('outside'), { code: 'ENOENT' }); })(),
+      readdir: async () => ['..\\outside'],
+      statfs: async () => ({ blocks: 10, bavail: 5, bsize: 1 }),
+    };
+    const escaped = await scanResources({ repoPath: root, fs: escapeFs, os: mockedOs(), maxEntries: 10 });
+    assert.equal(escaped.footprint.status, 'blocked');
+    assert.ok(escaped.footprint.escapingPaths.length > 0);
+
+    const target = nodePath.join(root, 'target.txt');
+    const link = nodePath.join(root, 'link.txt');
+    await writeFile(target, 'do not read');
+    try {
+      await (await import('node:fs/promises')).symlink(target, link);
+    } catch (error) {
+      if (error?.code === 'EPERM' || error?.code === 'EACCES') {
+        t.diagnostic('symlink creation unavailable; escape branch still verified');
+        return;
+      }
+      throw error;
+    }
+    const symlinkScan = await scanResources({ repoPath: root, os: mockedOs(), disk: { totalBytes: 100, freeBytes: 80 }, maxEntries: 50 });
+    assert.equal(symlinkScan.footprint.status, 'blocked');
+    assert.ok(symlinkScan.footprint.symlinkPaths.some((item) => item.endsWith('link.txt')));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('cleanup is an explicit, non-mutating project inventory', async () => {
+  const root = await makeFixture();
+  try {
+    const scan = await scanResources({ repoPath: root, os: mockedOs(), disk: { totalBytes: 100, freeBytes: 80 }, maxEntries: 100 });
+    const before = await readFile(nodePath.join(root, 'README.txt'), 'utf8');
+    const plan = planProjectCleanup(scan, { allowedRoots: ['.cache', 'build', '.git/worktrees'] });
+    assert.equal(plan.mutating, false);
+    assert.equal(plan.executionRequired, true);
+    assert.equal(plan.requiresExplicitConfirmation, true);
+    assert.deepEqual(plan.commands, []);
+    assert.ok(plan.items.some((item) => item.category === 'cache'));
+    assert.ok(plan.items.every((item) => item.safeToDelete === false && item.requiresConfirmation === true));
+    assert.equal(await readFile(nodePath.join(root, 'README.txt'), 'utf8'), before);
+    await assert.rejects(() => Promise.resolve(planProjectCleanup(scan, { allowedRoots: ['..\\outside'] })).then((result) => result.blocked ? Promise.reject(new Error('blocked')) : result), /blocked/);
+    await stat(root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('session guard keeps the public default at 8 while host and resource ceilings stay authoritative', () => {
+  const guard = planSessionGuard({
+    cpu: { logicalCount: 32, normalizedLoad: 0.1 },
+    memory: { freeBytes: bytes(64), pressureRatio: 0.2 },
+    disk: { pressureRatio: 0.1 },
+    concurrency: { current: 0 },
+  }, { profile: 'fast', kind: 'io', hostCeiling: 24 });
+  assert.equal(guard.parentCount, 1);
+  assert.equal(guard.mutating, false);
+  assert.equal(guard.requestedTarget, DEFAULT_REQUESTED_CONCURRENCY);
+  assert.equal(guard.configuredRequestMaximum, MAX_REQUESTED_CONCURRENCY);
+  assert.equal(guard.safeCapacity, 8);
+  assert.equal(guard.acceptNewLanes, true);
+  assert.equal(guard.queue, 'bounded-backpressure');
+});
+
+test('a deliberate per-user opt-in can request 20 without changing the default', () => {
+  const guard = planSessionGuard({
+    cpu: { logicalCount: 32, normalizedLoad: 0.1 },
+    memory: { freeBytes: bytes(64), pressureRatio: 0.2 },
+    disk: { pressureRatio: 0.1 },
+    concurrency: { current: 0 },
+  }, { profile: 'fast', kind: 'io', requested: 20, hostCeiling: 24 });
+  assert.equal(DEFAULT_REQUESTED_CONCURRENCY, 8);
+  assert.equal(guard.requestedNewLanes, 20);
+  assert.equal(guard.safeCapacity, 20);
+  assert.equal(guard.acceptNewLanes, true);
+});
+
+test('requested 24 is capped by host 16 and other task reservations', () => {
+  const scan = {
+    cpu: { logicalCount: 32, normalizedLoad: 0.1 },
+    memory: { freeBytes: bytes(64), pressureRatio: 0.2 },
+    disk: { pressureRatio: 0.1 },
+    concurrency: { current: 0 },
+  };
+  assert.equal(recommendConcurrency(scan, { profile: 'fast', kind: 'io', requested: 24, hostCeiling: 16 }), 16);
+  const guard = planSessionGuard(scan, {
+    profile: 'fast',
+    kind: 'io',
+    requested: 24,
+    hostCeiling: 16,
+    otherTaskReservations: 3,
+  });
+  assert.equal(guard.hostCeilingStatus, 'reported');
+  assert.equal(guard.availableCapacity, 13);
+  assert.equal(guard.acceptNewLanes, false);
+});
+
+test('unknown host ceiling is reported without inventing a runtime limit', () => {
+  const guard = planSessionGuard({
+    cpu: { logicalCount: 32, normalizedLoad: 0.1 },
+    memory: { freeBytes: bytes(64), pressureRatio: 0.2 },
+    disk: { pressureRatio: 0.1 },
+    concurrency: { current: 0 },
+  }, { profile: 'fast', kind: 'io', requested: 24 });
+  assert.equal(guard.hostCeiling, null);
+  assert.equal(guard.hostCeilingStatus, 'unknown');
+  assert.equal(guard.safeCapacity, 24);
+});

@@ -108,4 +108,181 @@ test('dry-run reserve does not invoke the lease adapter', async () => {
   assert.match(stream.out[0], /planned/);
 });
 
-test('no-submi×]z¶‰žËkºwµçM•¹ÕÍ•Ì‰½Õ¹‘•ÍÑÉÕÑÕÉ•™¥•±‘Ìœ°…Íå¹Œ€ ¤€ôøì(€±•Ð…±±Ì€ô€Àì(€½¹ÍÐ‰É¥‘”€ôì(€€€Í•¹‘	É¥‘•5•ÍÍ…”è…Íå¹Œ€¡}É½½Ð°µ•ÍÍ…”¤€ôøì(€€€€€…±±Ì€¬ô€Äì(€€€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡µ•ÍÍ…”¹Í•¹‘•È°€½‘•àœ¤ì(€€€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡µ•ÍÍ…”¹É•¥Á¥•¹Ð°€±…Õ‘”œ¤ì(€€€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡µ•ÍÍ…”¹™¥±•M½Á”°€‘½Ì¼œ¤ì(€€€€€…ÍÍ•ÉÐ¹‘••ÁÅÕ…°¡µ•ÍÍ…”¹…Á…‰¥±¥Ñ¥•Ì°lÑ•ÍÐœ°€¥¹ÍÁ•Ðt¤ì(€€€€€É•ÑÕÉ¸ìµ•ÍÍ…•%è€µ•ÍÍ…”´Äœ°€¸¸¹µ•ÍÍ…”°ÍÑ…ÑÕÌè€Á•¹‘¥¹œœôì(€€€ô°(€ôì(€½¹ÍÐÁÉ•Ù¥•ÝMÑÉ•…´€ô…ÁÑÕÉ” ¤ì(€½¹ÍÐÁÉ•Ù¥•Ü€ô…Ý…¥ÐÉÕ¹±¤¡l(€€€€‰É¥‘”œ°€Í•¹œ°€œ´µÍ•¹‘•Èœ°€½‘•àœ°€œ´µÉ•¥Á¥•¹Ðœ°€±…Õ‘”œ°€œ´µÑåÁ”œ°€Ñ…Í¬œ°(€€€€œ´µÍÕµµ…Éäœ°€I•Ù¥•Ü‘½Ìœ°€œ´µÍ½Á”œ°€‘½Ì¼œ°€œ´µ‘ÉäµÉÕ¸œ°(€t°ì¥¼èÁÉ•Ù¥•ÝMÑÉ•…´¹¥¼°‘•ÁÌèì‰É¥‘”ôô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡ÁÉ•Ù¥•Ü¹½‘”°a%Q}=L¹=,¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡…±±Ì°€À¤ì((€½¹ÍÐÍÑÉ•…´€ô…ÁÑÕÉ” ¤ì(€½¹ÍÐÉ•ÍÕ±Ð€ô…Ý…¥ÐÉÕ¹±¤¡l(€€€€‰É¥‘”œ°€Í•¹œ°€œ´µÍ•¹‘•Èœ°€½‘•àœ°€œ´µÉ•¥Á¥•¹Ðœ°€±…Õ‘”œ°€œ´µÑåÁ”œ°€Ñ…Í¬œ°(€€€€œ´µÍÕµµ…Éäœ°€I•Ù¥•Ü‘½Ìœ°€œ´µÍ½Á”œ°€‘½Ì¼œ°€œ´µ…Á…‰¥±¥Ñ¥•Ìœ°€Ñ•ÍÐ±¥¹ÍÁ•Ðœ°€œ´µ©Í½¸œ°(€t°ì¥¼èÍÑÉ•…´¹¥¼°‘•ÁÌèì‰É¥‘”ôô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡É•ÍÕ±Ð¹½‘”°a%Q}=L¹=,¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡…±±Ì°€Ä¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡)M=8¹Á…ÉÍ”¡ÍÑÉ•…´¹½ÕÑlÁt¤¹É•ÍÕ±Ð¹µ•ÍÍ…”¹µ•ÍÍ…•%°€µ•ÍÍ…”´Äœ¤ì)ô¤ì()Ñ•ÍÐ ‰É¥‘”¥¹‰½à¥ÌÉ•…µ½¹±ä…¹‰É¥‘”ÍÑ…Ñ”…¹¹½Ð•Í…Á”Ñ¡”É•Á½Í¥Ñ½Éäœ°…Íå¹Œ€ ¤€ôøì(€½¹ÍÐÍÑÉ•…´€ô…ÁÑÕÉ” ¤ì(€½¹ÍÐÉ•ÍÕ±Ð€ô…Ý…¥ÐÉÕ¹±¤¡l‰É¥‘”œ°€¥¹‰½àœ°€œ´µ…•¹Ðœ°€±…Õ‘”œ°€œ´µ©Í½¸t°ì(€€€¥¼èÍÑÉ•…´¹¥¼°(€€€‘•ÁÌèì‰É¥‘”èì±¥ÍÑ	É¥‘•%¹‰½àè…Íå¹Œ€¡}É½½Ð°½ÁÑ¥½¹Ì¤€ôømìÉ•¥Á¥•¹Ðè½ÁÑ¥½¹Ì¹É•¥Á¥•¹Ð°ÍÑ…ÑÕÌè€Á•¹‘¥¹œœõtôô°(€ô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡É•ÍÕ±Ð¹½‘”°a%Q}=L¹=,¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡)M=8¹Á…ÉÍ”¡ÍÑÉ•…´¹½ÕÑlÁt¤¹É•ÍÕ±Ð¹µ•ÍÍ…•ÍlÁt¹É•¥Á¥•¹Ð°€±…Õ‘”œ¤ì((€½¹ÍÐ•Í…Á”€ô…ÁÑÕÉ” ¤ì(€½¹ÍÐ•Í…Á•€ô…Ý…¥ÐÉÕ¹±¤¡l‰É¥‘”œ°€¥¹‰½àœ°€œ´µ…•¹Ðœ°€±…Õ‘”œ°€œ´µ‰É¥‘”µÉ½½Ðœ°€œ¸¹qq½ÕÑÍ¥‘”t°ì(€€€¥¼è•Í…Á”¹¥¼°(€€€‘•ÁÌèì‰É¥‘”èì±¥ÍÑ	É¥‘•%¹‰½àè…Íå¹Œ€ ¤€ôømtôô°(€ô¤ì(€…ÍÍ•ÉÐ¹•ÅÕ…°¡•Í…Á•¹½‘”°a%Q}=L¹UM¤ì(€…ÍÍ•ÉÐ¹µ…Ñ ¡•Í…Á”¹•ÉÉlÁt°€½¥¹Í¥‘”Ñ¡”É•Á½Í¥Ñ½Éä¼¤ì)ô¤ì()Ñ•ÍÐ Ñ…Í­Ì¥¹ÍÁ•Ð…•ÁÑÌ½¹±ä…¸•áÁ±¥¥ÐÍ¹…ÁÍ¡½Ð…¹É•ÑÕÉ¹ÌÍ…¹¥Ñ¥é•µ•Ñ…‘…Ñ„œ°…Íå¹Œ€ ¤€ôøì(€½¹ÍÐÉ½½Ð€ô…Ý…¥Ðµ­‘Ñ•µÀ¡Á…Ñ ¹©½¥¸¡½Ì¹ÑµÁ‘¥È ¤°€Ý½É­ÑÉ•”µÁÉ½½˜µ±¤µÑ…Í­Ì´œ¤¤ì(€ÑÉäì(€€€…Ý…¥ÐÝÉ¥Ñ•¥±”¡Á…Ñ ¹©½¥¸¡É½½Ð°€Ñ…Í­Ì¹©Í½¸œ¤°)M=8¹ÍÑÉ¥¹¥™ä¡ìÑ…Í­Ìèmì¥è€ÁÉ¥Ù…Ñ”µ¥œ°ÍÑ…ÑÕÌè€…Ñ¥Ù”œõtô¤¤ì(€€€½¹ÍÐÍÑÉ•…´€ô…ÁÑÕÉ” ¤ì(€€€½¹ÍÐÉ•ÍÕ±Ð€ô…Ý…¥ÐÉÕ¹±¤¡lÑ…Í­Ìœ°€¥¹ÍÁ•Ðœ°€œ´µ¥¹ÁÕÐœ°€Ñ…Í­Ì¹©Í½¸œ°€œ´µ©Í½¸t°ì(€€€€€¥¼èÍÑÉ•…´¹¥¼°(€€€€€É•Á¼èÉ½½Ð°(€€€€€‘•ÁÌèì(€€€€€€€Ñ…Í­Ìèì(€€€€€€€€€Í…¹¥Ñ¥é•Q…Í­M¹…ÁÍ¡½Ðè€ ¤€ôø€¡ìÑ…Í­ÌèmìÑ…Í­%è€…‰‘•˜ÀÄÈÌÐÔØÜàäœ°ÍÑ…ÑÕÌè€…Ñ¥Ù”œ°É•Á½ÉÑ•‘5½‘”è€Õ¹­¹½Ý¸œõtô¤°(€€€€€€€ô°(€€€€€ô°(€€€ô¤ì(€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡É•ÍÕ±Ð¹½‘”°a%Q}=L¹=,¤ì(€€€½¹ÍÐ½ÕÑÁÕÐ€ô)M=8¹Á…ÉÍ”¡ÍÑÉ•…´¹½ÕÑlÁt¤ì(€€€…ÍÍ•ÉÐ¹•ÅÕ…°¡½ÕÑÁÕÐ¹É•ÍÕ±Ð¹Í¹…ÁÍ¡½Ð¹Ñ…Í­ÍlÁt¹É•Á½ÉÑ•‘5½‘”°€Õ¹­¹½Ý¸œ¤ì(€€€…ÍÍ•ÉÐ¹‘½•Í9½Ñ5…Ñ ¡ÍÑÉ•…´¹½ÕÑlÁt°€½ÁÉ¥Ù…Ñ”µ¥¼¤ì(€ô™¥¹…±±äì(€€€…Ý…¥ÐÉ´¡É½½Ð°ìÉ•ÕÉÍ¥Ù”èÑÉÕ”°™½É”èÑÉÕ”ô¤ì(€ô)ô¤ì
+test('no-submit close is reported without writing a receipt', async () => {
+  const stream = capture();
+  let called = false;
+  const result = await runCli(
+    ['close', '--lane-id', 'docs-api', '--no-submit'],
+    {
+      io: stream.io,
+      deps: {
+        evidence: {
+          closeLane: async () => {
+            called = true;
+            return { status: 'closed' };
+          },
+        },
+      },
+    },
+  );
+
+  assert.equal(result.code, 0);
+  assert.equal(called, false);
+  assert.match(stream.out[0], /no-submit/);
+});
+
+test('JSON output redacts sensitive fields', async () => {
+  const stream = capture();
+  const result = await runCli(
+    ['status', '--json'],
+    {
+      io: stream.io,
+      deps: {
+        leases: {
+          statusLeases: async () => ({
+            status: 'idle',
+            accessToken: 'do-not-print',
+          }),
+        },
+      },
+    },
+  );
+
+  assert.equal(result.code, 0);
+  const output = JSON.parse(stream.out[0]);
+  assert.equal(output.ok, true);
+  assert.equal(output.result.accessToken, '[redacted]');
+  assert.doesNotMatch(stream.out[0], /do-not-print/);
+});
+
+test('run dry-run reports shape without executing a process', async () => {
+  const stream = capture();
+  let called = false;
+  const result = await runCli(
+    ['run', '--dry-run', '--', 'some-program', '--secret-value'],
+    {
+      io: stream.io,
+      deps: {
+        runner: {
+          executeArgv: async () => {
+            called = true;
+            return { exitCode: 0 };
+          },
+        },
+      },
+    },
+  );
+
+  assert.equal(result.code, 0);
+  assert.equal(called, false);
+  assert.match(stream.out[0], /planned/);
+  assert.doesNotMatch(stream.out[0], /secret-value/);
+});
+
+test('tools list is read-only and tools recommend accepts repeated goals', async () => {
+  const stream = capture();
+  const result = await runCli(['tools', 'recommend', '--goal', 'testing', '--goal', 'javascript', '--json'], {
+    io: stream.io,
+    deps: {
+      tools: {
+        loadToolCatalog: () => [{ id: 'node', name: 'Node', categories: ['javascript'], capabilities: ['testing'], tags: ['testing'] }],
+        recommendTools: (goals) => goals.map((goal) => ({ id: goal })),
+      },
+    },
+  });
+  assert.equal(result.code, EXIT_CODES.OK);
+  const output = JSON.parse(stream.out[0]);
+  assert.deepEqual(output.result.goals, ['testing', 'javascript']);
+});
+
+test('resources plan remains non-mutating and init writes require confirmation', async () => {
+  const stream = capture();
+  const result = await runCli(['resources', 'plan', '--json'], {
+    io: stream.io,
+    deps: {
+      resources: {
+        scanResources: async () => ({ repoPath: '.', scannedAt: 'now', cpu: {}, memory: {}, disk: {}, footprint: {} }),
+        planSessionGuard: () => ({ mutating: false, acceptNewLanes: true }),
+        planProjectCleanup: () => ({ mutating: false, requiresExplicitConfirmation: true, items: [] }),
+      },
+    },
+  });
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.equal(JSON.parse(stream.out[0]).result.cleanup.mutating, false);
+
+  const initStream = capture();
+  const init = await runCli(['init', 'apply', '--target', 'generic-prompt'], { io: initStream.io, repo: process.cwd() });
+  assert.equal(init.code, EXIT_CODES.USAGE);
+  assert.match(initStream.err[0], /requires --confirm/);
+});
+
+test('bridge dry-run never sends and a real send uses bounded structured fields', async () => {
+  let calls = 0;
+  const bridge = {
+    sendBridgeMessage: async (_root, message) => {
+      calls += 1;
+      assert.equal(message.sender, 'codex');
+      assert.equal(message.recipient, 'claude');
+      assert.equal(message.fileScope, 'docs/');
+      assert.deepEqual(message.capabilities, ['test', 'inspect']);
+      return { messageId: 'message-1', ...message, status: 'pending' };
+    },
+  };
+  const previewStream = capture();
+  const preview = await runCli([
+    'bridge', 'send', '--sender', 'codex', '--recipient', 'claude', '--type', 'task',
+    '--summary', 'Review docs', '--scope', 'docs/', '--dry-run',
+  ], { io: previewStream.io, deps: { bridge } });
+  assert.equal(preview.code, EXIT_CODES.OK);
+  assert.equal(calls, 0);
+
+  const stream = capture();
+  const result = await runCli([
+    'bridge', 'send', '--sender', 'codex', '--recipient', 'claude', '--type', 'task',
+    '--summary', 'Review docs', '--scope', 'docs/', '--capabilities', 'test,inspect', '--json',
+  ], { io: stream.io, deps: { bridge } });
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.equal(calls, 1);
+  assert.equal(JSON.parse(stream.out[0]).result.message.messageId, 'message-1');
+});
+
+test('bridge inbox is read-only and bridge state cannot escape the repository', async () => {
+  const stream = capture();
+  const result = await runCli(['bridge', 'inbox', '--agent', 'claude', '--json'], {
+    io: stream.io,
+    deps: { bridge: { listBridgeInbox: async (_root, options) => [{ recipient: options.recipient, status: 'pending' }] } },
+  });
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.equal(JSON.parse(stream.out[0]).result.messages[0].recipient, 'claude');
+
+  const escape = capture();
+  const escaped = await runCli(['bridge', 'inbox', '--agent', 'claude', '--bridge-root', '..\\outside'], {
+    io: escape.io,
+    deps: { bridge: { listBridgeInbox: async () => [] } },
+  });
+  assert.equal(escaped.code, EXIT_CODES.USAGE);
+  assert.match(escape.err[0], /inside the repository/);
+});
+
+test('tasks inspect accepts only an explicit snapshot and returns sanitized metadata', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-tasks-'));
+  try {
+    await writeFile(path.join(root, 'tasks.json'), JSON.stringify({ tasks: [{ id: 'private-id', status: 'active' }] }));
+    const stream = capture();
+    const result = await runCli(['tasks', 'inspect', '--input', 'tasks.json', '--json'], {
+      io: stream.io,
+      repo: root,
+      deps: {
+        tasks: {
+          sanitizeTaskSnapshot: () => ({ tasks: [{ taskId: 'abcdef0123456789', status: 'active', reportedMode: 'unknown' }] }),
+        },
+      },
+    });
+    assert.equal(result.code, EXIT_CODES.OK);
+    const output = JSON.parse(stream.out[0]);
+    assert.equal(output.result.snapshot.tasks[0].reportedMode, 'unknown');
+    assert.doesNotMatch(stream.out[0], /private-id/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

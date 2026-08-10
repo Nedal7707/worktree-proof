@@ -34,7 +34,41 @@
       "symptom": "Two active lanes claim the same file, a parent directory and its child, or equivalent paths written in different forms.",
       "invariant": "Active lanes must have unique, normalized, non-overlapping relative scopes.",
       "mechanicalControl": "Normalize separators and traversal, reject duplicate or nested scopes at reservation time, and keep one owner for each mutable scope.",
-      "recovery": "Release the conflicti˜Õ≠¢Gß≤⁄Óù∆≠y‘ and preserved before any destructive operation.",
+      "recovery": "Release the conflicting reservation, re-scope one lane to an independent area, and re-run the overlap check before resuming.",
+      "testableAcceptance": "A reservation test rejects duplicate, parent-child, and normalized-equivalent scopes while accepting independent siblings."
+    },
+    {
+      "id": "hierarchy-authority-deadlock",
+      "title": "Hierarchy or authority deadlock",
+      "symptom": "Executors wait on one another for supervisory approval, a second key, or an authority that was never assigned.",
+      "invariant": "One coordinator owns decisions; executors return evidence but cannot gate one another.",
+      "mechanicalControl": "Assign one decision owner, give each executor a closed scope and terminal output, and prohibit approval chains that can wait indefinitely.",
+      "recovery": "Remove the waiting edge, decide from the available artifacts, and issue at most one bounded correction with a clear owner.",
+      "testableAcceptance": "Two independent lanes cannot block one another by withholding approval; a returned artifact is sufficient for the coordinator to decide."
+    },
+    {
+      "id": "misleading-diff-claims",
+      "title": "Misleading diff or completion claims",
+      "symptom": "A commit, diff, branch, or progress statement is described as fixed or complete despite unmerged, unrelated, or unverified changes.",
+      "invariant": "A claim must match the observed diff and terminal evidence in the named target.",
+      "mechanicalControl": "Compare the change summary with the actual diff, verify the target revision, and distinguish pending, landed, and verified states.",
+      "recovery": "Correct the record, relabel pending work, and run the missing checks before making a completion claim.",
+      "testableAcceptance": "A test with an unmerged change keeps the status pending until the target revision and required evidence match."
+    },
+    {
+      "id": "unmerged-branch-accumulation",
+      "title": "Unmerged branch or worktree accumulation",
+      "symptom": "Branches or worktrees remain after a lane appears finished, making ownership, divergence, and cleanup unclear.",
+      "invariant": "Every branch and worktree is temporary until it is merged and cleaned or explicitly abandoned and deleted.",
+      "mechanicalControl": "Inventory active refs before new work, pair every lane with integration and cleanup, and delete only validated superseded surfaces.",
+      "recovery": "For each stale surface choose merge, resume-and-clean, or abandon-and-delete; record the outcome before reusing its scope.",
+      "testableAcceptance": "A close operation leaves no owned stale surface, or returns an explicit abandonment record with cleanup proof."
+    },
+    {
+      "id": "dirty-work-loss",
+      "title": "Dirty-work loss",
+      "symptom": "A reset, cleanup, checkout, or overwrite erases uncommitted work before its owner can recover it.",
+      "invariant": "Uncommitted state must be detected and preserved before any destructive operation.",
       "mechanicalControl": "Check cleanliness, create a patch or other rescue artifact, and fail closed if preservation cannot be verified before proceeding.",
       "recovery": "Restore from the rescue artifact, verify the recovered diff, and let the scope owner reclaim the lane before further mutation.",
       "testableAcceptance": "A test injects dirty files and proves a destructive operation is blocked unless a valid rescue artifact exists."

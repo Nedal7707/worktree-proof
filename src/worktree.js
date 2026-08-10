@@ -86,4 +86,210 @@ function resolveRepository(config) {
       commonDir = path.resolve(config.commonDir ?? supplied.commonDir);
     } else {
       let commonResult = gitCall(config, ['rev-parse', '--path-format=absolute', '--git-common-dir'], repoRoot, { throwOnError: false });
-      if (!commonResult.ok) commonResult = gitCall(config, ['reÛ|¶‰žËkºwµç@‘¥ÉÑäµ½ÈµÍÑ…ÑÕÌµ™…¥±•œ°ÍÑ…ÑÕÌ¤ôì((€€€€¼¼I”µ¡•¬•Ù•ÉäÉ•µ½Ù…°ÁÉ•½¹‘¥Ñ¥½¸¥µµ•‘¥…Ñ•±ä‰•™½É”¥¹Ù½­¥¹œ¥Ð¸(€€€¥˜€¡…Ý…¥Ð±•…Í•%ÍÑ¥Ù”¡É•½É°½ÁÑ¥½¹Ì¤¤É•ÑÕÉ¸ìÉ•µ½Ù•è™…±Í”°ÁÉ½Ñ•Ñ•èÑÉÕ”°É•…Í½¸è€…Ñ¥Ù”µ±•…Í”œ°±…¹”èÉ•½É¹±…¹”°Á…Ñ èÝ½É­ÑÉ••A…Ñ ôì(€€€…ÍÍ•ÉÑ½¹Ñ…¥¹•‘I•…±A…Ñ ¡É½½Ð°Ý½É­ÑÉ••A…Ñ °ì…±±½Ý5¥ÍÍ¥¹œè™…±Í”ô¤ì(€€€½¹ÍÐ™¥¹…±MÑ…ÑÕÌ€ô¥¹ÍÁ•Ñ]½É­ÑÉ••MÑ…ÑÕÌ¡Ý½É­ÑÉ••A…Ñ °½ÁÑ¥½¹Ì¤ì(€€€Ù…±¥‘…Ñ•½ÉI•µ½Ù…°¡É•½É°½ÁÑ¥½¹Ì°™¥¹…±MÑ…ÑÕÌ¤ì(€€€¥˜€ …™¥¹…±MÑ…ÑÕÌ¹±•…¸¤É•ÑÕÉ¸ìÉ•µ½Ù•è™…±Í”°É•ÍÕ•èÉ•ÍÕ•I•½É¡É•½É°€‰•…µ”µ‘¥ÉÑäœ°™¥¹…±MÑ…ÑÕÌ¤ôì(€€€½¹ÍÐÉ•µ½Ù•€ô¥Ñ…±°¡½ÁÑ¥½¹Ì°lÝ½É­ÑÉ•”œ°€É•µ½Ù”œ°Ý½É­ÑÉ••A…Ñ¡t°É•½É¹É•Á½I½½Ð¤ì(€€€¥˜€ …É•µ½Ù•¹½¬ñð™Ì¹•á¥ÍÑÍMå¹Œ¡Ý½É­ÑÉ••A…Ñ ¤¤ì(€€€€€É•ÑÕÉ¸ìÉ•µ½Ù•è™…±Í”°É•ÍÕ•èÉ•ÍÕ•I•½É¡É•½É°€É•µ½Ù”µ™…¥±•œ°™¥¹…±MÑ…ÑÕÌ°¹•ÜÉÉ½È¡É•µ½Ù•¹ÍÑ‘•ÉÈñð€¥ÐÝ½É­ÑÉ•”É•µ½Ù”™…¥±•œ¤¤ôì(€€€ô(€€€É•ÑÕÉ¸ìÉ•µ½Ù•èÑÉÕ”°±…¹”èÉ•½É¹±…¹”°‰É…¹ èÉ•½É¹‰É…¹ °Á…Ñ èÝ½É­ÑÉ••A…Ñ °ÍÑ…ÑÕÌè™¥¹…±MÑ…ÑÕÌôì(€ô…Ñ €¡•ÉÉ½È¤ì(€€€½¹ÍÐÉ•ÍÕ”€ôÉ•ÍÕ•I•½É¡ì€¸¸¹É•½É°Á…Ñ èÝ½É­ÑÉ••A…Ñ €üüÉ•½É¹Á…Ñ °Ý½É­ÑÉ••I½½ÐèÉ½½Ð€üüÉ•½É¹Ý½É­ÑÉ••I½½Ðô°€Ù…±¥‘…Ñ¥½¸µ™…¥±•œ°ÍÑ…ÑÕÌ°•ÉÉ½È¤ì(€€€É•ÑÕÉ¸ìÉ•µ½Ù•è™…±Í”°É•ÍÕ•èÉ•ÍÕ”ôì(€ô)ô((¼¨¨(€¨±•…¸•á…Ñ±äÑ¡”É•½É‘ÌÍÕÁÁ±¥•‰äÑ¡”…±±•È¸=µ¥ÑÑ¥¹œ±…¹•Í€¥Ì…¸(€¨•áÁ±¥¥Ð¹¼µ½ÀìÑ¡¥Ì™Õ¹Ñ¥½¸¹•Ù•È‘¥Í½Ù•ÉÌ½ÈÍÝ••ÁÌ±½‰…°Ý½É­ÑÉ••Ì¸(€¨¼)•áÁ½ÉÐ…Íå¹Œ™Õ¹Ñ¥½¸±•…¹ÕÁ5…¹…•‘]½É­ÑÉ••Ì¡½ÁÑ¥½¹Ì€ôíô¤ì(€½¹ÍÐ±…¹•Ì€ô½ÁÑ¥½¹Ì¹±…¹•Ì€üü½ÁÑ¥½¹Ì¹µ…¹…•‘1…¹•Ìì(€¥˜€ …ÉÉ…ä¹¥ÍÉÉ…ä¡±…¹•Ì¤¤Ñ¡É½Ü¹•ÜQåÁ•ÉÉ½È ±•…¹ÕÀÉ•ÅÕ¥É•Ì…¸•áÁ±¥¥Ð±…¹•Ì…ÉÉ…äœ¤ì(€½¹ÍÐÉ•ÍÕ±ÑÌ€ômtì(€™½È€¡½¹ÍÐ±…¹”½˜±…¹•Ì¤É•ÍÕ±ÑÌ¹ÁÕÍ ¡…Ý…¥ÐÉ•µ½Ù•1…¹•]½É­ÑÉ•”¡±…¹”°½ÁÑ¥½¹Ì¤¤ì(€É•ÑÕÉ¸ì(€€€É•ÍÕ±ÑÌ°(€€€É•µ½Ù•èÉ•ÍÕ±ÑÌ¹™¥±Ñ•È ¡É•ÍÕ±Ð¤€ôøÉ•ÍÕ±Ð¹É•µ½Ù•¤°(€€€ÁÉ½Ñ•Ñ•èÉ•ÍÕ±ÑÌ¹™¥±Ñ•È ¡É•ÍÕ±Ð¤€ôøÉ•ÍÕ±Ð¹ÁÉ½Ñ•Ñ•¤°(€€€É•ÍÕ•ÌèÉ•ÍÕ±ÑÌ¹µ…À ¡É•ÍÕ±Ð¤€ôøÉ•ÍÕ±Ð¹É•ÍÕ•¤¹™¥±Ñ•È¡	½½±•…¸¤°(€ôì)ô()•áÁ½ÉÐ½¹ÍÐ±•…¹ÕÁ]½É­ÑÉ••Ì€ô±•…¹ÕÁ5…¹…•‘]½É­ÑÉ••Ìì)•áÁ½ÉÐ½¹ÍÐÉ•…Ñ•]½É­ÑÉ•”€ôÉ•…Ñ•1…¹•]½É­ÑÉ•”ì)•áÁ½ÉÐ½¹ÍÐÉ•µ½Ù•]½É­ÑÉ•”€ôÉ•µ½Ù•1…¹•]½É­ÑÉ•”ì)•áÁ½ÉÐì…ÍÍ•ÉÑ½¹Ñ…¥¹•‘I•…±A…Ñ °¥ÍA…Ñ¡½¹Ñ…¥¹•ôì((¼¨¨á•ÕÑ”„±…¹”½µµ…¹…¹¥¹ÍÁ•ÐÍÑ…ÑÕÌ•Ù•¸Ý¡•¸•á•ÕÑ¥½¸™…¥±Ì¸€¨¼)•áÁ½ÉÐ…Íå¹Œ™Õ¹Ñ¥½¸ÉÕ¹1…¹•½µµ…¹¡É•½É°…ÉØ°½ÁÑ¥½¹Ì€ôíô¤ì(€½¹ÍÐÝ½É­ÑÉ••A…Ñ €ôÉ•½Éü¹Á…Ñ ì(€¥˜€ …É•½Éü¹µ…¹…•ñð€…Ý½É­ÑÉ••A…Ñ ¤Ñ¡É½Ü¹•ÜQåÁ•ÉÉ½È µ…¹…•±…¹”É•½É¥ÌÉ•ÅÕ¥É•œ¤ì(€½¹ÍÐÉ½½Ð€ôÁ…Ñ ¹É•Í½±Ù”¡½ÁÑ¥½¹Ì¹Ý½É­ÑÉ••I½½Ð€üüÉ•½É¹Ý½É­ÑÉ••I½½Ð¤ì(€…ÍÍ•ÉÑ½¹Ñ…¥¹•‘I•…±A…Ñ ¡É½½Ð°Ý½É­ÑÉ••A…Ñ °ì…±±½Ý5¥ÍÍ¥¹œè™…±Í”ô¤ì(€±•Ð•á•ÕÑ¥½¸ì(€±•Ð•á•ÕÑ¥½¹ÉÉ½Èì(€ÑÉäì(€€€½¹ÍÐ•á•ÕÑ”€ô½ÁÑ¥½¹Ì¹•á•ÕÑ•ÉØ€üü•á•ÕÑ•ÉØì(€€€•á•ÕÑ¥½¸€ô…Ý…¥Ð•á•ÕÑ”¡…ÉØ°ì€¸¸¹½ÁÑ¥½¹Ì°ÝèÝ½É­ÑÉ••A…Ñ °Í¡•±°è™…±Í”ô¤ì(€ô…Ñ €¡•ÉÉ½È¤ì(€€€•á•ÕÑ¥½¹ÉÉ½È€ô‰½Õ¹‘•‘ÉÉ½È¡•ÉÉ½È¤ì(€ô(€½¹ÍÐÍÑ…ÑÕÌ€ô¥¹ÍÁ•Ñ]½É­ÑÉ••MÑ…ÑÕÌ¡Ý½É­ÑÉ••A…Ñ °½ÁÑ¥½¹Ì¤ì(€É•ÑÕÉ¸ì•á•ÕÑ¥½¸°•á•ÕÑ¥½¹ÉÉ½È°ÍÑ…ÑÕÌ°±…¹”èÉ•½É¹±…¹”°‰É…¹ èÉ•½É¹‰É…¹ °Á…Ñ èÝ½É­ÑÉ••A…Ñ ôì)ô(
+      if (!commonResult.ok) commonResult = gitCall(config, ['rev-parse', '--git-common-dir'], repoRoot);
+      commonDir = path.resolve(repoRoot, commonResult.stdout.trim());
+    }
+    const canonicalRef = config.canonicalRef ?? supplied?.canonicalRef ?? 'HEAD';
+    const canonicalCommit = config.canonicalCommit ?? supplied?.canonicalCommit ?? gitCall(config, ['rev-parse', '--verify', `${canonicalRef}^{commit}`], repoRoot).stdout.trim();
+    return { repoRoot, commonDir, canonicalRef, canonicalCommit };
+  }
+  const discovered = discoverGitRepository(config.startPath ?? process.cwd(), { ...gitOptions(config), canonicalRef: config.canonicalRef });
+  return { repoRoot: discovered.repoRoot, commonDir: discovered.commonDir, canonicalRef: discovered.canonicalRef, canonicalCommit: discovered.canonicalCommit };
+}
+
+function resolveRoot(repoRoot, config) {
+  const root = path.resolve(config.worktreeRoot ?? path.join(repoRoot, '.worktree-proof-worktrees'));
+  ensureDirectory(root);
+  assertContainedRealPath(root, root, { allowMissing: false });
+  return root;
+}
+
+function branchExists(repoRoot, branch, config) {
+  return gitCall(config, ['show-ref', '--verify', '--quiet', `refs/heads/${branch}`], repoRoot, { throwOnError: false }).ok;
+}
+
+function managedPath(record, root) {
+  if (!record?.path || !record?.lane) throw new TypeError('managed lane record requires lane and path');
+  const expectedPath = path.resolve(root, laneSegment(record.lane));
+  const actualPath = path.resolve(record.path);
+  if (expectedPath !== actualPath) throw new Error('managed worktree path does not match its lane');
+  return expectedPath;
+}
+
+function inspectTopLevel(worktreePath, config) {
+  const top = gitCall(config, ['rev-parse', '--show-toplevel'], worktreePath, { throwOnError: false });
+  return top.ok ? path.resolve(top.stdout.trim()) : undefined;
+}
+
+/**
+ * Inspect branch, HEAD, and porcelain status. This function never mutates the
+ * worktree and reports failures instead of masking them as a clean state.
+ */
+export function inspectWorktreeStatus(worktreePath, options = {}) {
+  const statusResult = gitCall(options, ['status', '--porcelain=v1', '--untracked-files=all'], worktreePath, { throwOnError: false });
+  const branchResult = gitCall(options, ['symbolic-ref', '--quiet', '--short', 'HEAD'], worktreePath, { throwOnError: false });
+  const headResult = gitCall(options, ['rev-parse', '--verify', 'HEAD'], worktreePath, { throwOnError: false });
+  const branch = branchResult.ok ? branchResult.stdout.trim() : undefined;
+  const head = headResult.ok ? headResult.stdout.trim() : undefined;
+  const output = statusResult.stdout ?? '';
+  const entries = output.split(/\r?\n/).filter(Boolean);
+  const ok = statusResult.ok && branchResult.ok && headResult.ok;
+  return {
+    ok,
+    path: path.resolve(worktreePath),
+    branch,
+    head,
+    clean: ok && entries.length === 0,
+    dirty: !ok || entries.length > 0,
+    entries,
+    statusCode: statusResult.code,
+    error: ok ? undefined : boundedError(new Error([statusResult.stderr, branchResult.stderr, headResult.stderr].filter(Boolean).join('\n') || 'unable to inspect worktree status')),
+  };
+}
+
+/**
+ * Create a dedicated branch worktree for one named lane. The worktree root and
+ * candidate path are checked before and after git creates the checkout.
+ */
+export function createLaneWorktree(config = {}) {
+  const lane = laneSegment(config.lane ?? config.name ?? config.laneId);
+  const branch = branchName(config.branch ?? config.branchName, lane);
+  const repository = resolveRepository(config);
+  const root = resolveRoot(repository.repoRoot, config);
+  const worktreePath = path.resolve(root, lane);
+  assertContainedRealPath(root, worktreePath, { allowMissing: true });
+  if (fs.existsSync(worktreePath)) throw new Error(`lane worktree already exists: ${lane}`);
+  const record = {
+    managed: true,
+    lane,
+    branch,
+    path: worktreePath,
+    worktreeRoot: root,
+    repoRoot: repository.repoRoot,
+    commonDir: repository.commonDir,
+    canonicalRef: repository.canonicalRef,
+    canonicalCommit: repository.canonicalCommit,
+    baseCommit: repository.canonicalCommit,
+  };
+  try {
+    const args = branchExists(repository.repoRoot, branch, config)
+      ? ['worktree', 'add', worktreePath, branch]
+      : ['worktree', 'add', '-b', branch, worktreePath, repository.canonicalRef];
+    const added = gitCall(config, args, repository.repoRoot);
+    if (!added.ok) throw new Error(added.stderr || 'git worktree add failed');
+    assertContainedRealPath(root, worktreePath, { allowMissing: false });
+    const status = inspectWorktreeStatus(worktreePath, config);
+    const top = inspectTopLevel(worktreePath, config);
+    if (!status.ok || status.branch !== branch || top !== worktreePath) {
+      throw new Error('created worktree failed branch/path/status validation');
+    }
+    return { ...record, head: status.head, status, rescue: undefined };
+  } catch (error) {
+    const status = fs.existsSync(worktreePath) ? inspectWorktreeStatus(worktreePath, config) : undefined;
+    const rescue = rescueRecord(record, 'create-failed', status, error);
+    const wrapped = new WorktreeOperationError(`unable to create lane worktree ${lane}`, rescue);
+    wrapped.cause = error;
+    throw wrapped;
+  }
+}
+
+export async function createLaneWorktreeAsync(config = {}) {
+  return createLaneWorktree(config);
+}
+
+async function leaseIsActive(record, options) {
+  const predicate = options.activeLeasePredicate ?? options.isLeaseActive;
+  if (typeof predicate !== 'function') return false;
+  return Boolean(await predicate(record));
+}
+
+function validateForRemoval(record, options, status) {
+  const root = path.resolve(options.worktreeRoot ?? record.worktreeRoot);
+  const worktreePath = managedPath(record, root);
+  assertContainedRealPath(root, worktreePath, { allowMissing: false });
+  const top = inspectTopLevel(worktreePath, options);
+  if (top !== worktreePath) throw new Error('worktree top-level path changed');
+  if (status.branch !== record.branch) throw new Error('worktree branch changed');
+  if (record.head && status.head !== record.head) throw new Error('worktree HEAD changed');
+  return { root, worktreePath };
+}
+
+/**
+ * Remove one managed lane only when all final checks are clean. No `--force`
+ * flag is ever used. Dirty, failed, changed, and active-lease worktrees are
+ * returned as rescue/protection records and intentionally left in place.
+ */
+export async function removeLaneWorktree(record, options = {}) {
+  if (!record?.managed) return { removed: false, rescued: rescueRecord(record, 'unmanaged-lane') };
+  try {
+    if (await leaseIsActive(record, options)) return { removed: false, protected: true, reason: 'active-lease', lane: record.lane, path: record.path };
+  } catch (error) {
+    return { removed: false, rescued: rescueRecord(record, 'lease-check-failed', undefined, error) };
+  }
+  let root;
+  let worktreePath;
+  let status;
+  try {
+    root = path.resolve(options.worktreeRoot ?? record.worktreeRoot);
+    worktreePath = managedPath(record, root);
+    assertContainedRealPath(root, worktreePath, { allowMissing: false });
+    status = inspectWorktreeStatus(worktreePath, options);
+    validateForRemoval(record, options, status);
+    if (!status.clean) return { removed: false, rescued: rescueRecord(record, 'dirty-or-status-failed', status) };
+
+    // Re-check every removal precondition immediately before invoking git.
+    if (await leaseIsActive(record, options)) return { removed: false, protected: true, reason: 'active-lease', lane: record.lane, path: worktreePath };
+    assertContainedRealPath(root, worktreePath, { allowMissing: false });
+    const finalStatus = inspectWorktreeStatus(worktreePath, options);
+    validateForRemoval(record, options, finalStatus);
+    if (!finalStatus.clean) return { removed: false, rescued: rescueRecord(record, 'became-dirty', finalStatus) };
+    const removed = gitCall(options, ['worktree', 'remove', worktreePath], record.repoRoot);
+    if (!removed.ok || fs.existsSync(worktreePath)) {
+      return { removed: false, rescued: rescueRecord(record, 'remove-failed', finalStatus, new Error(removed.stderr || 'git worktree remove failed')) };
+    }
+    return { removed: true, lane: record.lane, branch: record.branch, path: worktreePath, status: finalStatus };
+  } catch (error) {
+    const rescue = rescueRecord({ ...record, path: worktreePath ?? record.path, worktreeRoot: root ?? record.worktreeRoot }, 'validation-failed', status, error);
+    return { removed: false, rescued: rescue };
+  }
+}
+
+/**
+ * Clean exactly the records supplied by the caller. Omitting `lanes` is an
+ * explicit no-op; this function never discovers or sweeps global worktrees.
+ */
+export async function cleanupManagedWorktrees(options = {}) {
+  const lanes = options.lanes ?? options.managedLanes;
+  if (!Array.isArray(lanes)) throw new TypeError('cleanup requires an explicit lanes array');
+  const results = [];
+  for (const lane of lanes) results.push(await removeLaneWorktree(lane, options));
+  return {
+    results,
+    removed: results.filter((result) => result.removed),
+    protected: results.filter((result) => result.protected),
+    rescues: results.map((result) => result.rescued).filter(Boolean),
+  };
+}
+
+export const cleanupWorktrees = cleanupManagedWorktrees;
+export const createWorktree = createLaneWorktree;
+export const removeWorktree = removeLaneWorktree;
+export { assertContainedRealPath, isPathContained };
+
+/** Execute a lane command and inspect status even when execution fails. */
+export async function runLaneCommand(record, argv, options = {}) {
+  const worktreePath = record?.path;
+  if (!record?.managed || !worktreePath) throw new TypeError('managed lane record is required');
+  const root = path.resolve(options.worktreeRoot ?? record.worktreeRoot);
+  assertContainedRealPath(root, worktreePath, { allowMissing: false });
+  let execution;
+  let executionError;
+  try {
+    const execute = options.executeArgv ?? executeArgv;
+    execution = await execute(argv, { ...options, cwd: worktreePath, shell: false });
+  } catch (error) {
+    executionError = boundedError(error);
+  }
+  const status = inspectWorktreeStatus(worktreePath, options);
+  return { execution, executionError, status, lane: record.lane, branch: record.branch, path: worktreePath };
+}

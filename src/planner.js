@@ -78,7 +78,55 @@ function normalizeBacklog(backlog) {
   }
   return backlog.map((item, index) => {
     if (typeof item === 'string') {
-      return { laneId: normalizeLaneId(item), Áû≠¢Gß≤⁄Óù∆≠y÷enience alias for a capacity pool map.  It is
+      return { laneId: normalizeLaneId(item), terminal: true, index };
+    }
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      throw new PlannerValidationError(`backlog item ${index} must be an object or laneId string`, 'ERR_INVALID_BACKLOG');
+    }
+    if (typeof item.laneId !== 'string' || !item.laneId.trim()) {
+      throw new PlannerValidationError(`backlog item ${index} requires a laneId`, 'ERR_INVALID_BACKLOG');
+    }
+    try {
+      return { ...item, laneId: normalizeLaneId(item.laneId), index };
+    } catch (error) {
+      throw new PlannerValidationError(`backlog item ${index} has an invalid laneId: ${error.message}`, 'ERR_INVALID_BACKLOG');
+    }
+  });
+}
+
+/**
+ * Produce a deterministic allocation for independent lanes.
+ *
+ * Terminal backlog is explicit input (`terminal`/`terminalClosure`) and is
+ * always scheduled before ordinary work.  Resource pool names are data, not a
+ * provider/model allow-list; callers may use any names meaningful to them.
+ */
+export function planCapacity({
+  lanes = [],
+  backlog = [],
+  capacity,
+  resources,
+} = {}) {
+  let normalizedLanes;
+  try {
+    normalizedLanes = normalizeLanes(lanes);
+  } catch (error) {
+    if (error instanceof ScopeValidationError) {
+      throw error;
+    }
+    throw new PlannerValidationError(error.message, 'ERR_INVALID_LANES');
+  }
+
+  const backlogItems = normalizeBacklog(backlog);
+  const backlogByLane = new Map();
+  for (const item of backlogItems) {
+    if (backlogByLane.has(item.laneId)) {
+      throw new PlannerValidationError(`duplicate backlog laneId ${JSON.stringify(item.laneId)}`, 'ERR_DUPLICATE_BACKLOG');
+    }
+    backlogByLane.set(item.laneId, item);
+  }
+
+  // `resources` is a convenience alias for a capacity pool map.  It is
   // intentionally generic; no provider or model names are recognized here.
   const effectiveCapacity = capacity === undefined && resources !== undefined
     ? { pools: resources }

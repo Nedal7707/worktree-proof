@@ -82,7 +82,19 @@ test('Codex and Claude exchange an idempotent local task and redacted result', a
 test('bridge rejects secrets, commands, network payloads, unsafe scopes, and unbounded durations', async () => {
   const { root, bridgeRoot } = await fixture();
   try {
-    await assert.rejects(€m-¢Gß≤⁄Óù∆≠y’rsal)|unsafe|relative/i,
+    await assert.rejects(
+      sendBridgeMessage(bridgeRoot, { sender: 'codex', recipient: 'claude', type: 'task', summary: 'Missing scope' }),
+      /fileScope/,
+    );
+    for (const summary of ['token=not-a-real-value', 'curl example.invalid', 'https://example.invalid/task', 'pwsh -Command Get-Date']) {
+      await assert.rejects(
+        sendBridgeMessage(bridgeRoot, { sender: 'codex', recipient: 'claude', type: 'status', summary }),
+        /unsafe content/,
+      );
+    }
+    await assert.rejects(
+      sendBridgeMessage(bridgeRoot, { sender: 'codex', recipient: 'claude', type: 'task', summary: 'Unsafe scope', fileScope: '../outside' }),
+      /parent (?:segments|traversal)|unsafe|relative/i,
     );
     await assert.rejects(
       sendBridgeMessage(bridgeRoot, { sender: 'codex', recipient: 'claude', type: 'status', summary: 'Too long', ttlMs: BRIDGE_MAX_TTL_MS + 1 }),

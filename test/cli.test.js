@@ -209,6 +209,25 @@ test('capabilities uses stable operational and usage exit codes', async () => {
   assert.deepEqual(negotiated.result.capabilities.map(({ id }) => id), ['scope.validate']);
 });
 
+test('failing JSON commands sanitize invalid request ids and still emit one envelope', async () => {
+  const stream = capture();
+  const result = await runCli([
+    'capabilities',
+    '--protocol-version', '9.0',
+    '--request-id', 'session-private',
+    '--json',
+  ], { io: stream.io });
+
+  assert.equal(result.code, EXIT_CODES.ERROR);
+  assert.equal(stream.err.length, 0);
+  assert.equal(stream.out.length, 1);
+  const envelope = JSON.parse(stream.out[0]);
+  assert.equal(envelope.ok, false);
+  assert.equal(envelope.requestId, 'req-0');
+  assert.equal(envelope.error.code, 'ERR_PROTOCOL_VERSION');
+  assert.doesNotMatch(stream.out[0], /session-private/);
+});
+
 test('leases inspect is routed with safe metadata and recovery requires confirmation', async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-leases-'));
   try {

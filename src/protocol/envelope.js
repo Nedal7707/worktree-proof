@@ -12,6 +12,7 @@ const REQUEST_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/;
 const PRIVATE_REQUEST_ID = /(authorization|credential|owner|password|private|secret|session|token)/i;
 const COMMAND_PATTERN = /^[a-z][a-z0-9._-]{0,127}$/;
 const SENSITIVE_KEY = /(authorization|access.?key|api.?key|cookie|credential|passwd|password|private.?key|refresh.?token|secret|session|stack|token|owner)/i;
+const SENSITIVE_WARNING = /(authorization|access.?key|api.?key|cookie|credential|passwd|password|private.?key|refresh.?token|secret|session|stack|token|owner)/i;
 const MAX_WARNING_LENGTH = 512;
 
 function isPlainObject(value) {
@@ -94,7 +95,10 @@ function normalizeWarnings(value) {
     throw new ProtocolError(undefined, 'ERR_BATCH_TOO_LARGE');
   }
   return value
-    .map((warning) => normalizeString(warning, 'ERR_INVALID_WARNING', MAX_WARNING_LENGTH))
+    .map((warning) => {
+      const normalized = normalizeString(warning, 'ERR_INVALID_WARNING', MAX_WARNING_LENGTH);
+      return SENSITIVE_WARNING.test(normalized) ? '[redacted]' : normalized;
+    })
     .sort();
 }
 

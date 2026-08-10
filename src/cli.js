@@ -16,6 +16,7 @@ import { normalizeLaneId } from './scope.js';
 import {
   createEnvelope,
   negotiateCapabilities,
+  normalizeRequestId,
 } from './protocol/index.js';
 
 export const VERSION = '0.1.0';
@@ -1526,10 +1527,16 @@ function renderJsonError(parsed, error, code) {
   const publicError = typeof error?.code === 'string'
     ? error
     : { code: code === EXIT_CODES.USAGE ? 'ERR_INVALID_REQUEST' : 'ERR_PROTOCOL' };
+  let requestId;
+  try {
+    requestId = normalizeRequestId(parsed?.options?.requestId);
+  } catch {
+    requestId = undefined;
+  }
   const envelope = createEnvelope({
     ok: false,
     command: parsed?.command ?? null,
-    requestId: parsed?.options?.requestId,
+    requestId,
     error: publicError,
   });
   return safeJson({ ...envelope, code });

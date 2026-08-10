@@ -99,6 +99,22 @@ test('envelopes redact protected fields and reject oversized batches/messages', 
   );
 });
 
+test('warning values are redacted, bounded, and deterministic', () => {
+  const warnings = [
+    'safe warning',
+    'owner-private',
+    'session-private',
+    'stack-private',
+    'secret-private',
+  ];
+  const first = createEnvelope({ ok: true, command: 'status', warnings });
+  const second = createEnvelope({ ok: true, command: 'status', warnings: [...warnings].reverse() });
+  assert.deepEqual(first.warnings, second.warnings);
+  assert.equal(first.warnings.filter((warning) => warning === '[redacted]').length, 4);
+  assert.doesNotMatch(JSON.stringify(first), /owner-private|session-private|stack-private|secret-private/);
+  assert.ok(first.warnings.every((warning) => warning.length <= 512));
+});
+
 test('protocol schemas are closed with explicit extension points', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   for (const [name, required] of [

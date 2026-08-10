@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, realpath, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, basename, resolve, join } from 'node:path';
 
 import { normalizeLane, normalizeLanes, normalizeLaneId, normalizeFileScope, scopesOverlap } from './scope.js';
@@ -181,7 +181,8 @@ export async function acquireRegistryLock(registryPath, {
     throw new LeaseError('lock delayMs must be a non-negative integer', 'ERR_INVALID_LOCK_OPTIONS');
   }
   await ensureParent(target);
-  const directory = lockPath(target);
+  const canonicalParent = await realpath(dirname(target));
+  const directory = lockPath(join(canonicalParent, basename(target)));
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       await mkdir(directory, { recursive: false });

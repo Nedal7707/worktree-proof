@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, writeFile, access, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, realpath, rm, writeFile, access, symlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -32,7 +32,7 @@ test('inspectProject detects common stacks without reading lockfiles or secrets'
 
   const project = await inspectProject(root);
 
-  assert.equal(project.root, root);
+  assert.equal(project.root, await realpath(root));
   assert.ok(project.stack.languages.includes('javascript'));
   assert.ok(project.stack.languages.includes('python'));
   assert.ok(project.stack.frameworks.includes('react'));

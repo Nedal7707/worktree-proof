@@ -32,7 +32,7 @@ test('discovers repository root, common directory, and configurable canonical re
   const nested = path.join(root, 'nested');
   fs.mkdirSync(nested);
   const discovered = discoverGitRepository(nested, { canonicalRef: 'HEAD' });
-  assert.equal(discovered.repoRoot, root);
+  assert.equal(discovered.repoRoot, fs.realpathSync(root));
   assert.equal(path.basename(discovered.commonDir), '.git');
   assert.match(discovered.canonicalCommit, /^[0-9a-f]{40}$/);
 });
@@ -57,4 +57,3 @@ test('containment rejects traversal and realpath escapes', (t) => {
   }
   assert.throws(() => assertContainedRealPath(root, path.join(link, 'file'), { allowMissing: true }), /symlink|reparse|escapes/);
 });
-

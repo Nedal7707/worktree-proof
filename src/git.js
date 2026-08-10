@@ -144,8 +144,10 @@ export function assertContainedRealPath(root, target, options = {}) {
 
   const rootExisting = nearestExistingAncestor(rootResolved);
   const rootReal = fs.realpathSync(rootExisting);
-  if (!isPathContained(rootReal, rootExisting)) {
-    // A symlinked root is not a safe containment boundary.
+  if (hasReparseLikeFlag(fs.lstatSync(rootExisting))) {
+    // A symlinked existing root/ancestor is not a safe containment boundary.
+    // Comparing path strings is insufficient on Windows because an 8.3 short
+    // name and its long name can identify the same directory.
     throw new Error('managed root is a symlink or reparse point');
   }
 

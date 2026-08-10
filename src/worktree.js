@@ -80,7 +80,7 @@ function ensureDirectory(directory) {
 function resolveRepository(config) {
   const supplied = config.repository ?? config.repo;
   if (config.repoRoot || config.root || supplied?.repoRoot || supplied?.root) {
-    const repoRoot = path.resolve(config.repoRoot ?? config.root ?? supplied.repoRoot ?? supplied.root);
+    const repoRoot = fs.realpathSync(path.resolve(config.repoRoot ?? config.root ?? supplied.repoRoot ?? supplied.root));
     let commonDir;
     if (config.commonDir ?? supplied?.commonDir) {
       commonDir = path.resolve(config.commonDir ?? supplied.commonDir);
@@ -89,6 +89,7 @@ function resolveRepository(config) {
       if (!commonResult.ok) commonResult = gitCall(config, ['rev-parse', '--git-common-dir'], repoRoot);
       commonDir = path.resolve(repoRoot, commonResult.stdout.trim());
     }
+    commonDir = fs.realpathSync(commonDir);
     const canonicalRef = config.canonicalRef ?? supplied?.canonicalRef ?? 'HEAD';
     const canonicalCommit = config.canonicalCommit ?? supplied?.canonicalCommit ?? gitCall(config, ['rev-parse', '--verify', `${canonicalRef}^{commit}`], repoRoot).stdout.trim();
     return { repoRoot, commonDir, canonicalRef, canonicalCommit };
@@ -100,8 +101,14 @@ function resolveRepository(config) {
 function resolveRoot(repoRoot, config) {
   const root = path.resolve(config.worktreeRoot ?? path.join(repoRoot, '.worktree-proof-worktrees'));
   ensureDirectory(root);
-  assertContainedRealPath(root, root, { allowMissing: false });
-  return root;
+  const canonicalRoot = fs.realpathSync(root);
+  assertContainedRealPath(canonicalRoot, canonicalRoot, { allowMissing: false });
+  return canonicalRoot;
+}
+
+function sameResolvedPath(left, right) {
+  if (typeof left !== 'string' || typeof right !== 'string') return false;
+  return path.relative(path.resolve(left), path.resolve(right)) === '';
 }
 
 function branchExists(repoRoot, branch, config) {
@@ -112,13 +119,13 @@ function managedPath(record, root) {
   if (!record?.path || !record?.lane) throw new TypeError('managed lane record requires lane and path');
   const expectedPath = path.resolve(root, laneSegment(record.lane));
   const actualPath = path.resolve(record.path);
-  if (expectedPath !== actualPath) throw new Error('managed worktree path does not match its lane');
+  if (!sameResolvedPath(expectedPath, actualPath)) throw new Error('managed worktree path does not match its lane');
   return expectedPath;
 }
 
 function inspectTopLevel(worktreePath, config) {
   const top = gitCall(config, ['rev-parse', '--show-toplevel'], worktreePath, { throwOnError: false });
-  return top.ok ? path.resolve(top.stdout.trim()) : undefined;
+  return top.ok ? fs.realpathSync(path.resolve(top.stdout.trim())) : undefined;
 }
 
 /**
@@ -180,7 +187,7 @@ export function createLaneWorktree(config = {}) {
     assertContainedRealPath(root, worktreePath, { allowMissing: false });
     const status = inspectWorktreeStatus(worktreePath, config);
     const top = inspectTopLevel(worktreePath, config);
-    if (!status.ok || status.branch !== branch || top !== worktreePath) {
+    if (!status.ok || status.branch !== branch || !sameResolvedPath(top, worktreePath)) {
       throw new Error('created worktree failed branch/path/status validation');
     }
     return { ...record, head: status.head, status, rescue: undefined };

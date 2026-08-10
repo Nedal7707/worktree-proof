@@ -691,3 +691,78 @@ test('recovery adopts a durable lock across fresh processes and serializes claim
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test('lock owner replacement is never updated or deleted during recovery or release', async () => {
+  async function replaceLock(record) {
+    const lockPath = path.join(record.backupRoot, '.migration.lock');
+    const current = JSON.parse(await readFile(lockPath, 'utf8'));
+    const replacement = { ...current, ownerNonce: 'f'.repeat(64) };
+    const bytes = `${canonicalJson(replacement)}\n`;
+    await writeFile(lockPath, bytes, 'utf8');
+    return { lockPath, bytes };
+  }
+
+  const updateHome = await tempHome();
+  try {
+    const baseline = createIntegrationManifest({ client: 'any-cli', capabilities: ['baseline'], scope: ['src'] });
+    const baselinePlan = await planLocalMigration({ home: updateHome, clients: ['codex'], artifact: baseline });
+    await applyLocalMigration(baselinePlan, { confirm: true });
+    const target = path.join(updateHome, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+    const beforeTarget = await readFile(target);
+    const beforeMarker = await readFile(marker);
+    const next = createIntegrationManifest({ client: 'any-cli', capabilities: ['next'], scope: ['test'] });
+    const nextPlan = await planLocalMigration({ home: updateHome, clients: ['codex'], artifact: next });
+    let replacement;
+    await assert.rejects(
+      () => applyLocalMigration(nextPlan, {
+        confirm: true,
+        hooks: {
+          persistJournal: async (record) => {
+            if (!replacement && record.status === 'applying') replacement = await replaceLock(record);
+          },
+          marker: async () => { throw new Error('injected marker failure'); },
+          rollback: async () => { throw new Error('injected rollback failure'); },
+        },
+      }),
+      (error) => error?.code === 'ERR_MIGRATION_LOCK',
+    );
+    assert.ok(replacement);
+    assert.equal(await readFile(replacement.lockPath, 'utf8'), replacement.bytes);
+    assert.deepEqual(await readFile(target), beforeTarget);
+    assert.deepEqual(await readFile(marker), beforeMarker);
+  } finally {
+    await rm(updateHome, { recursive: true, force: true });
+  }
+
+  const releaseHome = await tempHome();
+  try {
+    const baseline = createIntegrationManifest({ client: 'any-cli', capabilities: ['baseline'], scope: ['src'] });
+    const baselinePlan = await planLocalMigration({ home: releaseHome, clients: ['codex'], artifact: baseline });
+    await applyLocalMigration(baselinePlan, { confirm: true });
+    const target = path.join(releaseHome, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+    const beforeTarget = await readFile(target);
+    const beforeMarker = await readFile(marker);
+    const next = createIntegrationManifest({ client: 'any-cli', capabilities: ['next'], scope: ['test'] });
+    const nextPlan = await planLocalMigration({ home: releaseHome, clients: ['codex'], artifact: next });
+    const receipt = await applyLocalMigration(nextPlan, { confirm: true });
+    let replacement;
+    await assert.rejects(
+      () => rollbackLocalMigration(receipt, {
+        hooks: {
+          persistJournal: async (record) => {
+            if (!replacement && record.status === 'restored') replacement = await replaceLock(record);
+          },
+        },
+      }),
+      (error) => error?.code === 'ERR_MIGRATION_LOCK',
+    );
+    assert.ok(replacement);
+    assert.equal(await readFile(replacement.lockPath, 'utf8'), replacement.bytes);
+    assert.deepEqual(await readFile(target), beforeTarget);
+    assert.deepEqual(await readFile(marker), beforeMarker);
+  } finally {
+    await rm(releaseHome, { recursive: true, force: true });
+  }
+});

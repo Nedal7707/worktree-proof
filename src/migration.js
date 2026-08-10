@@ -674,7 +674,7 @@ async function readCanonicalLock(lockPath, expected = {}) {
   }
   let parsed;
   try { parsed = JSON.parse(raw); } catch { throw new MigrationSafetyError('migration lock is malformed', 'ERR_MIGRATION_LOCK'); }
-  const validated = validateLockRecord(parsed, expected);
+  const validated = validateLockRecord(parsed, { expected });
   if (raw !== `${canonicalJson(parsed)}\n`) throw new MigrationSafetyError('migration lock is not canonical', 'ERR_MIGRATION_LOCK');
   return validated;
 }
@@ -727,7 +727,7 @@ async function readCanonicalClaim(claimPath, expected = {}) {
   }
   let parsed;
   try { parsed = JSON.parse(raw); } catch { throw new MigrationSafetyError('migration recovery claim is malformed', 'ERR_MIGRATION_LOCK'); }
-  const validated = validateClaimRecord(parsed, expected);
+  const validated = validateClaimRecord(parsed, { expected });
   if (raw !== `${canonicalJson(parsed)}\n`) throw new MigrationSafetyError('migration recovery claim is not canonical', 'ERR_MIGRATION_LOCK');
   return validated;
 }
@@ -881,7 +881,7 @@ async function acquireMigrationLock(backupRoot, metadata = {}) {
     await handle.close();
     handle = undefined;
     await rejectReparseAbsolute(lockPath, { allowMissing: false });
-    return lockPath;
+    return { path: lockPath, ownerNonce: lock.ownerNonce };
   } catch (error) {
     if (handle) await handle.close().catch(() => {});
     if (error?.code === 'EEXIST') throw new MigrationSafetyError('another migration is active', 'ERR_MIGRATION_LOCK');
@@ -1255,7 +1255,9 @@ export async function applyLocalMigration(plan, options = {}) {
   await rejectReparseAbsolute(backupRoot);
   const hooks = object(options.hooks) ? options.hooks : {};
   const journalPath = join(backupRoot, `migration-${plan.planHash}.journal.json`);
-  const lockPath = await acquireMigrationLock(backupRoot, { planHash: plan.planHash, journalPath });
+  const lockHandle = await acquireMigrationLock(backupRoot, { planHash: plan.planHash, journalPath });
+  const lockPath = lockHandle.path;
+  const lockOwnerNonce = lockHandle.ownerNonce;
   const journal = {
     home,
     backupRoot,
@@ -1344,6 +1346,7 @@ export async function applyLocalMigration(plan, options = {}) {
         journalPath: journal.journalPath,
         planHash: journal.planHash,
         recoveryId: journal.recoveryId,
+        ownerNonce: lockOwnerNonce,
       });
       let recovery;
       try {
@@ -1365,7 +1368,13 @@ export async function applyLocalMigration(plan, options = {}) {
     if (error instanceof MigrationSafetyError) throw error;
     throw new MigrationSafetyError('migration write failed', 'ERR_WRITE_FAILED');
   } finally {
-    if (!keepLock) await releaseMigrationLock(lockPath);
+    if (!keepLock) await releaseMigrationLock(lockPath, {
+      backupRoot,
+      journalPath: journal.journalPath,
+      planHash: journal.planHash,
+      recoveryId: journal.recoveryId,
+      ownerNonce: lockOwnerNonce,
+    });
   }
   return deepFreeze(buildReceiptFromJournal(journal));
 }
@@ -1411,20 +1420,22 @@ export async function rollbackLocalMigration(receipt, options = {}) {
   let lock;
   let claimPath;
   let lockOwnerNonce;
+  let claimantNonce;
   try {
-    lock = await acquireMigrationLock(validated.backupRoot, lockExpected);
-    const active = await readCanonicalLock(lock, lockExpected);
-    lockOwnerNonce = active.ownerNonce;
+    const lockHandle = await acquireMigrationLock(validated.backupRoot, lockExpected);
+    lock = lockHandle.path;
+    lockOwnerNonce = lockHandle.ownerNonce;
   } catch (error) {
     if (error?.code !== 'ERR_MIGRATION_LOCK') throw error;
     const adopted = await createRecoveryClaim(lockPath, lockExpected);
     lock = lockPath;
     claimPath = adopted.claimPath;
     lockOwnerNonce = adopted.lock.ownerNonce;
+    claimantNonce = adopted.claim.claimantNonce;
   }
   try {
     const result = await restoreReceipt(validated, { hooks: object(options.hooks) ? options.hooks : {}, lockHeld: true });
-    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce });
+    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce, claimantNonce });
     await releaseMigrationLock(lock, { ...lockExpected, ownerNonce: lockOwnerNonce });
     if (options.cleanupRecovery === true) await cleanupRecoveryArtifacts(validated, options.recoveryId ?? recoveryIdFor(validated.receipt.planHash));
     return result;

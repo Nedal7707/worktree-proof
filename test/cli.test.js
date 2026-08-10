@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -159,7 +159,7 @@ test('leases inspect is routed with safe metadata and recovery requires confirma
   const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-leases-'));
   try {
     const registryDirectory = path.join(root, '.worktree-proof');
-    await (await import('node:fs/promises')).mkdir(registryDirectory, { recursive: true });
+    await mkdir(registryDirectory, { recursive: true });
     await writeFile(path.join(registryDirectory, 'leases.json'), JSON.stringify({
       version: 1,
       leases: [{
@@ -216,6 +216,75 @@ test('leases inspect is routed with safe metadata and recovery requires confirma
     assert.equal(refusal.code, EXIT_CODES.ERROR);
   } finally {
     await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('leases recovery rejects outside registry paths and normalizes lane selectors', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-paths-'));
+  try {
+    const calls = [];
+    const deps = { leases: {
+      inspectLeaseRegistry: async (registryPath) => {
+        calls.push(registryPath);
+        return { version: 1, leases: [{ laneId: 'blocked', fileScope: 'src/x.js', owner: 'o', session: 's', leaseId: 'l' }], stale: [] };
+      },
+      recoverExpiredLease: async (_registryPath, input) => ({ laneId: input.laneId, status: 'released', owner: 'o', session: 's', leaseId: 'l' }),
+    } };
+    const inspect = capture();
+    const inspected = await runCli(['leases', 'inspect', ' BLOCKED ', '--repo', root, '--json'], { io: inspect.io, deps });
+    assert.equal(inspected.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(inspect.out[0]).result.leases[0].laneId, 'blocked');
+    assert.doesNotMatch(inspect.out[0], /owner|session|leaseId/);
+    const recoveredStream = capture();
+    const recovered = await runCli(['leases', 'recover', ' BLOCKED ', '--repo', root, '--reason', 'merged', '--confirm', '--json'], {
+      io: recoveredStream.io,
+      deps,
+    });
+    assert.equal(recovered.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(recoveredStream.out[0]).result.status, 'released');
+    assert.doesNotMatch(recoveredStream.out[0], /owner|session|leaseId/);
+    const outside = capture();
+    const refused = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--config', path.join(os.tmpdir(), 'outside-config.json'), '--reason', 'merged', '--confirm', '--json'], {
+      io: outside.io,
+      loadConfig: async () => ({ path: 'outside', config: { leaseStore: path.join(os.tmpdir(), 'outside-registry.json') } }),
+      deps,
+    });
+    assert.equal(refused.code, EXIT_CODES.USAGE);
+    assert.equal(calls.length, 1);
+
+    const traversal = capture();
+    const traversalResult = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--reason', 'merged', '--confirm', '--json'], {
+      io: traversal.io,
+      loadConfig: async () => ({ path: 'traversal', config: { leaseStore: path.join(root, '..', 'outside-registry.json') } }),
+      deps,
+    });
+    assert.equal(traversalResult.code, EXIT_CODES.USAGE);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('leases recovery refuses symlink/reparse registry parents when supported', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-reparse-'));
+  const outside = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-reparse-target-'));
+  try {
+    const link = path.join(root, 'linked-state');
+    try {
+      await symlink(outside, link, process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+      t.skip(`symlink/reparse creation unavailable: ${error.code ?? error.message}`);
+      return;
+    }
+    const stream = capture();
+    const result = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--config', 'config.json', '--reason', 'merged', '--confirm', '--json'], {
+      io: stream.io,
+      loadConfig: async () => ({ path: 'config', config: { leaseStore: path.join(root, 'linked-state', 'leases.json') } }),
+      deps: { leases: { recoverExpiredLease: async () => ({ status: 'released' }) } },
+    });
+    assert.equal(result.code, EXIT_CODES.USAGE);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
   }
 });
 

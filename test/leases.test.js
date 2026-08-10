@@ -158,6 +158,48 @@ test('expired leases are inspectable and recoverable only with confirmation', as
   assert.equal((await inspectLeaseRegistry(registryPath, { clock: () => NOW })).stale.length, 0);
 });
 
+test('recovery fails closed for duplicate, overlapping, or non-expired active state', async (t) => {
+  const registryPath = await temporaryRegistry(t);
+  const lease = (overrides = {}) => ({
+    leaseId: 'lease-a',
+    laneId: 'blocked',
+    fileScope: 'src/blocked.js',
+    owner: 'owner',
+    session: 'session',
+    timestamp: '2032-05-18T03:33:20.000Z',
+    ttlMs: 1_000,
+    expiresAt: '2032-05-18T03:33:21.000Z',
+    status: 'active',
+    active: true,
+    ...overrides,
+  });
+  await writeFile(registryPath, JSON.stringify({ version: 1, leases: [
+    lease(),
+    lease({ leaseId: 'lease-b', fileScope: 'src/other.js' }),
+  ] }), 'utf8');
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_RECOVERY_AMBIGUOUS',
+  );
+
+  await writeFile(registryPath, JSON.stringify({ version: 1, leases: [
+    lease({ fileScope: 'src/blocked' }),
+    lease({ leaseId: 'lease-b', laneId: 'other', fileScope: 'src/blocked/child.js' }),
+  ] }), 'utf8');
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_RECOVERY_AMBIGUOUS',
+  );
+
+  await writeFile(registryPath, JSON.stringify({ version: 1, leases: [
+    lease({ expiresAt: '2032-05-18T03:33:30.000Z', timestamp: '2032-05-18T03:33:20.000Z', ttlMs: 10_000 }),
+  ] }), 'utf8');
+  await assert.rejects(
+    recoverExpiredLease(registryPath, { laneId: 'blocked', reason: 'merged', confirm: true }, { clock: () => NOW }),
+    (error) => error.code === 'ERR_LEASE_NOT_EXPIRED',
+  );
+});
+
 test('concurrent reservations serialize through an atomic mkdir lock', async (t) => {
   const registryPath = await temporaryRegistry(t);
   const clock = () => 1_800_000_000_000;

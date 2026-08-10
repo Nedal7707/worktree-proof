@@ -332,21 +332,35 @@ function selectSingleExpired(state, laneId, now) {
   } catch (error) {
     throw new LeaseError(`laneId is invalid: ${error.message}`, 'ERR_INVALID_LEASE_INPUT');
   }
-  const candidates = state.leases.filter((entry) => (
-    entry.status === 'active'
-    && entry.laneId === normalizedLaneId
+  const active = state.leases.filter((entry) => entry.status === 'active');
+  const candidates = active.filter((entry) => (
+    entry.laneId === normalizedLaneId
     && timestamp(entry.expiresAt, 'lease expiresAt') <= now
   ));
   if (candidates.length > 1) {
     throw new LeaseError('expired lease selector is ambiguous', 'ERR_RECOVERY_AMBIGUOUS');
   }
-  if (candidates.length === 1) return candidates[0];
-
-  const matching = state.leases.filter((entry) => entry.laneId === normalizedLaneId);
-  if (matching.some((entry) => entry.status === 'active' && timestamp(entry.expiresAt, 'lease expiresAt') > now)) {
+  const matching = active.filter((entry) => entry.laneId === normalizedLaneId);
+  if (candidates.length === 0 && matching.some((entry) => timestamp(entry.expiresAt, 'lease expiresAt') > now)) {
     throw new LeaseError('lease has not expired', 'ERR_LEASE_NOT_EXPIRED');
   }
-  throw new LeaseError('expired lease was not found', 'ERR_LEASE_NOT_FOUND');
+  if (candidates.length === 0) throw new LeaseError('expired lease was not found', 'ERR_LEASE_NOT_FOUND');
+
+  const target = candidates[0];
+  const conflicts = active.filter((entry) => (
+    entry !== target
+    && (entry.laneId === normalizedLaneId || scopesOverlap(entry.fileScope, target.fileScope))
+  ));
+  if (conflicts.length > 0) {
+    if (conflicts.some((entry) => (
+      entry.laneId === normalizedLaneId
+      && timestamp(entry.expiresAt, 'lease expiresAt') > now
+    ))) {
+      throw new LeaseError('lease has not expired', 'ERR_LEASE_NOT_EXPIRED');
+    }
+    throw new LeaseError('expired lease selector is ambiguous', 'ERR_RECOVERY_AMBIGUOUS');
+  }
+  return target;
 }
 
 function replaceLease(state, target, released) {

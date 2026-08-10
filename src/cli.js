@@ -7,10 +7,12 @@
  * the command contract testable without a Git checkout.
  */
 
-import { access, mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readFile, readdir, realpath, rename, stat, writeFile } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { normalizeLaneId } from './scope.js';
 
 export const VERSION = '0.1.0';
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -581,6 +583,62 @@ function leasePath(payload) {
   );
 }
 
+async function safeLeasePath(payload) {
+  const candidate = projectStatePath(
+    payload.repo,
+    payload.config.leaseStore ?? payload.config.leaseRegistry,
+    join('.worktree-proof', 'leases.json'),
+    'lease registry',
+  );
+  let repoReal;
+  try {
+    repoReal = await realpath(payload.repo);
+  } catch (error) {
+    throw new CliUsageError(`lease registry repository is not accessible: ${error.message}`);
+  }
+
+  let existing = candidate;
+  let existingStats;
+  while (true) {
+    try {
+      existingStats = await lstat(existing);
+      break;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw new CliUsageError('lease registry path is not accessible');
+      const parent = dirname(existing);
+      if (parent === existing) throw new CliUsageError('lease registry path is not accessible');
+      existing = parent;
+    }
+  }
+  let existingReal;
+  try {
+    existingReal = await realpath(existing);
+  } catch {
+    throw new CliUsageError('lease registry path is not accessible');
+  }
+  const existingRelative = relative(repoReal, existingReal);
+  if (existingRelative === '..' || existingRelative.startsWith(`..${sep}`) || isAbsolute(existingRelative)) {
+    throw new CliUsageError('lease registry path must stay inside the repository');
+  }
+
+  let current = repoReal;
+  for (const segment of existingRelative.split(sep).filter(Boolean)) {
+    current = join(current, segment);
+    let stats;
+    try {
+      stats = await lstat(current);
+    } catch {
+      throw new CliUsageError('lease registry path is not accessible');
+    }
+    if (stats.isSymbolicLink()) throw new CliUsageError('lease registry path cannot contain a symlink or reparse point');
+  }
+  if (existingStats.isSymbolicLink()) throw new CliUsageError('lease registry path cannot contain a symlink or reparse point');
+  if (existing === candidate && !existingStats.isFile()) {
+    throw new CliUsageError('lease registry path must be a regular file');
+  }
+  return candidate;
+}
+
 function bridgePath(payload) {
   return configuredPath(
     payload.repo,
@@ -912,11 +970,17 @@ async function invokeAdapter(deps, command, payload, input) {
     if (!['inspect', 'recover'].includes(action)) {
       throw new CliUsageError(`unknown leases action: ${action}`);
     }
-    const laneId = payload.options.laneId ?? payload.positionals[1];
-    if (typeof laneId !== 'string' || !laneId.trim()) {
+    const rawLaneId = payload.options.laneId ?? payload.positionals[1];
+    if (typeof rawLaneId !== 'string' || !rawLaneId.trim()) {
       throw new CliUsageError(`leases ${action} requires a lane id`);
     }
-    const registryPath = leasePath(payload);
+    let laneId;
+    try {
+      laneId = normalizeLaneId(rawLaneId);
+    } catch (error) {
+      throw new CliUsageError(`leases ${action} lane id is invalid: ${error.message}`);
+    }
+    const registryPath = await safeLeasePath(payload);
     if (action === 'inspect') {
       const fn = findExport(deps.leases, ['inspectLeaseRegistry']);
       if (!fn) return { supported: false, command, reason: 'lease inspection adapter unavailable' };

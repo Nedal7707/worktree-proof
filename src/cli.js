@@ -46,6 +46,8 @@ const COMMANDS = Object.freeze([
   'init',
   'bridge',
   'tasks',
+  'manifest',
+  'migrate',
 ]);
 
 const VALUE_OPTIONS = new Set([
@@ -110,6 +112,11 @@ const VALUE_OPTIONS = new Set([
   '--current-task-id',
   '--protocol-version',
   '--request-id',
+  '--home',
+  '--clients',
+  '--artifact',
+  '--backup-root',
+  '--client',
 ]);
 
 const BOOLEAN_OPTIONS = new Set([
@@ -144,6 +151,8 @@ const MODULE_FILES = Object.freeze({
   runner: 'runner.js',
   adapters: 'adapters.js',
   init: 'init.js',
+  manifest: 'manifest.js',
+  migration: 'migration.js',
   tools: 'tools.js',
   resources: 'resources.js',
   bridge: 'bridge.js',
@@ -308,6 +317,11 @@ export function parseArgs(argv = []) {
           currenttaskid: 'currentTaskId',
           protocolversion: 'protocolVersion',
           requestid: 'requestId',
+          home: 'home',
+          clients: 'clients',
+          artifact: 'artifact',
+          backuproot: 'backupRoot',
+          client: 'client',
         };
         const mappedKey = keyMap[key] ?? key;
         if (mappedKey === 'goal' || mappedKey === 'allowedRoot') {
@@ -383,6 +397,8 @@ function usage() {
     '  init preview|apply (apply requires --confirm)',
     '  bridge send|inbox|claim|ack|complete|fail|cancel',
     '  tasks inspect --input <host-snapshot.json>',
+    '  manifest preview [generic|codex|claude] (public, preview-only)',
+    '  migrate preview|apply --home <path> --artifact <manifest.json> [--clients <ids>]',
     '',
     'Global options:',
     '  --repo <path>       Repository root (default: current directory)',
@@ -427,6 +443,59 @@ function redact(value, key = '') {
   if (typeof value === 'bigint') return Number(value);
   if (typeof value === 'function') return '[function]';
   return value;
+}
+
+function publicMigrationPlan(plan) {
+  if (!isObject(plan)) return plan;
+  return {
+    version: plan.version,
+    protocol: plan.protocol,
+    protocolVersion: plan.protocolVersion,
+    clients: Array.isArray(plan.clients) ? [...plan.clients] : [],
+    planHash: plan.planHash,
+    artifact: isObject(plan.artifact) ? {
+      manifestHash: plan.artifact.manifestHash,
+      files: Array.isArray(plan.artifact.files)
+        ? plan.artifact.files.map((file) => ({ path: file.path, contentHash: file.contentHash }))
+        : [],
+    } : undefined,
+    writes: Array.isArray(plan.writes)
+      ? plan.writes.map((write) => ({
+        path: write.path,
+        markerPath: write.markerPath,
+        contentHash: write.contentHash,
+        markerHash: write.markerHash,
+        mode: write.mode,
+        existing: write.existing,
+      }))
+      : [],
+    preview: plan.preview === true,
+    rollback: plan.rollback,
+  };
+}
+
+function publicMigrationReceipt(receipt) {
+  if (!isObject(receipt)) return receipt;
+  return {
+    kind: receipt.kind,
+    receiptVersion: receipt.receiptVersion,
+    planHash: receipt.planHash,
+    written: Array.isArray(receipt.written) ? [...receipt.written] : [],
+    backups: Array.isArray(receipt.backups)
+      ? receipt.backups.map((entry) => ({
+        path: entry.path,
+        markerPath: entry.markerPath,
+        existed: entry.existed,
+        sha256: entry.sha256,
+        markerSha256: entry.markerSha256,
+        appliedContentHash: entry.appliedContentHash,
+        appliedMarkerHash: entry.appliedMarkerHash,
+      }))
+      : [],
+    preview: receipt.preview === true,
+    confirmed: receipt.confirmed === true,
+    receiptHash: receipt.receiptHash,
+  };
 }
 
 const LEASE_OUTPUT_FIELDS = Object.freeze([
@@ -476,7 +545,8 @@ function safeJson(value) {
 }
 
 function errorMessage(error) {
-  if (error instanceof CliUsageError || error instanceof CliOperationError) return error.message;
+  if (error instanceof CliUsageError) return error.message;
+  if (error instanceof CliOperationError) return 'operation failed';
   if (error?.name === 'ProtocolError') return 'protocol operation failed';
   if (error instanceof SyntaxError) return 'invalid JSON input';
   // Adapter errors can contain command output, paths, or user-provided values.
@@ -1183,7 +1253,10 @@ async function invokeAdapter(deps, command, payload, input) {
     const initApi = deps.init;
     if (!initApi) return { supported: false, command, reason: 'init adapter unavailable' };
     const targets = optionList(payload.options.targets ?? payload.options.target, '--targets');
-    const plan = await initApi.buildInitPlan({ repo: payload.repo, targets, preset: payload.options.preset });
+    const manifest = payload.options.manifest === undefined
+      ? undefined
+      : await readJsonInput(payload.repo, payload.options.manifest, 'manifest');
+    const plan = await initApi.buildInitPlan({ repo: payload.repo, targets, preset: payload.options.preset, manifest });
     if (action === 'preview' || payload.dryRun) {
       return { action: 'preview', dryRun: true, plan: await initApi.applyInitPlan(plan, { dryRun: true }) };
     }
@@ -1403,6 +1476,12 @@ function checkCommandPositionals(parsed) {
   if (command === 'tasks' && positionals.length > 1) {
     throw new CliUsageError('tasks accepts one action');
   }
+  if (command === 'manifest' && positionals.length > 1) {
+    throw new CliUsageError('manifest accepts one preview target');
+  }
+  if (command === 'migrate' && positionals.length > 1) {
+    throw new CliUsageError('migrate accepts one action');
+  }
 }
 
 async function executeCommand(parsed, context) {
@@ -1448,6 +1527,44 @@ async function executeCommand(parsed, context) {
       command,
       reason: options.dryRun ? 'dry-run' : 'no-submit',
     };
+  }
+
+  if (command === 'manifest') {
+    const manifestApi = context.deps.manifest;
+    if (!manifestApi) return { supported: false, command, reason: 'manifest adapter unavailable' };
+    const target = parsed.positionals[0] ?? options.target ?? 'generic';
+    let manifest;
+    const inputPath = options.input ?? options.manifest;
+    if (inputPath !== undefined) {
+      manifest = await readJsonInput(payload.repo, inputPath, 'manifest');
+    } else {
+      const capabilities = optionList(options.capabilities, '--capabilities') ?? [];
+      const scope = optionList(options.fileScope, '--scope') ?? ['.'];
+      manifest = manifestApi.createIntegrationManifest({
+        client: options.client ?? target,
+        capabilities,
+        scope,
+      });
+    }
+    return manifestApi.renderClientPreview(target, manifest);
+  }
+
+  if (command === 'migrate') {
+    const migrationApi = context.deps.migration;
+    if (!migrationApi) return { supported: false, command, reason: 'migration adapter unavailable' };
+    const home = requireValue(options, 'home', command);
+    const artifactPath = options.artifact ?? options.input;
+    if (artifactPath === undefined) throw new CliUsageError('migrate requires --artifact');
+    const artifact = await readJsonInput(payload.repo, artifactPath, 'artifact');
+    const clients = optionList(options.clients, '--clients') ?? ['codex', 'claude'];
+    const plan = await migrationApi.planLocalMigration({ home, clients, artifact });
+    const action = parsed.positionals[0] ?? 'preview';
+    if (action === 'preview' || payload.dryRun) {
+      return { action: 'preview', plan: publicMigrationPlan(plan), result: publicMigrationReceipt(await migrationApi.applyLocalMigration(plan, { confirm: false })) };
+    }
+    if (action !== 'apply') throw new CliUsageError(`unknown migrate action: ${action}`);
+    if (options.confirm !== true) throw new CliUsageError('migrate apply requires --confirm');
+    return { action, plan: publicMigrationPlan(plan), result: publicMigrationReceipt(await migrationApi.applyLocalMigration(plan, { confirm: true, backupRoot: options.backupRoot })) };
   }
   if (command === 'leases'
       && (parsed.positionals[0] ?? 'inspect') === 'recover'

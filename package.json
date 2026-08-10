@@ -17,6 +17,7 @@
     "./resources": "./src/resources.js",
     "./bridge": "./src/bridge.js",
     "./tasks": "./src/tasks.js",
+    "./mcp": "./src/mcp/index.js",
     "./tools": "./src/tools.js",
     "./protocol": "./src/protocol/index.js",
     "./git": "./src/git.js",
@@ -27,11 +28,12 @@
     "node": ">=20"
   },
   "bin": {
-    "worktree-proof": "bin/worktree-proof.js"
+    "worktree-proof": "bin/worktree-proof.js",
+    "worktree-proof-mcp": "bin/worktree-proof-mcp.js"
   },
   "scripts": {
     "test": "node --test",
-    "lint": "node --check bin/worktree-proof.js && node --check src/cli.js && node --check src/index.js && node --check src/protocol/constants.js && node --check src/protocol/errors.js && node --check src/protocol/envelope.js && node --check src/protocol/capabilities.js && node --check src/protocol/index.js && node --check src/adapters.js && node --check src/bridge.js && node --check src/evidence.js && node --check src/git.js && node --check src/init.js && node --check src/leases.js && node --check src/planner.js && node --check src/resources.js && node --check src/runner.js && node --check src/scope.js && node --check src/tasks.js && node --check src/text-safety.js && node --check src/tools.js && node --check src/worktree.js",
+    "lint": "node --check bin/worktree-proof.js && node --check bin/worktree-proof-mcp.js && node --check src/cli.js && node --check src/index.js && node --check src/mcp/framing.js && node --check src/mcp/tools.js && node --check src/mcp/server.js && node --check src/mcp/index.js && node --check src/protocol/constants.js && node --check src/protocol/errors.js && node --check src/protocol/envelope.js && node --check src/protocol/capabilities.js && node --check src/protocol/index.js && node --check src/adapters.js && node --check src/bridge.js && node --check src/evidence.js && node --check src/git.js && node --check src/init.js && node --check src/leases.js && node --check src/planner.js && node --check src/resources.js && node --check src/runner.js && node --check src/scope.js && node --check src/tasks.js && node --check src/text-safety.js && node --check src/tools.js && node --check src/worktree.js",
     "check": "npm run lint && npm test"
   },
   "license": "Apache-2.0",

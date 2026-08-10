@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/migration-plan.schema.json",
+  "title": "WorktreeProof local migration plan",
+  "description": "A preview-first, explicitly confirmed, reversible local migration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "protocol", "protocolVersion", "home", "clients", "artifact", "writes", "preview", "rollback", "planHash"],
+  "properties": {
+    "version": { "const": 1 },
+    "protocol": { "const": "worktreeproof" },
+    "protocolVersion": { "const": "1.0" },
+    "planHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "home": { "type": "string", "minLength": 1 },
+    "clients": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "root"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$" },
+          "root": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestHash", "files"],
+      "properties": {
+        "manifestHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "clients", "contentHash"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "clients": {
+                "oneOf": [
+                  { "type": "null" },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$" }
+                  }
+                ]
+              },
+              "contentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        }
+      }
+    },
+    "writes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "content", "contentHash", "markerPath", "markerContent", "markerHash", "mode", "existing", "existingHash", "owner"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "content": { "type": "string" },
+          "contentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "markerPath": { "type": "string", "minLength": 1 },
+          "markerContent": { "type": "string", "minLength": 1 },
+          "markerHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "mode": { "enum": ["create", "replace"] },
+          "existing": { "type": "boolean" },
+          "existingHash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+          "owner": { "const": "worktree-proof-owned:v1" }
+        }
+      }
+    },
+    "preview": { "const": true },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy", "owner"],
+      "properties": {
+        "strategy": { "const": "byte-identical-backups" },
+        "owner": { "const": "worktree-proof-owned:v1" }
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WorktreeProof Protocol Client"
+  short_description: "Connect coding agents through safe local proof"
+  default_prompt: "Use $protocol-client to negotiate WorktreeProof capabilities and complete a bounded local workflow."

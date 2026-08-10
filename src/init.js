@@ -4,6 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { renderAdapter, normalizeAdapterTarget } from './adapters.js';
+import {
+  canonicalJson,
+  createIntegrationManifest,
+  renderClientPreview,
+} from './manifest.js';
 import { containsSecretLikeValue } from './text-safety.js';
 
 const MAX_METADATA_BYTES = 512 * 1024;
@@ -501,13 +506,32 @@ export async function buildInitPlan(options = {}) {
     capabilities: isObject(options.capabilities) ? options.capabilities : {},
   };
   assertNoSecretInput(context);
+  const integrationManifest = createIntegrationManifest(options.manifest ?? {
+    client: 'worktree-proof',
+    capabilities: Object.keys(context.capabilities).filter((key) => context.capabilities[key] === true),
+    scope: ['.'],
+  });
+  const previews = [];
   for (const requested of requestedTargets) {
     const target = normalizeAdapterTarget(requested);
+    const previewTarget = target === 'agent-skills' ? 'codex' : target === 'claude-code' ? 'claude' : 'generic';
+    const preview = renderClientPreview(previewTarget, integrationManifest);
+    previews.push({ target: previewTarget, manifestHash: preview.manifestHash, verification: preview.verification });
     if (targets.includes(target)) continue;
     const rendered = renderAdapter(target, context);
     targets.push(target);
     warnings.push(...rendered.warnings);
     for (const file of rendered.files) files.push({ ...file, adapter: target });
+  }
+  // A public integration manifest is an additive init output. It is opt-in,
+  // deterministic, and still goes through the same create-only safety checks.
+  if (options.manifest !== undefined) {
+    files.push({
+      path: '.worktree-proof/worktree-proof.manifest.json',
+      content: `${canonicalJson(integrationManifest)}\n`,
+      adapter: 'manifest',
+    });
+    warnings.push('Integration manifest output is public and preview-only; verify client capabilities before use.');
   }
   // Validate generated paths/content without checking filesystem collisions yet;
   // this keeps plan construction read-only while apply remains fail-closed.
@@ -526,6 +550,8 @@ export async function buildInitPlan(options = {}) {
     root,
     preset,
     targets: Object.freeze(targets),
+    manifest: integrationManifest,
+    previews: Object.freeze(previews.map((preview) => Object.freeze(preview))),
     project: Object.freeze(project),
     writes: Object.freeze(writes),
     warnings: Object.freeze(sortedUnique(warnings)),

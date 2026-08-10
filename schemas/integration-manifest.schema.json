@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/integration-manifest.schema.json",
+  "title": "WorktreeProof integration manifest",
+  "description": "Portable public capability and relative-scope declarations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "protocolVersion", "client", "capabilities", "scope", "manifestHash"],
+  "properties": {
+    "protocol": { "const": "worktreeproof" },
+    "protocolVersion": { "const": "1.0" },
+    "client": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:[./_-][a-z0-9]+)*$",
+        "maxLength": 128
+      }
+    },
+    "scope": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(?:\\.|[a-zA-Z0-9._-][a-zA-Z0-9._/-]*\\/?$)"
+      }
+    },
+    "manifestHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

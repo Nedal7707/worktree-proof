@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.dirname(testDirectory);
-const skillNames = ['worktree-proof', 'omnibus-maintainer', 'safe-parallel-delegation'];
+const skillNames = ['worktree-proof', 'omnibus-maintainer', 'safe-parallel-delegation', 'protocol-client'];
 
 function frontmatter(text, file) {
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);

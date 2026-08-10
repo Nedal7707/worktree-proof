@@ -7,10 +7,17 @@
  * the command contract testable without a Git checkout.
  */
 
-import { access, mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readFile, readdir, realpath, rename, stat, writeFile } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { normalizeLaneId } from './scope.js';
+import {
+  createEnvelope,
+  negotiateCapabilities,
+  normalizeRequestId,
+} from './protocol/index.js';
 
 export const VERSION = '0.1.0';
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,10 +29,12 @@ export const EXIT_CODES = Object.freeze({
 });
 
 const COMMANDS = Object.freeze([
+  'capabilities',
   'doctor',
   'plan',
   'reserve',
   'release',
+  'leases',
   'run',
   'status',
   'close',
@@ -99,6 +108,8 @@ const VALUE_OPTIONS = new Set([
   '--other-task-reservations',
   '--namespace',
   '--current-task-id',
+  '--protocol-version',
+  '--request-id',
 ]);
 
 const BOOLEAN_OPTIONS = new Set([
@@ -295,6 +306,8 @@ export function parseArgs(argv = []) {
           othertaskreservations: 'otherTaskReservations',
           namespace: 'namespace',
           currenttaskid: 'currentTaskId',
+          protocolversion: 'protocolVersion',
+          requestid: 'requestId',
         };
         const mappedKey = keyMap[key] ?? key;
         if (mappedKey === 'goal' || mappedKey === 'allowedRoot') {
@@ -362,7 +375,8 @@ function usage() {
     '  worktree-proof run [options] -- <program> [args...]',
     '',
     'Commands:',
-    '  doctor, plan, reserve, release, run, status, close, cleanup, validate',
+    '  capabilities, doctor, plan, reserve, release, run, status, close, cleanup, validate',
+    '  leases inspect|recover <laneId>',
     '  tools list|scan|recommend',
     '  resources scan|plan',
     '  recipes list|show <name>',
@@ -374,6 +388,8 @@ function usage() {
     '  --repo <path>       Repository root (default: current directory)',
     '  --config <path>     JSON configuration file',
     '  --json              Emit one JSON result',
+    '  --protocol-version <version>  Required protocol version for capabilities',
+    '  --request-id <id>   Stable request correlation id for JSON output',
     '  --dry-run           Plan without mutating state',
     '  --no-submit         Do not submit or reserve external state',
     '  --help, --version   Show help or version',
@@ -413,6 +429,44 @@ function redact(value, key = '') {
   return value;
 }
 
+const LEASE_OUTPUT_FIELDS = Object.freeze([
+  'laneId',
+  'fileScope',
+  'timestamp',
+  'ttlMs',
+  'expiresAt',
+  'status',
+  'active',
+  'releasedAt',
+  'updatedAt',
+  'reason',
+]);
+
+function publicLeaseRecord(value) {
+  if (!isObject(value)) return value;
+  const output = {};
+  for (const field of LEASE_OUTPUT_FIELDS) {
+    if (hasOwn(value, field)) output[field] = value[field];
+  }
+  return output;
+}
+
+function sanitizeLeaseCommandResult(result) {
+  if (!isObject(result)) return publicLeaseRecord(result);
+  if (Array.isArray(result.leases) || Array.isArray(result.stale)) {
+    const output = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (key === 'leases' || key === 'stale') {
+        output[key] = Array.isArray(value) ? value.map(publicLeaseRecord) : [];
+      } else {
+        output[key] = value;
+      }
+    }
+    return output;
+  }
+  return publicLeaseRecord(result);
+}
+
 function safeJson(value) {
   try {
     return JSON.stringify(redact(value));
@@ -423,6 +477,7 @@ function safeJson(value) {
 
 function errorMessage(error) {
   if (error instanceof CliUsageError || error instanceof CliOperationError) return error.message;
+  if (error?.name === 'ProtocolError') return 'protocol operation failed';
   if (error instanceof SyntaxError) return 'invalid JSON input';
   // Adapter errors can contain command output, paths, or user-provided values.
   // Keep those details out of CLI logs; runtime modules should return a safe
@@ -539,6 +594,62 @@ function leasePath(payload) {
     payload.config.leaseStore ?? payload.config.leaseRegistry,
     join('.worktree-proof', 'leases.json'),
   );
+}
+
+async function safeLeasePath(payload) {
+  const candidate = projectStatePath(
+    payload.repo,
+    payload.config.leaseStore ?? payload.config.leaseRegistry,
+    join('.worktree-proof', 'leases.json'),
+    'lease registry',
+  );
+  let repoReal;
+  try {
+    repoReal = await realpath(payload.repo);
+  } catch (error) {
+    throw new CliUsageError(`lease registry repository is not accessible: ${error.message}`);
+  }
+
+  let existing = candidate;
+  let existingStats;
+  while (true) {
+    try {
+      existingStats = await lstat(existing);
+      break;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw new CliUsageError('lease registry path is not accessible');
+      const parent = dirname(existing);
+      if (parent === existing) throw new CliUsageError('lease registry path is not accessible');
+      existing = parent;
+    }
+  }
+  let existingReal;
+  try {
+    existingReal = await realpath(existing);
+  } catch {
+    throw new CliUsageError('lease registry path is not accessible');
+  }
+  const existingRelative = relative(repoReal, existingReal);
+  if (existingRelative === '..' || existingRelative.startsWith(`..${sep}`) || isAbsolute(existingRelative)) {
+    throw new CliUsageError('lease registry path must stay inside the repository');
+  }
+
+  let current = repoReal;
+  for (const segment of existingRelative.split(sep).filter(Boolean)) {
+    current = join(current, segment);
+    let stats;
+    try {
+      stats = await lstat(current);
+    } catch {
+      throw new CliUsageError('lease registry path is not accessible');
+    }
+    if (stats.isSymbolicLink()) throw new CliUsageError('lease registry path cannot contain a symlink or reparse point');
+  }
+  if (existingStats.isSymbolicLink()) throw new CliUsageError('lease registry path cannot contain a symlink or reparse point');
+  if (existing === candidate && !existingStats.isFile()) {
+    throw new CliUsageError('lease registry path must be a regular file');
+  }
+  return candidate;
 }
 
 function bridgePath(payload) {
@@ -865,6 +976,48 @@ async function invokeAdapter(deps, command, payload, input) {
         currentTaskId: payload.options.currentTaskId,
       }),
     };
+  }
+
+  if (command === 'leases') {
+    const action = payload.positionals[0] ?? 'inspect';
+    if (!['inspect', 'recover'].includes(action)) {
+      throw new CliUsageError(`unknown leases action: ${action}`);
+    }
+    const rawLaneId = payload.options.laneId ?? payload.positionals[1];
+    if (typeof rawLaneId !== 'string' || !rawLaneId.trim()) {
+      throw new CliUsageError(`leases ${action} requires a lane id`);
+    }
+    let laneId;
+    try {
+      laneId = normalizeLaneId(rawLaneId);
+    } catch (error) {
+      throw new CliUsageError(`leases ${action} lane id is invalid: ${error.message}`);
+    }
+    const registryPath = await safeLeasePath(payload);
+    if (action === 'inspect') {
+      const fn = findExport(deps.leases, ['inspectLeaseRegistry']);
+      if (!fn) return { supported: false, command, reason: 'lease inspection adapter unavailable' };
+      const report = await fn(registryPath);
+      const filtered = typeof laneId === 'string' && laneId.trim()
+        ? {
+          ...report,
+          leases: Array.isArray(report?.leases)
+            ? report.leases.filter((lease) => lease?.laneId === laneId)
+            : report?.leases,
+          stale: Array.isArray(report?.stale)
+            ? report.stale.filter((lease) => lease?.laneId === laneId)
+            : report?.stale,
+        }
+        : report;
+      return sanitizeLeaseCommandResult(filtered);
+    }
+    const fn = findExport(deps.leases, ['recoverExpiredLease']);
+    if (!fn) return { supported: false, command, reason: 'lease recovery adapter unavailable' };
+    return sanitizeLeaseCommandResult(await fn(registryPath, {
+      laneId,
+      reason: payload.options.reason,
+      confirm: payload.options.confirm === true,
+    }));
   }
 
   if (command === 'bridge') {
@@ -1225,6 +1378,9 @@ function requireValue(options, name, command) {
 
 function checkCommandPositionals(parsed) {
   const { command, positionals } = parsed;
+  if (command === 'capabilities' && positionals.length > 0) {
+    throw new CliUsageError('capabilities does not accept positional arguments');
+  }
   if (command === 'run') {
     if (positionals.length > 1) throw new CliUsageError('run accepts at most one positional lane id');
     if (parsed.passthrough.length === 0 && !parsed.options.dryRun) {
@@ -1234,6 +1390,9 @@ function checkCommandPositionals(parsed) {
   if (['reserve', 'release', 'close'].includes(command)
       && positionals.length > 1) {
     throw new CliUsageError(`${command} accepts at most one positional lane id`);
+  }
+  if (command === 'leases' && positionals.length > 2) {
+    throw new CliUsageError('leases accepts an action and one lane id');
   }
   if (command === 'validate' && positionals.length > 1) {
     throw new CliUsageError('validate accepts at most one receipt path');
@@ -1251,6 +1410,20 @@ async function executeCommand(parsed, context) {
   if (command === undefined || parsed.commandHelp) return { help: usage() };
   if (parsed.commandVersion) return { version: versionText() };
   checkCommandPositionals(parsed);
+
+  if (command === 'capabilities') {
+    if (typeof options.protocolVersion !== 'string' || options.protocolVersion.length === 0) {
+      throw new CliUsageError('capabilities requires --protocol-version');
+    }
+    let requested;
+    if (options.capabilities !== undefined) {
+      requested = options.capabilities.split(',').map((item) => item.trim()).filter(Boolean);
+    }
+    return negotiateCapabilities({
+      protocolVersion: options.protocolVersion,
+      requested,
+    });
+  }
 
   const payload = commandPayload(parsed, context.repo, context.configData);
   if (parsed.positionals.length === 1 && !options.laneId) payload.laneId = parsed.positionals[0];
@@ -1273,6 +1446,17 @@ async function executeCommand(parsed, context) {
       planned: true,
       submitted: false,
       command,
+      reason: options.dryRun ? 'dry-run' : 'no-submit',
+    };
+  }
+  if (command === 'leases'
+      && (parsed.positionals[0] ?? 'inspect') === 'recover'
+      && (!payload.submit || options.dryRun)) {
+    return {
+      planned: true,
+      submitted: false,
+      command,
+      action: 'recover',
       reason: options.dryRun ? 'dry-run' : 'no-submit',
     };
   }
@@ -1312,7 +1496,12 @@ async function executeCommand(parsed, context) {
 function renderResult(parsed, result) {
   const safeResult = redact(result);
   if (parsed.options.json) {
-    return safeJson({ ok: true, command: parsed.command ?? null, result: safeResult });
+    return safeJson(createEnvelope({
+      ok: true,
+      command: parsed.command ?? null,
+      requestId: parsed.options.requestId,
+      result: safeResult,
+    }));
   }
   if (result?.help) return result.help;
   if (result?.version) return result.version;
@@ -1334,6 +1523,25 @@ function renderResult(parsed, result) {
   return `${parsed.command}: ok${keys.length ? ` (${keys.join(', ')})` : ''}`;
 }
 
+function renderJsonError(parsed, error, code) {
+  const publicError = typeof error?.code === 'string'
+    ? error
+    : { code: code === EXIT_CODES.USAGE ? 'ERR_INVALID_REQUEST' : 'ERR_PROTOCOL' };
+  let requestId;
+  try {
+    requestId = normalizeRequestId(parsed?.options?.requestId);
+  } catch {
+    requestId = undefined;
+  }
+  const envelope = createEnvelope({
+    ok: false,
+    command: parsed?.command ?? null,
+    requestId,
+    error: publicError,
+  });
+  return safeJson({ ...envelope, code });
+}
+
 /**
  * Run one CLI invocation.  The return value is suitable for bin/worktree-proof.js
  * and for tests; no process exit occurs here.
@@ -1346,31 +1554,44 @@ export async function runCli(argv = process.argv.slice(2), options = {}) {
   } catch (error) {
     const message = errorMessage(error);
     const fallback = { ok: false, error: message, code: EXIT_CODES.USAGE };
-    if (argv.includes('--json')) io.stdout(safeJson(fallback));
+    if (argv.includes('--json')) io.stdout(renderJsonError(undefined, error, EXIT_CODES.USAGE));
     else io.stderr(`error: ${message}\n${usage()}`);
     return fallback;
   }
 
   if (parsed.command === undefined || parsed.commandHelp || parsed.commandVersion) {
     const result = parsed.commandVersion ? { version: versionText() } : { help: usage() };
-    io.stdout(parsed.options.json ? safeJson({ ok: true, command: parsed.command ?? null, result }) : (result.version ?? result.help));
+    io.stdout(parsed.options.json
+      ? safeJson(createEnvelope({
+        ok: true,
+        command: parsed.command ?? null,
+        requestId: parsed.options.requestId,
+        result,
+      }))
+      : (result.version ?? result.help));
     return { ok: true, code: EXIT_CODES.OK, result };
   }
 
   const repo = resolve(options.repo ?? parsed.options.repo ?? process.cwd());
   let configData;
   try {
-    configData = await (options.loadConfig
-      ? options.loadConfig(repo, parsed.options.config)
-      : loadConfig(repo, parsed.options.config));
-    const deps = await loadRuntimeDependencies(options.deps ?? {});
+    // Capability negotiation is a pure protocol operation. Do not read a
+    // repository config or import runtime adapters before answering it.
+    configData = parsed.command === 'capabilities'
+      ? { path: undefined, config: {} }
+      : await (options.loadConfig
+        ? options.loadConfig(repo, parsed.options.config)
+        : loadConfig(repo, parsed.options.config));
+    const deps = parsed.command === 'capabilities'
+      ? {}
+      : await loadRuntimeDependencies(options.deps ?? {});
     const result = await executeCommand(parsed, { repo, configData, deps });
     io.stdout(renderResult(parsed, result));
     return { ok: true, code: EXIT_CODES.OK, result };
   } catch (error) {
     const message = errorMessage(error);
     const code = error?.code === EXIT_CODES.USAGE ? EXIT_CODES.USAGE : EXIT_CODES.ERROR;
-    if (parsed.options.json) io.stdout(safeJson({ ok: false, command: parsed.command, error: message, code }));
+    if (parsed.options.json) io.stdout(renderJsonError(parsed, error, code));
     else io.stderr(`error: ${message}`);
     return { ok: false, code, error: message };
   }

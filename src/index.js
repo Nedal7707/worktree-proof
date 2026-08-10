@@ -18,6 +18,7 @@ export * from './init.js';
 export * from './resources.js';
 export * from './tasks.js';
 export * from './tools.js';
+export * from './protocol/index.js';
 export {
   GitCommandError,
   runGit,

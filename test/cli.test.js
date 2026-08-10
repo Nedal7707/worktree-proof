@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -153,6 +153,212 @@ test('JSON output redacts sensitive fields', async () => {
   assert.equal(output.ok, true);
   assert.equal(output.result.accessToken, '[redacted]');
   assert.doesNotMatch(stream.out[0], /do-not-print/);
+});
+
+test('capabilities emits one deterministic protocol envelope', async () => {
+  const stream = capture();
+  const result = await runCli([
+    'capabilities',
+    '--protocol-version', '1.0',
+    '--request-id', 'req-cli-1',
+    '--json',
+  ], {
+    io: stream.io,
+    loadConfig: async () => { throw new Error('capabilities must not load config'); },
+  });
+
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.equal(stream.err.length, 0);
+  assert.equal(stream.out.length, 1);
+  const envelope = JSON.parse(stream.out[0]);
+  assert.equal(envelope.protocol, 'worktreeproof');
+  assert.equal(envelope.protocolVersion, '1.0');
+  assert.equal(envelope.requestId, 'req-cli-1');
+  assert.deepEqual(envelope.result.capabilities.map(({ id }) => id), [
+    'lease.reserve',
+    'receipt.validate',
+    'scope.validate',
+  ]);
+  assert.equal(envelope.result.limits.maxMessageBytes, 16_384);
+  assert.equal(envelope.result.limits.maxBatchItems, 100);
+});
+
+test('capabilities uses stable operational and usage exit codes', async () => {
+  const unsupportedVersion = capture();
+  const refused = await runCli([
+    'capabilities', '--protocol-version', '9.0', '--json',
+  ], { io: unsupportedVersion.io });
+  assert.equal(refused.code, EXIT_CODES.ERROR);
+  const refusalEnvelope = JSON.parse(unsupportedVersion.out[0]);
+  assert.equal(refusalEnvelope.ok, false);
+  assert.equal(refusalEnvelope.error.code, 'ERR_PROTOCOL_VERSION');
+  assert.doesNotMatch(unsupportedVersion.out[0], /stack|session|owner|token/i);
+
+  const missingVersion = capture();
+  const usage = await runCli(['capabilities', '--json'], { io: missingVersion.io });
+  assert.equal(usage.code, EXIT_CODES.USAGE);
+  assert.equal(JSON.parse(missingVersion.out[0]).error.code, 'ERR_INVALID_REQUEST');
+
+  const unsupported = capture();
+  const normal = await runCli([
+    'capabilities', '--protocol-version', '1.0', '--capabilities', 'scope.validate,unknown', '--json',
+  ], { io: unsupported.io });
+  assert.equal(normal.code, EXIT_CODES.OK);
+  const negotiated = JSON.parse(unsupported.out[0]);
+  assert.deepEqual(negotiated.result.unsupported, ['unknown']);
+  assert.deepEqual(negotiated.result.capabilities.map(({ id }) => id), ['scope.validate']);
+});
+
+test('failing JSON commands sanitize invalid request ids and still emit one envelope', async () => {
+  const stream = capture();
+  const result = await runCli([
+    'capabilities',
+    '--protocol-version', '9.0',
+    '--request-id', 'session-private',
+    '--json',
+  ], { io: stream.io });
+
+  assert.equal(result.code, EXIT_CODES.ERROR);
+  assert.equal(stream.err.length, 0);
+  assert.equal(stream.out.length, 1);
+  const envelope = JSON.parse(stream.out[0]);
+  assert.equal(envelope.ok, false);
+  assert.equal(envelope.requestId, 'req-0');
+  assert.equal(envelope.error.code, 'ERR_PROTOCOL_VERSION');
+  assert.doesNotMatch(stream.out[0], /session-private/);
+});
+
+test('leases inspect is routed with safe metadata and recovery requires confirmation', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-leases-'));
+  try {
+    const registryDirectory = path.join(root, '.worktree-proof');
+    await mkdir(registryDirectory, { recursive: true });
+    await writeFile(path.join(registryDirectory, 'leases.json'), JSON.stringify({
+      version: 1,
+      leases: [{
+        leaseId: 'lease-private',
+        laneId: 'blocked',
+        fileScope: 'src/blocked.js',
+        owner: 'owner-private',
+        session: 'session-private',
+        timestamp: '2020-01-01T00:00:00.000Z',
+        ttlMs: 1_000,
+        expiresAt: '2020-01-01T00:00:01.000Z',
+        status: 'active',
+        active: true,
+      }],
+    }), 'utf8');
+
+    const inspectStream = capture();
+    const inspected = await runCli(['leases', 'inspect', 'blocked', '--repo', root, '--json'], {
+      io: inspectStream.io,
+      deps: {
+        leases: {
+          inspectLeaseRegistry: async () => ({
+            version: 1,
+            leases: [{
+              leaseId: 'lease-private',
+              laneId: 'blocked',
+              fileScope: 'src/blocked.js',
+              owner: 'owner-private',
+              session: 'session-private',
+              status: 'active',
+              active: true,
+            }],
+            stale: [{
+              leaseId: 'lease-private',
+              laneId: 'blocked',
+              fileScope: 'src/blocked.js',
+              owner: 'owner-private',
+              session: 'session-private',
+              status: 'active',
+              active: true,
+            }],
+          }),
+        },
+      },
+    });
+    assert.equal(inspected.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(inspectStream.out[0]).result.stale[0].laneId, 'blocked');
+    assert.doesNotMatch(inspectStream.out[0], /owner-private|session-private|lease-private/);
+
+    const refusalStream = capture();
+    const refusal = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--reason', 'merged', '--json'], {
+      io: refusalStream.io,
+    });
+    assert.equal(refusal.code, EXIT_CODES.ERROR);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('leases recovery rejects outside registry paths and normalizes lane selectors', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-paths-'));
+  try {
+    const calls = [];
+    const deps = { leases: {
+      inspectLeaseRegistry: async (registryPath) => {
+        calls.push(registryPath);
+        return { version: 1, leases: [{ laneId: 'blocked', fileScope: 'src/x.js', owner: 'o', session: 's', leaseId: 'l' }], stale: [] };
+      },
+      recoverExpiredLease: async (_registryPath, input) => ({ laneId: input.laneId, status: 'released', owner: 'o', session: 's', leaseId: 'l' }),
+    } };
+    const inspect = capture();
+    const inspected = await runCli(['leases', 'inspect', ' BLOCKED ', '--repo', root, '--json'], { io: inspect.io, deps });
+    assert.equal(inspected.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(inspect.out[0]).result.leases[0].laneId, 'blocked');
+    assert.doesNotMatch(inspect.out[0], /owner|session|leaseId/);
+    const recoveredStream = capture();
+    const recovered = await runCli(['leases', 'recover', ' BLOCKED ', '--repo', root, '--reason', 'merged', '--confirm', '--json'], {
+      io: recoveredStream.io,
+      deps,
+    });
+    assert.equal(recovered.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(recoveredStream.out[0]).result.status, 'released');
+    assert.doesNotMatch(recoveredStream.out[0], /owner|session|leaseId/);
+    const outside = capture();
+    const refused = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--config', path.join(os.tmpdir(), 'outside-config.json'), '--reason', 'merged', '--confirm', '--json'], {
+      io: outside.io,
+      loadConfig: async () => ({ path: 'outside', config: { leaseStore: path.join(os.tmpdir(), 'outside-registry.json') } }),
+      deps,
+    });
+    assert.equal(refused.code, EXIT_CODES.USAGE);
+    assert.equal(calls.length, 1);
+
+    const traversal = capture();
+    const traversalResult = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--reason', 'merged', '--confirm', '--json'], {
+      io: traversal.io,
+      loadConfig: async () => ({ path: 'traversal', config: { leaseStore: path.join(root, '..', 'outside-registry.json') } }),
+      deps,
+    });
+    assert.equal(traversalResult.code, EXIT_CODES.USAGE);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('leases recovery refuses symlink/reparse registry parents when supported', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-reparse-'));
+  const outside = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-reparse-target-'));
+  try {
+    const link = path.join(root, 'linked-state');
+    try {
+      await symlink(outside, link, process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+      t.skip(`symlink/reparse creation unavailable: ${error.code ?? error.message}`);
+      return;
+    }
+    const stream = capture();
+    const result = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--config', 'config.json', '--reason', 'merged', '--confirm', '--json'], {
+      io: stream.io,
+      loadConfig: async () => ({ path: 'config', config: { leaseStore: path.join(root, 'linked-state', 'leases.json') } }),
+      deps: { leases: { recoverExpiredLease: async () => ({ status: 'released' }) } },
+    });
+    assert.equal(result.code, EXIT_CODES.USAGE);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
 });
 
 test('run dry-run reports shape without executing a process', async () => {

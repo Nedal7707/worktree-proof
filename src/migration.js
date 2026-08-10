@@ -1038,6 +1038,39 @@ function validateReceipt(receipt) {
   return { home, backupRoot, journalPath, receipt };
 }
 
+/**
+ * The durable journal is the only receipt authority.  Validate that authority
+ * before any rollback lock, claim, temporary file, or directory operation can
+ * be created.  A caller may rehash a forged receipt, but cannot rehash the
+ * canonical journal that already records the apply.
+ */
+async function validateReceiptAuthority(validated) {
+  let journal;
+  try {
+    journal = await readCanonicalJournal(validated.journalPath, {
+      home: validated.home,
+      backupRoot: validated.backupRoot,
+      journalPath: validated.journalPath,
+      planHash: validated.receipt.planHash,
+      recoveryId: recoveryIdFor(validated.receipt.planHash),
+    });
+  } catch (error) {
+    if (error instanceof MigrationSafetyError && [
+      'ERR_INVALID_JOURNAL',
+      'ERR_JOURNAL_COLLISION',
+      'ERR_JOURNAL_MISSING',
+    ].includes(error.code)) {
+      throw new MigrationSafetyError('rollback receipt is not bound to the durable journal', 'ERR_RECEIPT_INTEGRITY');
+    }
+    throw error;
+  }
+  const expectedReceipt = buildReceiptFromJournal(journal);
+  if (canonicalJson(validated.receipt) !== canonicalJson(expectedReceipt)) {
+    throw new MigrationSafetyError('rollback receipt is not an exact view of the durable journal', 'ERR_RECEIPT_INTEGRITY');
+  }
+  return { ...validated, journal };
+}
+
 async function currentHash(root, relativePath, encoding) {
   try {
     if (!(await pathExists(resolve(root, relativePath)))) return null;
@@ -1407,7 +1440,7 @@ function buildReceiptFromJournal(journal) {
 
 /** Restore one validated apply receipt; forged receipts are rejected before I/O. */
 export async function rollbackLocalMigration(receipt, options = {}) {
-  const validated = validateReceipt(receipt);
+  const validated = await validateReceiptAuthority(validateReceipt(receipt));
   await rejectReparseAbsolute(validated.home, { allowMissing: false });
   await rejectReparseAbsolute(validated.backupRoot);
   const lockPath = join(validated.backupRoot, '.migration.lock');
@@ -1435,8 +1468,11 @@ export async function rollbackLocalMigration(receipt, options = {}) {
   }
   try {
     const result = await restoreReceipt(validated, { hooks: object(options.hooks) ? options.hooks : {}, lockHeld: true });
-    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce, claimantNonce });
     await releaseMigrationLock(lock, { ...lockExpected, ownerNonce: lockOwnerNonce });
+    // Keep the owned claim as the recovery witness until the primary lock has
+    // reached its terminal/removal state.  This avoids a claimless
+    // recoverable-lock window if cleanup is interrupted between the two files.
+    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce, claimantNonce });
     if (options.cleanupRecovery === true) await cleanupRecoveryArtifacts(validated, options.recoveryId ?? recoveryIdFor(validated.receipt.planHash));
     return result;
   } catch (error) {

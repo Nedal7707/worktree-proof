@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { access, mkdir, mkdtemp, open, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { access, lstat, mkdir, mkdtemp, open, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 import {
   applyLocalMigration,
@@ -17,6 +19,110 @@ import { runCli } from '../src/cli.js';
 
 async function tempHome() {
   return mkdtemp(path.join(os.tmpdir(), 'worktree-proof-migration-'));
+}
+
+async function snapshotTree(root) {
+  const names = (await readdir(root, { recursive: true })).map(String).sort();
+  const files = {};
+  for (const name of names) {
+    const absolute = path.join(root, name);
+    let stats;
+    try {
+      stats = await lstat(absolute);
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      throw error;
+    }
+    if (stats.isFile()) files[name] = (await readFile(absolute)).toString('base64');
+  }
+  return { names, files };
+}
+
+const CHILD_MIGRATION_FIXTURE = `
+import { access, readFile, writeFile } from 'node:fs/promises';
+
+const migration = await import(process.env.WTP_MIGRATION_MODULE);
+const receipt = JSON.parse(await readFile(process.env.WTP_RECEIPT, 'utf8'));
+const plan = process.env.WTP_PLAN ? JSON.parse(await readFile(process.env.WTP_PLAN, 'utf8')) : null;
+const mode = process.env.WTP_MODE;
+const backupRoot = process.env.WTP_BACKUP_ROOT;
+const recoveryId = process.env.WTP_RECOVERY_ID;
+
+async function waitForRelease() {
+  await writeFile(process.env.WTP_STARTED, 'started', 'utf8');
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    try {
+      await access(process.env.WTP_RELEASE);
+      return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  }
+  throw Object.assign(new Error('child release timeout'), { code: 'ERR_CHILD_TIMEOUT' });
+}
+
+try {
+  let result;
+  if (mode === 'fail') {
+    await migration.rollbackLocalMigration(receipt, {
+      hooks: { restoreMarker: async () => { throw new Error('injected marker rename failure'); } },
+    });
+  } else if (mode === 'resume-blocking') {
+    result = await migration.resumeLocalMigration(recoveryId, {
+      backupRoot,
+      hooks: { restoreMarker: waitForRelease },
+    });
+  } else if (mode === 'resume') {
+    result = await migration.resumeLocalMigration(recoveryId, { backupRoot });
+  } else if (mode === 'apply') {
+    result = await migration.applyLocalMigration(plan, { confirm: true, backupRoot });
+  } else {
+    throw Object.assign(new Error('unknown child mode'), { code: 'ERR_CHILD_MODE' });
+  }
+  process.stdout.write(JSON.stringify({ ok: true, result: result ?? null }) + '\\n');
+} catch (error) {
+  process.stdout.write(JSON.stringify({
+    ok: false,
+    code: error?.code ?? 'ERR_CHILD',
+    recoveryReceipt: error?.recoveryReceipt ?? null,
+  }) + '\\n');
+}
+`;
+
+function runMigrationChild({ mode, receiptPath, planPath, backupRoot, recoveryId, startedPath, releasePath }) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['--input-type=module', '-e', CHILD_MIGRATION_FIXTURE], {
+      env: {
+        ...process.env,
+        WTP_MIGRATION_MODULE: pathToFileURL(path.resolve('src/migration.js')).href,
+        WTP_RECEIPT: receiptPath,
+        WTP_PLAN: planPath ?? '',
+        WTP_BACKUP_ROOT: backupRoot,
+        WTP_RECOVERY_ID: recoveryId ?? '',
+        WTP_MODE: mode,
+        WTP_STARTED: startedPath ?? '',
+        WTP_RELEASE: releasePath ?? '',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.once('error', reject);
+    child.once('close', (code, signal) => {
+      const line = stdout.trim().split(/\r?\n/u).filter(Boolean).at(-1);
+      let result;
+      try { result = line ? JSON.parse(line) : null; } catch (error) {
+        reject(new Error(`child output was not JSON (${stderr || error.message})`));
+        return;
+      }
+      resolve({ ...result, exitCode: code, signal, stderr });
+    });
+  });
 }
 
 test('migration planning is read-only and apply defaults to a preview', async () => {
@@ -634,7 +740,62 @@ test('self-rehashed receipts cannot redirect restore to an attacker backup or al
   }
 });
 
-test('recovery adopts a durable lock across fresh processes and serializes claimants', async () => {
+test('forged receipt rejection preserves every protocol and target byte before lock acquisition', async () => {
+  const home = await tempHome();
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    const target = path.join(home, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+    const lockPath = path.join(receipt.backupRoot, '.migration.lock');
+    const claimPath = path.join(receipt.backupRoot, '.migration.claim');
+    const journalPath = path.join(receipt.backupRoot, `migration-${secondPlan.planHash}.journal.json`);
+    const entry = receipt.backups[0];
+    const attackerRoot = path.join(receipt.backupRoot, 'attacker-controlled');
+    await mkdir(attackerRoot, { recursive: true });
+    const attackerTarget = path.join(attackerRoot, 'target.bin');
+    const attackerMarker = path.join(attackerRoot, 'marker.bin');
+    const attackerTargetBytes = Buffer.from('forged target bytes');
+    const attackerMarkerBytes = Buffer.from('forged marker bytes\n');
+    await writeFile(attackerTarget, attackerTargetBytes);
+    await writeFile(attackerMarker, attackerMarkerBytes);
+    const forged = rehashReceipt(receipt, {
+      backups: [{
+        ...entry,
+        backupPath: attackerTarget,
+        markerBackupPath: attackerMarker,
+        sha256: sha256(attackerTargetBytes),
+        markerSha256: sha256(attackerMarkerBytes),
+      }],
+    });
+
+    const beforeHome = await snapshotTree(home);
+    const beforeBackup = await snapshotTree(receipt.backupRoot);
+    const beforeTarget = await readFile(target);
+    const beforeMarker = await readFile(marker);
+    const beforeJournal = await readFile(journalPath);
+    await assert.rejects(
+      () => rollbackLocalMigration(forged),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECEIPT_INTEGRITY',
+    );
+
+    assert.deepEqual(await snapshotTree(home), beforeHome);
+    assert.deepEqual(await snapshotTree(receipt.backupRoot), beforeBackup);
+    assert.deepEqual(await readFile(target), beforeTarget);
+    assert.deepEqual(await readFile(marker), beforeMarker);
+    assert.deepEqual(await readFile(journalPath), beforeJournal);
+    await assert.rejects(access(lockPath));
+    await assert.rejects(access(claimPath));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('recovery resumes by id across child processes and keeps terminal cleanup ordered', async () => {
   const home = await tempHome();
   try {
     const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
@@ -648,40 +809,53 @@ test('recovery adopts a durable lock across fresh processes and serializes claim
     const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
     const receipt = await applyLocalMigration(secondPlan, { confirm: true });
     const backupRoot = receipt.backupRoot;
-
-    await assert.rejects(
-      () => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { throw new Error('injected marker rename failure'); } } }),
-      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED',
-    );
     const recoveryId = `recovery-${secondPlan.planHash}`;
     const lockPath = path.join(backupRoot, '.migration.lock');
     const journalPath = path.join(backupRoot, `migration-${secondPlan.planHash}.journal.json`);
+    const receiptPath = path.join(home, '.child-receipt.json');
+    const planPath = path.join(home, '.child-plan.json');
+    const startedPath = path.join(home, '.child-resume-started');
+    const releasePath = path.join(home, '.child-resume-release');
+    await writeFile(receiptPath, `${JSON.stringify(receipt)}\n`, 'utf8');
+    await writeFile(planPath, `${JSON.stringify(firstPlan)}\n`, 'utf8');
+
+    const failed = await runMigrationChild({ mode: 'fail', receiptPath, backupRoot });
+    assert.equal(failed.exitCode, 0);
+    assert.equal(failed.code, 'ERR_RECOVERY_REQUIRED');
+    assert.equal(failed.recoveryReceipt, recoveryId);
     assert.match(await readFile(lockPath, 'utf8'), /recoverable/u);
     assert.ok((await readFile(journalPath, 'utf8')).includes(recoveryId));
 
-    const freshTag = `${Date.now()}-${Math.random()}`;
-    const freshA = await import(`../src/migration.js?fresh=${freshTag}-a`);
-    const freshB = await import(`../src/migration.js?fresh=${freshTag}-b`);
-    let releaseMarker;
-    let markerStarted;
-    const markerStartedPromise = new Promise((resolveStarted) => { markerStarted = resolveStarted; });
-    const markerGate = new Promise((resolveGate) => { releaseMarker = resolveGate; });
-    const firstResume = freshA.resumeLocalMigration(recoveryId, {
+    const firstResume = runMigrationChild({
+      mode: 'resume-blocking',
+      receiptPath,
       backupRoot,
-      hooks: { restoreMarker: async () => { markerStarted(); await markerGate; } },
+      recoveryId,
+      startedPath,
+      releasePath,
     });
-    await markerStartedPromise;
+    const startedDeadline = Date.now() + 10000;
+    while (Date.now() < startedDeadline) {
+      try {
+        await access(startedPath);
+        break;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    }
+    await assert.doesNotReject(() => access(startedPath));
 
-    await assert.rejects(
-      () => freshA.applyLocalMigration(firstPlan, { confirm: true, backupRoot }),
-      (error) => error?.code === 'ERR_MIGRATION_LOCK',
-    );
-    await assert.rejects(
-      () => freshB.resumeLocalMigration(recoveryId, { backupRoot }),
-      (error) => error?.code === 'ERR_MIGRATION_LOCK',
-    );
-    releaseMarker();
-    assert.equal((await firstResume).ok, true);
+    const blockedApply = await runMigrationChild({ mode: 'apply', receiptPath, planPath, backupRoot });
+    assert.equal(blockedApply.exitCode, 0);
+    assert.equal(blockedApply.code, 'ERR_MIGRATION_LOCK');
+    const blockedResume = await runMigrationChild({ mode: 'resume', receiptPath, backupRoot, recoveryId });
+    assert.equal(blockedResume.exitCode, 0);
+    assert.equal(blockedResume.code, 'ERR_MIGRATION_LOCK');
+
+    await writeFile(releasePath, 'release', 'utf8');
+    const resumed = await firstResume;
+    assert.equal(resumed.exitCode, 0);
+    assert.equal(resumed.ok, true);
     assert.deepEqual(await readFile(target), originalTarget);
     assert.deepEqual(await readFile(marker), originalMarker);
     await assert.rejects(access(journalPath));

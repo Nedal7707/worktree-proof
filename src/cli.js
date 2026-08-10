@@ -1253,7 +1253,10 @@ async function invokeAdapter(deps, command, payload, input) {
     const initApi = deps.init;
     if (!initApi) return { supported: false, command, reason: 'init adapter unavailable' };
     const targets = optionList(payload.options.targets ?? payload.options.target, '--targets');
-    const plan = await initApi.buildInitPlan({ repo: payload.repo, targets, preset: payload.options.preset });
+    const manifest = payload.options.manifest === undefined
+      ? undefined
+      : await readJsonInput(payload.repo, payload.options.manifest, 'manifest');
+    const plan = await initApi.buildInitPlan({ repo: payload.repo, targets, preset: payload.options.preset, manifest });
     if (action === 'preview' || payload.dryRun) {
       return { action: 'preview', dryRun: true, plan: await initApi.applyInitPlan(plan, { dryRun: true }) };
     }

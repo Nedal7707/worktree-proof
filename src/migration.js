@@ -50,7 +50,7 @@ const ARTIFACT_KEYS = Object.freeze(['files', 'manifestHash']);
 const ARTIFACT_FILE_KEYS = Object.freeze(['contentHash', 'path']);
 const WRITE_KEYS = Object.freeze(['content', 'contentHash', 'existing', 'existingHash', 'markerContent', 'markerHash', 'markerPath', 'mode', 'owner', 'path']);
 const ROLLBACK_KEYS = Object.freeze(['owner', 'strategy']);
-const RECEIPT_KEYS = Object.freeze(['backupRoot', 'backups', 'confirmed', 'home', 'kind', 'planHash', 'preview', 'receiptHash', 'receiptVersion', 'written']);
+const RECEIPT_KEYS = Object.freeze(['backupRoot', 'backups', 'confirmed', 'home', 'journalPath', 'kind', 'planHash', 'preview', 'receiptHash', 'receiptVersion', 'written']);
 const RECEIPT_BODY_KEYS = Object.freeze(RECEIPT_KEYS.filter((key) => key !== 'receiptHash'));
 const BACKUP_KEYS = Object.freeze(['appliedContentHash', 'appliedMarkerHash', 'backupPath', 'existed', 'markerBackupPath', 'markerPath', 'markerSha256', 'path', 'sha256']);
 
@@ -127,7 +127,8 @@ function normalizeRelative(value, label = 'path') {
   if (parts.length === 0) throw new MigrationSafetyError(`${label} is empty`, 'ERR_INVALID_PATH');
   for (const part of parts) {
     if (part === '..') throw new MigrationSafetyError(`${label} escapes its root`, 'ERR_PATH_ESCAPE');
-    if (part === '.' || CONTROL.test(part) || WINDOWS_INVALID.test(part) || WINDOWS_RESERVED.test(part) || /[ .]$/u.test(part)) {
+    if (part === '.') continue;
+    if (CONTROL.test(part) || WINDOWS_INVALID.test(part) || WINDOWS_RESERVED.test(part) || /[ .]$/u.test(part)) {
       throw new MigrationSafetyError(`${label} contains an invalid Windows segment`, 'ERR_INVALID_PATH');
     }
   }
@@ -244,6 +245,7 @@ function parseMarker(text, expected) {
   if (value.owner !== OWNER_MARKER || value.protocol !== PROTOCOL || value.protocolVersion !== PROTOCOL_VERSION || value.path !== expected.path || value.contentHash !== expected.contentHash || !HASH.test(value.manifestHash) || (expected.manifestHash !== undefined && value.manifestHash !== expected.manifestHash)) {
     throw new MigrationSafetyError('ownership marker is not bound to its target', 'ERR_INVALID_OWNER_MARKER');
   }
+  if (text !== markerText(value)) throw new MigrationSafetyError('ownership marker is not canonical', 'ERR_INVALID_OWNER_MARKER');
   return value;
 }
 
@@ -350,6 +352,15 @@ function assertManifestHash(value) {
   if (typeof value !== 'string' || !HASH.test(value)) throw new MigrationSafetyError('manifest hash is invalid', 'ERR_INVALID_PLAN');
 }
 
+function canonicalPlanTargets(plan) {
+  const targets = new Set();
+  for (const client of plan.clients) {
+    const root = client === 'codex' ? '.codex' : client === 'claude' ? '.claude' : `.${client}`;
+    for (const file of plan.artifact.files) targets.add(targetPath({ root }, file.path));
+  }
+  return targets;
+}
+
 function validatePlan(plan) {
   exactKeys(plan, PLAN_KEYS, PLAN_KEYS, 'ERR_INVALID_PLAN');
   if (plan.version !== MIGRATION_VERSION || plan.protocol !== PROTOCOL || plan.protocolVersion !== PROTOCOL_VERSION || plan.preview !== true) throw new MigrationSafetyError('migration plan protocol is invalid', 'ERR_INVALID_PLAN');
@@ -368,7 +379,10 @@ function validatePlan(plan) {
   }
   exactKeys(plan.rollback, ROLLBACK_KEYS, ROLLBACK_KEYS, 'ERR_INVALID_PLAN');
   if (plan.rollback.owner !== OWNER_MARKER || plan.rollback.strategy !== 'byte-identical-backups') throw new MigrationSafetyError('migration rollback contract is invalid', 'ERR_INVALID_PLAN');
-  if (!Array.isArray(plan.writes) || plan.writes.length === 0) throw new MigrationSafetyError('migration plan writes are invalid', 'ERR_INVALID_PLAN');
+  if (!Array.isArray(plan.writes) || plan.writes.length === 0 || plan.writes.length > 100) throw new MigrationSafetyError('migration plan writes are invalid', 'ERR_INVALID_PLAN');
+  const expectedTargets = canonicalPlanTargets(plan);
+  const sortedTargets = plan.writes.map((write) => write.path).slice().sort((left, right) => left.localeCompare(right));
+  if (sortedTargets.join('\u0000') !== plan.writes.map((write) => write.path).join('\u0000') || expectedTargets.size !== plan.writes.length) throw new MigrationSafetyError('migration writes are not canonical artifact outputs', 'ERR_INVALID_PLAN');
   const paths = new Set();
   for (const write of plan.writes) {
     exactKeys(write, WRITE_KEYS, WRITE_KEYS, 'ERR_INVALID_PLAN');
@@ -376,6 +390,7 @@ function validatePlan(plan) {
     const ownerPath = normalizeRelative(write.markerPath, 'ownership marker path');
     if (pathValue !== write.path || ownerPath !== write.markerPath || ownerPath !== markerPath(pathValue)) throw new MigrationSafetyError('migration path is not canonical', 'ERR_INVALID_PLAN');
     if (paths.has(pathValue)) throw new MigrationSafetyError('migration targets collide', 'ERR_INVALID_PLAN');
+    if (!expectedTargets.has(pathValue)) throw new MigrationSafetyError('migration target is outside canonical client outputs', 'ERR_INVALID_PLAN');
     paths.add(pathValue);
     if (typeof write.content !== 'string' || containsSecretLikeValue(write.content)) throw new MigrationSafetyError('migration content is unsafe', 'ERR_SECRET_INPUT');
     assertHash(write.contentHash);
@@ -391,8 +406,14 @@ function validatePlan(plan) {
   return { home, plan };
 }
 
-async function atomicWrite(file, data, { replace = false } = {}) {
+async function atomicWrite(file, data, { replace = false, root, relativePath, hooks } = {}) {
   const parent = dirname(file);
+  if (root && relativePath) {
+    ensureInside(root, resolve(root, relativePath));
+    await rejectReparseComponents(root, relativePath);
+  } else {
+    await rejectReparseAbsolute(parent);
+  }
   await mkdir(parent, { recursive: true });
   const temporary = join(parent, `.${parse(file).base}.${randomUUID()}.tmp`);
   let handle;
@@ -403,25 +424,53 @@ async function atomicWrite(file, data, { replace = false } = {}) {
     await handle.close();
     handle = undefined;
     if (!replace && await pathExists(file)) throw new MigrationSafetyError('refusing to overwrite a backup', 'ERR_BACKUP_COLLISION');
+    await callHook(hooks, 'beforeRename', file);
+    if (root && relativePath) {
+      await rejectReparseComponents(root, relativePath);
+    } else {
+      await rejectReparseAbsolute(parent, { allowMissing: false });
+    }
     await rename(temporary, file);
+    if (root && relativePath) {
+      await rejectReparseComponents(root, relativePath);
+    } else {
+      await rejectReparseAbsolute(file, { allowMissing: false });
+    }
   } finally {
     if (handle) await handle.close().catch(() => {});
     await rm(temporary, { force: true }).catch(() => {});
   }
 }
 
-async function backupBytes(backupRoot, index, bytes) {
+async function safeRead(file, { root, relativePath, encoding } = {}) {
+  if (root && relativePath) {
+    ensureInside(root, resolve(root, relativePath));
+    await rejectReparseComponents(root, relativePath);
+  } else {
+    await rejectReparseAbsolute(dirname(file));
+  }
+  const value = await readFile(file, encoding);
+  if (root && relativePath) {
+    await rejectReparseComponents(root, relativePath);
+  } else {
+    await rejectReparseAbsolute(file, { allowMissing: false });
+  }
+  return value;
+}
+
+async function backupBytes(backupRoot, index, bytes, hooks) {
   const run = join(backupRoot, `run-${new Date().toISOString().replaceAll(/[^0-9]/gu, '')}-${randomUUID()}`);
   const backupPath = join(run, `entry-${String(index).padStart(4, '0')}.bin`);
-  await atomicWrite(backupPath, bytes);
-  const verify = await readFile(backupPath);
+  await atomicWrite(backupPath, bytes, { hooks });
+  const verify = await safeRead(backupPath);
   if (hash(verify) !== hash(bytes)) throw new MigrationSafetyError('backup byte verification failed', 'ERR_BACKUP_VERIFY');
   return backupPath;
 }
 
-function publicRecoveryJournal(journal, original, rollbackError) {
+function publicRecoveryJournal(journal, original, rollbackError, recoveryId) {
   return {
     version: 1,
+    recoveryId,
     status: 'recovery-required',
     code: original?.code ?? 'ERR_WRITE_FAILED',
     rollbackCode: rollbackError?.code ?? 'ERR_RECOVERY_REQUIRED',
@@ -431,19 +480,65 @@ function publicRecoveryJournal(journal, original, rollbackError) {
 }
 
 async function persistRecovery(backupRoot, journal, original, rollbackError) {
-  const record = publicRecoveryJournal(journal, original, rollbackError);
+  const recoveryId = randomUUID();
+  const record = publicRecoveryJournal(journal, original, rollbackError, recoveryId);
   const text = canonicalJson(record);
-  try {
-    const pathValue = join(backupRoot, `recovery-${randomUUID()}.json`);
-    await atomicWrite(pathValue, `${text}\n`);
-    return text;
-  } catch {
-    return text;
-  }
+  const pathValue = join(backupRoot, `recovery-${recoveryId}.json`);
+  await atomicWrite(pathValue, `${text}\n`);
+  return recoveryId;
 }
 
 async function callHook(hooks, name, ...args) {
   if (typeof hooks?.[name] === 'function') await hooks[name](...args);
+}
+
+async function acquireMigrationLock(backupRoot) {
+  await mkdir(backupRoot, { recursive: true });
+  await rejectReparseAbsolute(backupRoot);
+  const lockPath = join(backupRoot, '.migration.lock');
+  let handle;
+  try {
+    handle = await open(lockPath, 'wx', 0o600);
+    await handle.writeFile(`${OWNER_MARKER}\n`, 'utf8');
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rejectReparseAbsolute(lockPath, { allowMissing: false });
+    return lockPath;
+  } catch (error) {
+    if (handle) await handle.close().catch(() => {});
+    if (error?.code === 'EEXIST') throw new MigrationSafetyError('another migration is active', 'ERR_MIGRATION_LOCK');
+    throw error;
+  }
+}
+
+async function releaseMigrationLock(lockPath) {
+  if (!lockPath) return;
+  await rejectReparseAbsolute(lockPath, { allowMissing: false }).catch(() => {});
+  await rm(lockPath, { force: true });
+}
+
+async function persistJournal(journal) {
+  const body = {
+    version: 1,
+    status: journal.status,
+    home: journal.home,
+    backupRoot: journal.backupRoot,
+    planHash: journal.planHash,
+    entries: journal.entries.map((entry) => ({
+      path: entry.path,
+      markerPath: entry.markerPath,
+      existed: entry.existed,
+      state: entry.state,
+      backupPath: entry.backupPath,
+      markerBackupPath: entry.markerBackupPath,
+      preContentHash: entry.sha256,
+      preMarkerHash: entry.markerSha256,
+      appliedContentHash: entry.appliedContentHash,
+      appliedMarkerHash: entry.appliedMarkerHash,
+    })),
+  };
+  await atomicWrite(journal.journalPath, `${canonicalJson(body)}\n`, { replace: true });
 }
 
 function receiptBody(receipt) {
@@ -474,6 +569,8 @@ function validateReceipt(receipt) {
   const backupRoot = resolve(backupRootText);
   if (dirname(backupRoot) === backupRoot) throw new MigrationSafetyError('rollback backup root is too broad', 'ERR_INVALID_ROLLBACK');
   assertHash(receipt.planHash, 'ERR_INVALID_ROLLBACK');
+  if (typeof receipt.journalPath !== 'string') throw new MigrationSafetyError('rollback journal path is invalid', 'ERR_INVALID_ROLLBACK');
+  const journalPath = validateBackupPath(home, backupRoot, receipt.journalPath, 'ERR_INVALID_ROLLBACK');
   if (!Array.isArray(receipt.written) || new Set(receipt.written).size !== receipt.written.length) throw new MigrationSafetyError('rollback written paths are invalid', 'ERR_INVALID_ROLLBACK');
   if (!Array.isArray(receipt.backups) || receipt.backups.length !== receipt.written.length) throw new MigrationSafetyError('rollback entries are incomplete', 'ERR_INVALID_ROLLBACK');
   for (const pathValue of receipt.written) {
@@ -499,41 +596,100 @@ function validateReceipt(receipt) {
     }
   }
   if (receiptHash(receipt) !== receipt.receiptHash) throw new MigrationSafetyError('rollback receipt hash is invalid', 'ERR_INVALID_ROLLBACK');
-  return { home, backupRoot, receipt };
+  return { home, backupRoot, journalPath, receipt };
 }
 
-async function assertCurrentOwned(root, entry) {
-  const target = resolve(root, entry.path);
-  const marker = resolve(root, entry.markerPath);
-  await rejectReparseComponents(root, entry.path);
-  await rejectReparseComponents(root, entry.markerPath);
-  const targetBytes = await readFile(target);
-  if (hash(targetBytes) !== entry.appliedContentHash) throw new MigrationSafetyError('current target bytes drifted', 'ERR_ROLLBACK_DRIFT');
-  const markerBytes = await readFile(marker, 'utf8');
-  if (hash(markerBytes) !== entry.appliedMarkerHash) throw new MigrationSafetyError('current ownership marker drifted', 'ERR_ROLLBACK_DRIFT');
-  parseMarker(markerBytes, { path: entry.path, contentHash: entry.appliedContentHash });
-  return { target, marker };
+async function currentHash(root, relativePath, encoding) {
+  try {
+    const value = await safeRead(resolve(root, relativePath), { root, relativePath, encoding });
+    return hash(value);
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+async function persistRestoreProgress(validated, entries, status) {
+  const body = {
+    version: 1,
+    status,
+    home: validated.home,
+    backupRoot: validated.backupRoot,
+    planHash: validated.receipt.planHash,
+    entries: entries.map((entry) => ({ path: entry.path, markerPath: entry.markerPath, state: entry.state })),
+  };
+  await atomicWrite(validated.journalPath, `${canonicalJson(body)}\n`, { replace: true });
 }
 
 async function restoreReceipt(validated, { hooks } = {}) {
-  await callHook(hooks, 'rollback', validated.receipt);
-  for (const entry of [...validated.receipt.backups].reverse()) {
-    const { target, marker } = await assertCurrentOwned(validated.home, entry);
+  let hookError;
+  try {
+    await callHook(hooks, 'rollback', validated.receipt);
+  } catch (error) {
+    hookError = error;
+  }
+  const progress = validated.receipt.backups.map((entry) => ({ ...entry, state: 'pending' }));
+  await persistRestoreProgress(validated, progress, 'rolling-back');
+  for (const entry of [...progress].reverse()) {
+    const target = resolve(validated.home, entry.path);
+    const marker = resolve(validated.home, entry.markerPath);
+    const targetHash = await currentHash(validated.home, entry.path);
+    const markerHash = await currentHash(validated.home, entry.markerPath, 'utf8');
+    const targetNeedsRestore = entry.existed
+      ? targetHash === entry.appliedContentHash
+      : targetHash === entry.appliedContentHash;
+    const targetAlreadyRestored = entry.existed ? targetHash === entry.sha256 : targetHash === null;
+    const markerNeedsRestore = markerHash === entry.appliedMarkerHash;
+    const markerAlreadyRestored = entry.existed ? markerHash === entry.markerSha256 : markerHash === null;
+    if (!targetNeedsRestore && !targetAlreadyRestored) throw new MigrationSafetyError('current target bytes drifted', 'ERR_ROLLBACK_DRIFT');
+    if (!markerNeedsRestore && !markerAlreadyRestored) throw new MigrationSafetyError('current ownership marker drifted', 'ERR_ROLLBACK_DRIFT');
     if (entry.existed) {
       const backupPath = validateBackupPath(validated.home, validated.backupRoot, entry.backupPath);
       const markerBackupPath = validateBackupPath(validated.home, validated.backupRoot, entry.markerBackupPath);
       await rejectReparseAbsolute(backupPath, { allowMissing: false });
       await rejectReparseAbsolute(markerBackupPath, { allowMissing: false });
-      const bytes = await readFile(backupPath);
-      const markerBytes = await readFile(markerBackupPath);
+      const bytes = await safeRead(backupPath);
+      const markerBytes = await safeRead(markerBackupPath);
       if (hash(bytes) !== entry.sha256 || hash(markerBytes) !== entry.markerSha256) throw new MigrationSafetyError('backup byte verification failed', 'ERR_BACKUP_VERIFY');
-      await atomicWrite(target, bytes, { replace: true });
-      await atomicWrite(marker, markerBytes, { replace: true });
+      if (targetNeedsRestore) {
+        try {
+          await callHook(hooks, 'restoreTarget', entry);
+        } catch {
+          throw new MigrationSafetyError('target restore failed', 'ERR_RECOVERY_REQUIRED');
+        }
+        await atomicWrite(target, bytes, { replace: true, root: validated.home, relativePath: entry.path, hooks });
+      }
+      if (markerNeedsRestore) {
+        try {
+          await callHook(hooks, 'restoreMarker', entry);
+        } catch {
+          throw new MigrationSafetyError('marker restore failed', 'ERR_RECOVERY_REQUIRED');
+        }
+        await atomicWrite(marker, markerBytes, { replace: true, root: validated.home, relativePath: entry.markerPath, hooks });
+      }
     } else {
-      await rm(target, { force: true });
-      await rm(marker, { force: true });
+      if (targetNeedsRestore) {
+        try {
+          await callHook(hooks, 'restoreTarget', entry);
+        } catch {
+          throw new MigrationSafetyError('target restore failed', 'ERR_RECOVERY_REQUIRED');
+        }
+        await rm(target, { force: true });
+      }
+      if (markerNeedsRestore) {
+        try {
+          await callHook(hooks, 'restoreMarker', entry);
+        } catch {
+          throw new MigrationSafetyError('marker restore failed', 'ERR_RECOVERY_REQUIRED');
+        }
+        await rm(marker, { force: true });
+      }
     }
+    entry.state = 'restored';
+    await persistRestoreProgress(validated, progress, 'rolling-back');
   }
+  await persistRestoreProgress(validated, progress, 'restored');
+  if (hookError) throw new MigrationSafetyError('rollback hook failed', 'ERR_RECOVERY_REQUIRED');
   return Object.freeze({ ok: true, restored: validated.receipt.written });
 }
 
@@ -589,10 +745,32 @@ export async function applyLocalMigration(plan, options = {}) {
   if (dirname(backupRoot) === backupRoot) throw new MigrationSafetyError('backup root is too broad', 'ERR_INVALID_BACKUP_ROOT');
   await rejectReparseAbsolute(backupRoot);
   const hooks = object(options.hooks) ? options.hooks : {};
-  const journal = { home, backupRoot, planHash: plan.planHash, entries: [] };
+  const lockPath = await acquireMigrationLock(backupRoot);
+  const journal = {
+    home,
+    backupRoot,
+    planHash: plan.planHash,
+    journalPath: join(backupRoot, `migration-${plan.planHash}.journal.json`),
+    status: 'applying',
+    entries: plan.writes.map((write) => ({
+      path: write.path,
+      markerPath: write.markerPath,
+      existed: write.existing,
+      backupPath: null,
+      markerBackupPath: null,
+      sha256: write.existingHash,
+      markerSha256: null,
+      appliedContentHash: write.contentHash,
+      appliedMarkerHash: write.markerHash,
+      state: 'planned',
+    })),
+  };
+  let keepLock = false;
   try {
+    await persistJournal(journal);
     for (let index = 0; index < plan.writes.length; index += 1) {
       const write = plan.writes[index];
+      const journalEntry = journal.entries[index];
       const target = resolve(home, write.path);
       const marker = resolve(home, write.markerPath);
       ensureInside(home, target);
@@ -601,49 +779,54 @@ export async function applyLocalMigration(plan, options = {}) {
       await rejectReparseComponents(home, write.markerPath);
       const exists = await pathExists(target);
       if (exists !== write.existing) throw new MigrationSafetyError('target changed since planning', 'ERR_PLAN_CHANGED');
-      let backupPath = null;
-      let markerBackupPath = null;
-      let oldHash = null;
-      let oldMarkerHash = null;
       if (exists) {
-        const oldBytes = await readFile(target);
-        oldHash = hash(oldBytes);
+        const oldBytes = await safeRead(target, { root: home, relativePath: write.path });
+        const oldHash = hash(oldBytes);
         if (oldHash !== write.existingHash) throw new MigrationSafetyError('target bytes changed since planning', 'ERR_PLAN_CHANGED');
-        const oldMarker = await readFile(marker, 'utf8');
+        const oldMarker = await safeRead(marker, { root: home, relativePath: write.markerPath, encoding: 'utf8' });
         parseMarker(oldMarker, { path: write.path, contentHash: oldHash });
-        oldMarkerHash = hash(oldMarker);
-        backupPath = await backupBytes(backupRoot, index, oldBytes);
-        markerBackupPath = await backupBytes(backupRoot, index + plan.writes.length, Buffer.from(oldMarker, 'utf8'));
+        journalEntry.sha256 = oldHash;
+        journalEntry.markerSha256 = hash(oldMarker);
+        journalEntry.backupPath = await backupBytes(backupRoot, index, oldBytes, hooks);
+        journalEntry.markerBackupPath = await backupBytes(backupRoot, index + plan.writes.length, Buffer.from(oldMarker, 'utf8'), hooks);
       }
+      journalEntry.state = 'backed-up';
+      await persistJournal(journal);
       await callHook(hooks, 'write', write.path, write);
-      await atomicWrite(target, Buffer.from(write.content, 'utf8'), { replace: exists });
-      await atomicWrite(marker, Buffer.from(write.markerContent, 'utf8'), { replace: exists });
-      journal.entries.push({
-        path: write.path,
-        markerPath: write.markerPath,
-        existed: exists,
-        backupPath,
-        markerBackupPath,
-        sha256: oldHash,
-        markerSha256: oldMarkerHash,
-        appliedContentHash: write.contentHash,
-        appliedMarkerHash: write.markerHash,
-      });
+      await atomicWrite(target, Buffer.from(write.content, 'utf8'), { replace: exists, root: home, relativePath: write.path, hooks });
+      journalEntry.state = 'target-written';
+      await persistJournal(journal);
+      await callHook(hooks, 'marker', write.path, write);
+      await atomicWrite(marker, Buffer.from(write.markerContent, 'utf8'), { replace: exists, root: home, relativePath: write.markerPath, hooks });
+      journalEntry.state = 'applied';
+      await persistJournal(journal);
     }
+    journal.status = 'applied';
+    await persistJournal(journal);
   } catch (error) {
     let rollbackError;
     try {
       const temporary = buildReceiptFromJournal(journal);
-      await restoreReceipt(validateReceipt(temporary), { hooks });
+      if (temporary.backups.length > 0) await restoreReceipt(validateReceipt(temporary), { hooks });
+      journal.status = 'rolled-back';
+      await persistJournal(journal);
     } catch (failure) {
       rollbackError = failure;
     }
     if (rollbackError) {
-      const recovery = await persistRecovery(backupRoot, journal, error, rollbackError);
+      keepLock = true;
+      let recovery;
+      try {
+        recovery = await persistRecovery(backupRoot, journal, error, rollbackError);
+      } catch {
+        recovery = `unpersisted-${randomUUID()}`;
+      }
       throw new MigrationSafetyError('migration recovery is required', 'ERR_RECOVERY_REQUIRED', recovery);
     }
     if (error instanceof MigrationSafetyError) throw error;
     throw new MigrationSafetyError('migration write failed', 'ERR_WRITE_FAILED');
+  } finally {
+    if (!keepLock) await releaseMigrationLock(lockPath);
   }
   return deepFreeze(buildReceiptFromJournal(journal));
 }
@@ -656,8 +839,9 @@ function buildReceiptFromJournal(journal) {
     confirmed: true,
     home: journal.home,
     backupRoot: journal.backupRoot,
+    journalPath: journal.journalPath,
     planHash: journal.planHash,
-    backups: journal.entries.map((entry) => ({
+    backups: journal.entries.filter((entry) => entry.state !== 'planned').map((entry) => ({
       path: entry.path,
       markerPath: entry.markerPath,
       existed: entry.existed,
@@ -668,17 +852,17 @@ function buildReceiptFromJournal(journal) {
       appliedContentHash: entry.appliedContentHash,
       appliedMarkerHash: entry.appliedMarkerHash,
     })),
-    written: journal.entries.map((entry) => entry.path),
+    written: journal.entries.filter((entry) => entry.state !== 'planned').map((entry) => entry.path),
   };
   return { ...body, receiptHash: receiptHash(body) };
 }
 
 /** Restore one validated apply receipt; forged receipts are rejected before I/O. */
-export async function rollbackLocalMigration(receipt) {
+export async function rollbackLocalMigration(receipt, options = {}) {
   const validated = validateReceipt(receipt);
   await rejectReparseAbsolute(validated.home, { allowMissing: false });
   await rejectReparseAbsolute(validated.backupRoot);
-  return restoreReceipt(validated);
+  return restoreReceipt(validated, { hooks: object(options.hooks) ? options.hooks : {} });
 }
 
 export function migrationPlanJson(plan) {

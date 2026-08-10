@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import {
   applyLocalMigration,
+  canonicalJson,
   createIntegrationManifest,
   MigrationSafetyError,
   planLocalMigration,
   rollbackLocalMigration,
+  sha256,
 } from '../src/index.js';
 import { runCli } from '../src/cli.js';
 
@@ -187,5 +189,132 @@ test('CLI migration errors and results never expose absolute private paths', asy
     assert.doesNotMatch(JSON.stringify(result), new RegExp(home.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')));
   } finally {
     await rm(home, { recursive: true, force: true });
+  }
+});
+
+function forgePlan(plan, writes) {
+  const body = { ...plan, writes };
+  delete body.planHash;
+  return { ...body, planHash: sha256(canonicalJson(body)) };
+}
+
+test('self-consistent forged plans cannot add writes outside regenerated artifact outputs', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const original = plan.writes[0];
+    const contentHash = original.contentHash;
+    const markerObject = {
+      contentHash,
+      manifestHash: plan.artifact.manifestHash,
+      owner: 'worktree-proof-owned:v1',
+      path: '.codex/evil.txt',
+      protocol: 'worktreeproof',
+      protocolVersion: '1.0',
+    };
+    const forgedWrite = {
+      ...original,
+      path: '.codex/evil.txt',
+      markerPath: '.codex/evil.txt.worktree-proof-owner',
+      markerContent: `${canonicalJson(markerObject)}\n`,
+      markerHash: sha256(`${canonicalJson(markerObject)}\n`),
+      mode: 'create',
+      existing: false,
+      existingHash: null,
+    };
+    await assert.rejects(
+      () => applyLocalMigration(forgePlan(plan, [...plan.writes, forgedWrite]), { confirm: true }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_PLAN',
+    );
+    await assert.rejects(access(path.join(home, '.codex', 'evil.txt')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('noncanonical ownership marker bytes are refused', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const write = plan.writes[0];
+    const markerObject = JSON.parse(write.markerContent);
+    const noncanonical = `${JSON.stringify({ protocolVersion: markerObject.protocolVersion, protocol: markerObject.protocol, path: markerObject.path, owner: markerObject.owner, manifestHash: markerObject.manifestHash, contentHash: markerObject.contentHash })}\n`;
+    const forgedWrite = { ...write, markerContent: noncanonical, markerHash: sha256(noncanonical) };
+    await assert.rejects(
+      () => applyLocalMigration(forgePlan(plan, [forgedWrite]), { confirm: true }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_OWNER_MARKER',
+    );
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('legitimate ./safe artifact paths normalize to safe', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: { manifest, files: [{ path: './safe', content: 'safe' }] } });
+    assert.equal(plan.writes[0].path, '.codex/safe');
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('apply persists an fsynced migration journal before mutation and rollback is idempotent', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const receipt = await applyLocalMigration(plan, { confirm: true });
+    const backupFiles = await readdir(receipt.backupRoot, { recursive: true });
+    assert.ok(backupFiles.some((entry) => entry.toString().includes('journal')));
+    const first = await rollbackLocalMigration(receipt);
+    assert.equal(first.ok, true);
+    const second = await rollbackLocalMigration(receipt);
+    assert.equal(second.ok, true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('rollback marker restore failure is resumable on retry', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const receipt = await applyLocalMigration(plan, { confirm: true });
+    let fail = true;
+    await assert.rejects(
+      () => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { if (fail) throw new Error('marker restore'); } } }),
+      MigrationSafetyError,
+    );
+    fail = false;
+    assert.equal((await rollbackLocalMigration(receipt)).ok, true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('pre-rename parent swap is rejected without an out-of-root write', async () => {
+  const home = await tempHome();
+  const outside = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const parent = path.join(home, '.codex');
+    let swapped = false;
+    await assert.rejects(
+      () => applyLocalMigration(plan, {
+        confirm: true,
+        hooks: { beforeRename: async () => { if (!swapped) { swapped = true; await rm(parent, { recursive: true, force: true }); await symlink(outside, parent, 'junction'); } } },
+      }),
+      MigrationSafetyError,
+    );
+    await assert.rejects(access(path.join(outside, 'worktree-proof.manifest.json')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
   }
 });

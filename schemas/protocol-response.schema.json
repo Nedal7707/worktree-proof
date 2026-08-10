@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/protocol-response.schema.json",
+  "title": "WorktreeProof protocol response",
+  "description": "A bounded, deterministic response envelope compatible with the v0.1 JSON fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ok", "protocol", "protocolVersion", "schemaVersion", "command", "requestId", "warnings"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "protocol": { "const": "worktreeproof" },
+    "protocolVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1" },
+    "command": {
+      "type": ["string", "null"],
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "requestId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+    },
+    "result": {},
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^ERR_[A-Z0-9_]{1,64}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string", "minLength": 1, "maxLength": 512 }
+    },
+    "code": { "type": "integer", "enum": [0, 1, 2] },
+    "extensions": { "$ref": "#/$defs/extensions" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": true } }, "required": ["ok"] },
+      "then": { "required": ["result"], "not": { "required": ["error"] } }
+    },
+    {
+      "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] },
+      "then": { "required": ["error"], "not": { "required": ["result"] } }
+    }
+  ],
+  "$defs": {
+    "extensions": {
+      "type": "object",
+      "description": "Explicit vendor/client extension point; values remain bounded by the enclosing message limit.",
+      "maxProperties": 100,
+      "additionalProperties": true
+    }
+  }
+}

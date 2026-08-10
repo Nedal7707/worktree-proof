@@ -155,6 +155,60 @@ test('JSON output redacts sensitive fields', async () => {
   assert.doesNotMatch(stream.out[0], /do-not-print/);
 });
 
+test('capabilities emits one deterministic protocol envelope', async () => {
+  const stream = capture();
+  const result = await runCli([
+    'capabilities',
+    '--protocol-version', '1.0',
+    '--request-id', 'req-cli-1',
+    '--json',
+  ], {
+    io: stream.io,
+    loadConfig: async () => { throw new Error('capabilities must not load config'); },
+  });
+
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.equal(stream.err.length, 0);
+  assert.equal(stream.out.length, 1);
+  const envelope = JSON.parse(stream.out[0]);
+  assert.equal(envelope.protocol, 'worktreeproof');
+  assert.equal(envelope.protocolVersion, '1.0');
+  assert.equal(envelope.requestId, 'req-cli-1');
+  assert.deepEqual(envelope.result.capabilities.map(({ id }) => id), [
+    'lease.reserve',
+    'receipt.validate',
+    'scope.validate',
+  ]);
+  assert.equal(envelope.result.limits.maxMessageBytes, 16_384);
+  assert.equal(envelope.result.limits.maxBatchItems, 100);
+});
+
+test('capabilities uses stable operational and usage exit codes', async () => {
+  const unsupportedVersion = capture();
+  const refused = await runCli([
+    'capabilities', '--protocol-version', '9.0', '--json',
+  ], { io: unsupportedVersion.io });
+  assert.equal(refused.code, EXIT_CODES.ERROR);
+  const refusalEnvelope = JSON.parse(unsupportedVersion.out[0]);
+  assert.equal(refusalEnvelope.ok, false);
+  assert.equal(refusalEnvelope.error.code, 'ERR_PROTOCOL_VERSION');
+  assert.doesNotMatch(unsupportedVersion.out[0], /stack|session|owner|token/i);
+
+  const missingVersion = capture();
+  const usage = await runCli(['capabilities', '--json'], { io: missingVersion.io });
+  assert.equal(usage.code, EXIT_CODES.USAGE);
+  assert.equal(JSON.parse(missingVersion.out[0]).error.code, 'ERR_INVALID_REQUEST');
+
+  const unsupported = capture();
+  const normal = await runCli([
+    'capabilities', '--protocol-version', '1.0', '--capabilities', 'scope.validate,unknown', '--json',
+  ], { io: unsupported.io });
+  assert.equal(normal.code, EXIT_CODES.OK);
+  const negotiated = JSON.parse(unsupported.out[0]);
+  assert.deepEqual(negotiated.result.unsupported, ['unknown']);
+  assert.deepEqual(negotiated.result.capabilities.map(({ id }) => id), ['scope.validate']);
+});
+
 test('leases inspect is routed with safe metadata and recovery requires confirmation', async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-leases-'));
   try {

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/protocol-request.schema.json",
+  "title": "WorktreeProof protocol request",
+  "description": "A bounded versioned request envelope. Extension data must live under extensions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "protocolVersion", "schemaVersion", "command", "requestId"],
+  "properties": {
+    "protocol": { "const": "worktreeproof" },
+    "protocolVersion": { "const": "1.0" },
+    "schemaVersion": { "const": "1" },
+    "command": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "requestId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extensions": { "$ref": "#/$defs/extensions" }
+      }
+    },
+    "extensions": { "$ref": "#/$defs/extensions" }
+  },
+  "$defs": {
+    "extensions": {
+      "type": "object",
+      "description": "Explicit vendor/client extension point; values remain bounded by the enclosing message limit.",
+      "maxProperties": 100,
+      "additionalProperties": true
+    }
+  }
+}

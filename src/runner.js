@@ -1,12 +1,13 @@
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from 'node:child_process';
 import path from 'node:path';
 
+import { stripAnsiSequences } from './text-safety.js';
+
 const DEFAULT_MAX_OUTPUT_BYTES = 256 * 1024;
-const ANSI_ESCAPE_RE = /[\u001B\u009B][[\]()#;?]*(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d/#&.:=?%@~_]+)*)?\u0007|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
 
 function sanitizeText(value, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES) {
   let text = value == null ? '' : String(value);
-  text = text.replace(ANSI_ESCAPE_RE, '');
+  text = stripAnsiSequences(text);
   if (Buffer.byteLength(text, 'utf8') <= maxOutputBytes) return text;
   let truncated = Buffer.from(text, 'utf8').subarray(0, maxOutputBytes).toString('utf8');
   // Avoid returning a dangling UTF-16 replacement where a multi-byte codepoint

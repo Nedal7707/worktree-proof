@@ -22,6 +22,48 @@ export class GitCommandError extends Error {
 }
 
 const DEFAULT_OUTPUT_LIMIT = 256 * 1024;
+const SAFE_GIT_SUBCOMMANDS = new Set([
+  'add',
+  'commit',
+  'config',
+  'init',
+  'rev-parse',
+  'show-ref',
+  'status',
+  'symbolic-ref',
+  'worktree',
+]);
+const EXECUTABLE_GIT_OPTIONS = Object.freeze([
+  '--upload-pack',
+  '--receive-pack',
+  '--exec-path',
+  '--config-env',
+]);
+
+function hasControlCharacter(value) {
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code <= 31 || code === 127) return true;
+  }
+  return false;
+}
+
+function validateGitInvocation(args, gitBin, spawnSyncImpl) {
+  if (args.length === 0 || !SAFE_GIT_SUBCOMMANDS.has(args[0])) {
+    throw new TypeError('git subcommand is not in the WorktreeProof safe set');
+  }
+  for (const argument of args) {
+    if (!argument || hasControlCharacter(argument)) throw new TypeError('git arguments must be non-empty control-free strings');
+    const lower = argument.toLowerCase();
+    if (lower === '-c' || lower.startsWith('-c') || EXECUTABLE_GIT_OPTIONS.some((option) => lower === option || lower.startsWith(`${option}=`))) {
+      throw new TypeError('git argument can configure or launch an external command');
+    }
+  }
+  if (spawnSyncImpl === nodeSpawnSync && gitBin !== 'git' && gitBin !== 'git.exe') {
+    throw new TypeError('custom git executables require an explicitly injected process runner');
+  }
+  return Object.freeze([...args]);
+}
 
 function sanitizeOutput(value, limit = DEFAULT_OUTPUT_LIMIT) {
   const text = value == null ? '' : String(value);
@@ -58,9 +100,11 @@ export function runGit(args, options = {}) {
   const cwd = options.cwd ? path.resolve(options.cwd) : undefined;
   const gitBin = options.gitBin ?? options.git ?? 'git';
   const spawnSyncImpl = options.spawnSync ?? nodeSpawnSync;
+  const safeArgs = validateGitInvocation(args, gitBin, spawnSyncImpl);
   let raw;
   try {
-    raw = spawnSyncImpl(gitBin, args, {
+    // safeArgs is a closed subcommand set with executable Git options refused.
+    raw = spawnSyncImpl(gitBin, safeArgs, {
       cwd,
       env: options.env,
       encoding: 'utf8',
@@ -73,9 +117,9 @@ export function runGit(args, options = {}) {
   } catch (error) {
     raw = { error };
   }
-  const result = normalizeResult(raw, args, cwd, options.maxBuffer ?? DEFAULT_OUTPUT_LIMIT);
+  const result = normalizeResult(raw, safeArgs, cwd, options.maxBuffer ?? DEFAULT_OUTPUT_LIMIT);
   if (!result.ok && options.throwOnError !== false) {
-    throw new GitCommandError(`git ${args.join(' ')} failed`, result);
+    throw new GitCommandError(`git ${safeArgs.join(' ')} failed`, result);
   }
   return result;
 }

@@ -9,7 +9,69 @@ const siteRoot = path.join(projectRoot, 'site');
 const indexPath = path.join(siteRoot, 'index.html');
 const html = fs.readFileSync(indexPath, 'utf8');
 const styles = fs.readFileSync(path.join(siteRoot, 'styles.css'), 'utf8');
-const text = html.replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+
+function removeElementBlocks(source, tagName) {
+  const lower = source.toLowerCase();
+  const opening = `<${tagName}`;
+  const closing = `</${tagName}>`;
+  const parts = [];
+  let cursor = 0;
+  while (cursor < source.length) {
+    const start = lower.indexOf(opening, cursor);
+    if (start < 0) break;
+    const openEnd = lower.indexOf('>', start + opening.length);
+    const close = openEnd < 0 ? -1 : lower.indexOf(closing, openEnd + 1);
+    parts.push(source.slice(cursor, start), ' ');
+    if (close < 0) {
+      cursor = source.length;
+      break;
+    }
+    cursor = close + closing.length;
+  }
+  if (cursor < source.length) parts.push(source.slice(cursor));
+  return parts.join('');
+}
+
+function removeTags(source) {
+  const parts = [];
+  let plainStart = 0;
+  let cursor = 0;
+  while (cursor < source.length) {
+    if (source[cursor] !== '<') {
+      cursor += 1;
+      continue;
+    }
+    if (cursor > plainStart) parts.push(source.slice(plainStart, cursor));
+    const close = source.indexOf('>', cursor + 1);
+    if (close < 0) {
+      plainStart = source.length;
+      break;
+    }
+    parts.push(' ');
+    cursor = close + 1;
+    plainStart = cursor;
+  }
+  if (plainStart < source.length) parts.push(source.slice(plainStart));
+  return parts.join('');
+}
+
+function collapseWhitespace(source) {
+  let result = '';
+  let pendingSpace = false;
+  for (const character of source) {
+    if (character.charCodeAt(0) <= 32) {
+      pendingSpace = result.length > 0;
+      continue;
+    }
+    if (pendingSpace) result += ' ';
+    result += character;
+    pendingSpace = false;
+  }
+  return result.trim();
+}
+
+const visibleHtml = removeTags(removeElementBlocks(removeElementBlocks(html, 'script'), 'style'));
+const text = collapseWhitespace(visibleHtml.split('&amp;').join('&'));
 
 function attribute(tag, name) {
   const match = tag.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, 'i'));
@@ -45,7 +107,7 @@ test('page is accessible and has one clear heading', () => {
   for (const tag of tags('img')) assert.notEqual(attribute(tag, 'alt'), null, 'every image must have alt text');
   for (const match of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
     const openingTag = `<a${match[1]}>`;
-    const label = match[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    const label = collapseWhitespace(removeTags(match[2]));
     assert.ok(label || attribute(openingTag, 'aria-label'), `link needs visible text or an aria-label: ${openingTag}`);
   }
   assert.ok(tags('nav').length >= 2, 'primary and footer navigation landmarks are required');

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { renderAdapter, normalizeAdapterTarget } from './adapters.js';
+import { containsSecretLikeValue } from './text-safety.js';
 
 const MAX_METADATA_BYTES = 512 * 1024;
 const PACKAGE_MANAGER_FILES = new Map([
@@ -25,7 +26,6 @@ const SECRET_FILE_RE = /^(?:\.env(?:\..*)?|\.npmrc|\.pypirc|\.netrc|\.git-creden
 const AUTH_FILE_RE = /(?:auth|login|session|cookie|oauth|private[-_.]?key|\.pem$|\.p12$|\.pfx$)/i;
 const LOCKFILE_RE = /(?:^|[._-])(?:lock|lockfile)(?:[._-]|$)|(?:^|[._-])(?:lock|lockfile)$/i;
 const SECRET_KEY_RE = /(?:^|[_-])(secret|token|password|passwd|api[-_]?key|private[-_]?key|auth|cookie|credential)(?:$|[_-])|(?:secret|token|password|passwd|credential|cookie|apiKey|apiToken|privateKey|accessToken|authToken)$/i;
-const SECRET_VALUE_RE = /-----BEGIN [^-]+ PRIVATE KEY-----|\bBearer\s+[A-Za-z0-9._~+/=-]{1,}|(?:^|\n)\s*[A-Za-z][A-Za-z0-9_.-]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|PRIVATE[_-]?KEY|AUTH|COOKIE|CREDENTIAL)[A-Za-z0-9_.-]*\s*[:=]\s*[^\s#]+/i;
 
 export class InitSafetyError extends Error {
   constructor(message, code = 'ERR_INIT_SAFETY') {
@@ -343,7 +343,7 @@ export function recommendPreset(project = {}, toolInventory = {}) {
 
 function assertNoSecretInput(value, keyPath = '') {
   if (typeof value === 'string') {
-    if (SECRET_VALUE_RE.test(value)) {
+    if (containsSecretLikeValue(value)) {
       throw new InitSafetyError(`secret-like value at ${keyPath || 'input'}`, 'ERR_SECRET_INPUT');
     }
     return;
@@ -440,7 +440,7 @@ async function validatePlan(plan) {
       throw new InitSafetyError(`destructive write operation refused: ${relativePath}`, 'ERR_DESTRUCTIVE_CHANGE');
     }
     if (typeof raw.content !== 'string') throw new InitSafetyError(`content must be text: ${relativePath}`, 'ERR_INVALID_WRITE');
-    if (SECRET_VALUE_RE.test(raw.content)) throw new InitSafetyError(`secret-like content refused: ${relativePath}`, 'ERR_SECRET_INPUT');
+    if (containsSecretLikeValue(raw.content)) throw new InitSafetyError(`secret-like content refused: ${relativePath}`, 'ERR_SECRET_INPUT');
     const { parent, missing } = await assertParentComponents(root, relativePath);
     const absolutePath = path.join(root, ...relativePath.split('/'));
     try {
@@ -516,7 +516,7 @@ export async function buildInitPlan(options = {}) {
     const relativePath = safeRelativePath(file.path);
     if (seen.has(relativePath)) throw new InitSafetyError(`adapter outputs collide at ${relativePath}`, 'ERR_PLAN_COLLISION');
     seen.add(relativePath);
-    if (typeof file.content !== 'string' || SECRET_VALUE_RE.test(file.content)) {
+    if (typeof file.content !== 'string' || containsSecretLikeValue(file.content)) {
       throw new InitSafetyError(`unsafe adapter output: ${relativePath}`, 'ERR_SECRET_INPUT');
     }
     return Object.freeze({ path: relativePath, content: file.content, mode: 'create', adapter: file.adapter });

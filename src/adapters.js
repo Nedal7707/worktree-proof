@@ -6,6 +6,8 @@
  * explicitly supplied in the context.
  */
 
+import { containsSecretLikeValue, toSafeIdentifier } from './text-safety.js';
+
 export const ADAPTER_TARGETS = Object.freeze([
   'agent-skills',
   'claude-code',
@@ -31,7 +33,6 @@ const TARGET_ALIASES = new Map([
 ]);
 
 const SECRET_KEY_RE = /(?:^|[_-])(secret|token|password|passwd|api[-_]?key|private[-_]?key|auth|cookie|credential)(?:$|[_-])|(?:secret|token|password|passwd|credential|cookie|apiKey|apiToken|privateKey|accessToken|authToken)$/i;
-const SECRET_VALUE_RE = /-----BEGIN [^-]+ PRIVATE KEY-----|\bBearer\s+[A-Za-z0-9._~+/=-]{1,}|(?:^|\n)\s*[A-Za-z][A-Za-z0-9_.-]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|PRIVATE[_-]?KEY|AUTH|COOKIE|CREDENTIAL)[A-Za-z0-9_.-]*\s*[:=]\s*[^\s#]+/i;
 
 export class AdapterError extends TypeError {
   constructor(message, code = 'ERR_ADAPTER') {
@@ -64,7 +65,7 @@ function projectName(project) {
     ?? project?.metadata?.name
     ?? (typeof project?.root === 'string' ? project.root.split(/[\\/]/).filter(Boolean).at(-1) : undefined)
     ?? 'project';
-  const name = String(raw).replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  const name = toSafeIdentifier(raw, 80);
   return name || 'project';
 }
 
@@ -94,7 +95,7 @@ function normalizeContext(context = {}) {
 
 function assertNoSecrets(value, keyPath = '') {
   if (typeof value === 'string') {
-    if (SECRET_VALUE_RE.test(value)) {
+    if (containsSecretLikeValue(value)) {
       throw new AdapterError(`secret-like value at ${keyPath || 'context'}`, 'ERR_SECRET_INPUT');
     }
     return;

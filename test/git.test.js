@@ -50,6 +50,7 @@ test('containment rejects traversal and realpath escapes', (t) => {
   assert.equal(isPathContained(root, path.join(root, 'lane')), true);
   assert.equal(isPathContained(root, path.join(root, '..', path.basename(outside))), false);
   assert.throws(() => assertContainedRealPath(root, outside), /escapes/);
+  assert.throws(() => runGit(['rev-parse', '--upload-pack=sh'], { cwd: root }), /external command/);
   const link = path.join(root, 'link');
   try {
     fs.symlinkSync(outside, link, 'junction');

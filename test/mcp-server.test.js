@@ -286,6 +286,7 @@ test('cancellation aborts an in-flight adapter and close resolves without waitin
 test('cancellation control preempts a saturated queue without duplicate responses', async () => {
   const input = new PassThrough();
   let outputText = '';
+  let adapterSignal;
   const output = new Writable({ write(chunk, _encoding, callback) { outputText += chunk.toString('utf8'); callback(); } });
   const server = createMcpServer({
     input,
@@ -293,6 +294,7 @@ test('cancellation control preempts a saturated queue without duplicate response
     limits: { maxInFlight: 1 },
     core: {
       status: async (_args, context) => {
+        adapterSignal = context.signal;
         context.signal.addEventListener('abort', () => {}, { once: true });
         return new Promise(() => {});
       },
@@ -306,13 +308,13 @@ test('cancellation control preempts a saturated queue without duplicate response
   let aborted = false;
   for (let attempt = 0; attempt < 50 && !aborted; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 1));
-    aborted = [...server.context.inFlight.values()].some((call) => call.controller.signal.aborted);
+    aborted = adapterSignal?.aborted === true;
   }
   assert.equal(aborted, false);
   input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":2}}\n');
   for (let attempt = 0; attempt < 100 && !aborted; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 1));
-    aborted = [...server.context.inFlight.values()].some((call) => call.controller.signal.aborted);
+    aborted = adapterSignal?.aborted === true;
   }
   assert.equal(aborted, true);
   input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":2}}\n');
@@ -437,4 +439,152 @@ test('redaction catches camel/snake auth keys and common bearer/key values witho
   const serialized = JSON.stringify(response);
   for (const secret of ['sk-test-secret', 'ghp_secret', 'Bearer abc', 'xoxb-secret', 'BEGIN PRIVATE KEY']) assert.doesNotMatch(serialized, new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')));
   assert.match(serialized, /keyboard/);
+});
+
+test('cancellation settles a saturated request slot and suppresses late adapter completion', async () => {
+  const waitFor = async (predicate, timeoutMs = 500) => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (predicate()) return true;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+    }
+    return predicate();
+  };
+
+  for (const lateMode of ['resolve', 'reject']) {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const responses = [];
+    let buffered = '';
+    output.setEncoding('utf8');
+    output.on('data', (chunk) => {
+      buffered += chunk;
+      let newline = buffered.indexOf('\n');
+      while (newline >= 0) {
+        const line = buffered.slice(0, newline);
+        buffered = buffered.slice(newline + 1);
+        if (line) responses.push(JSON.parse(line));
+        newline = buffered.indexOf('\n');
+      }
+    });
+
+    let adapterSignal;
+    let resolveAdapter;
+    let rejectAdapter;
+    const adapterPromise = new Promise((resolve, reject) => {
+      resolveAdapter = resolve;
+      rejectAdapter = reject;
+    });
+    const server = createMcpServer({
+      input,
+      output,
+      limits: { maxInFlight: 1 },
+      core: {
+        status: async (_args, context) => {
+          adapterSignal = context.signal;
+          return adapterPromise;
+        },
+      },
+    });
+    const running = server.run();
+    const unhandled = [];
+    const onUnhandled = (error) => unhandled.push(error);
+    process.on('unhandledRejection', onUnhandled);
+    let lateSettled = false;
+    try {
+      input.write(rpc(1, 'initialize', { protocolVersion: MCP_PROTOCOL_VERSION, capabilities: {}, clientInfo: { name: 'x', version: '1' } }));
+      assert.equal(await waitFor(() => responses.some((response) => response.id === 1)), true);
+      input.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
+      input.write(rpc(2, 'tools/call', { name: 'worktreeproof_status', arguments: {} }));
+      input.write(rpc(3, 'tools/list', {}));
+      assert.equal(await waitFor(() => adapterSignal), true);
+
+      input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":2}}\n');
+      assert.equal(await waitFor(() => adapterSignal.aborted), true);
+      assert.equal(await waitFor(() => responses.some((response) => response.id === 3)), true);
+      assert.equal(server.context.inFlight.size, 0);
+      const cancelled = responses.filter((response) => response.id === 2);
+      assert.ok(cancelled.length <= 1);
+      if (cancelled.length === 1) assert.deepEqual(cancelled[0].error, { code: -32800, message: 'request cancelled' });
+
+      const responseCount = responses.length;
+      input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":2}}\n');
+      input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":3}}\n');
+      input.write('{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":999}}\n');
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      assert.equal(responses.length, responseCount);
+
+      input.end();
+      await Promise.race([running, new Promise((_, reject) => setTimeout(() => reject(new Error('server run did not settle')), 500))]);
+      const beforeLateCompletion = responses.length;
+      lateSettled = true;
+      if (lateMode === 'resolve') resolveAdapter({ late: true });
+      else rejectAdapter(new Error('late adapter rejection'));
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.equal(responses.length, beforeLateCompletion);
+      assert.deepEqual(unhandled, []);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+      server.close();
+      if (!lateSettled) resolveAdapter({ cleanup: true });
+      await running;
+    }
+  }
+});
+
+test('proxy and overbudget descriptor traversal is fail-closed with bounded traps', async () => {
+  const maxItems = 4;
+  const proxyKeys = ['jsonrpc', 'id', 'method', 'params', 'extra-1', 'extra-2'];
+  let directOwnKeys = 0;
+  let directDescriptors = 0;
+  const directProxy = new Proxy({}, {
+    ownKeys() { directOwnKeys += 1; return proxyKeys; },
+    getOwnPropertyDescriptor(_target, key) {
+      directDescriptors += 1;
+      const values = { jsonrpc: '2.0', id: 7, method: 'tools/list', params: {} };
+      return { configurable: true, enumerable: true, writable: true, value: values[key] ?? true };
+    },
+  });
+  const directServer = createMcpServer({ limits: { maxItems } });
+  const directResponse = await handleMcpMessage(directProxy, directServer.context);
+  assert.equal(directResponse.error.code, -32600);
+  assert.ok(directOwnKeys <= maxItems + 1);
+  assert.ok(directDescriptors <= maxItems + 1);
+
+  const overbudget = Object.fromEntries(Array.from({ length: maxItems + 2 }, (_, index) => [`key-${index}`, index]));
+  const originalDescriptor = Object.getOwnPropertyDescriptor;
+  let ordinaryDescriptors = 0;
+  Object.getOwnPropertyDescriptor = function countedDescriptor(value, key) {
+    if (value === overbudget) ordinaryDescriptors += 1;
+    return originalDescriptor(value, key);
+  };
+  let ordinaryResponse;
+  try {
+    ordinaryResponse = await handleMcpMessage({ jsonrpc: '2.0', id: 8, method: 'unknown/method', params: overbudget }, directServer.context);
+  } finally {
+    Object.getOwnPropertyDescriptor = originalDescriptor;
+  }
+  assert.equal(ordinaryResponse.error.code, -32600);
+  assert.ok(ordinaryDescriptors <= maxItems + 1);
+
+  let outputOwnKeys = 0;
+  let outputDescriptors = 0;
+  const outputProxy = new Proxy({}, {
+    ownKeys() { outputOwnKeys += 1; return proxyKeys; },
+    getOwnPropertyDescriptor(_target, key) {
+      outputDescriptors += 1;
+      return { configurable: true, enumerable: true, writable: true, value: key === 'jsonrpc' ? 'safe' : true };
+    },
+  });
+  const outputServer = createMcpServer({ limits: { maxItems }, core: { status: async () => outputProxy } });
+  await handleMcpMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: MCP_PROTOCOL_VERSION, capabilities: {}, clientInfo: { name: 'x', version: '1' } } }, outputServer.context);
+  await handleMcpMessage({ jsonrpc: '2.0', method: 'notifications/initialized' }, outputServer.context);
+  const outputResponse = await handleMcpMessage({ jsonrpc: '2.0', id: 9, method: 'tools/call', params: { name: 'worktreeproof_status', arguments: {} } }, outputServer.context);
+  assert.equal(outputResponse.result.isError, false);
+  assert.ok(Buffer.byteLength(JSON.stringify(outputResponse), 'utf8') <= outputServer.context.limits.maxOutputBytes);
+  assert.ok(outputOwnKeys <= maxItems + 1);
+  assert.ok(outputDescriptors <= maxItems + 1);
+
+  assert.deepEqual(sanitizeJson(JSON.parse('{"safe":[1,2,{"nested":true}]}')), { safe: [1, 2, { nested: true }] });
 });

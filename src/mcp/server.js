@@ -4,6 +4,7 @@ import {
   isJsonRpcNotification,
   jsonRpcError,
 } from './framing.js';
+import { types as utilTypes } from 'node:util';
 import {
   DEFAULT_TOOL_LIMITS,
   HARD_TOOL_LIMITS,
@@ -49,6 +50,7 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
 function plainObject(value) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (utilTypes.isProxy(value)) return false;
   try {
     const prototype = Object.getPrototypeOf(value);
     return prototype === Object.prototype || prototype === null;
@@ -57,13 +59,20 @@ function plainObject(value) {
   }
 }
 
-function ownDescriptors(value) {
+function ownDescriptors(value, maxItems = DEFAULT_TOOL_LIMITS.maxItems) {
   try {
-    const descriptors = Object.create(null);
-    for (const key of Reflect.ownKeys(value)) {
+    if (utilTypes.isProxy(value)) throw new Error('proxy');
+    const keys = Reflect.ownKeys(value);
+    const array = Array.isArray(value);
+    let items = 0;
+    for (const key of keys) {
       if (typeof key !== 'string') throw new Error('symbols');
+      if (!(array && key === 'length') && ++items > maxItems) throw new Error('too many items');
+    }
+    const descriptors = Object.create(null);
+    for (const key of keys) {
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(Array.isArray(value) && key === 'length'))) throw new Error('unsafe descriptor');
+      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(array && key === 'length'))) throw new Error('unsafe descriptor');
       descriptors[key] = descriptor;
     }
     return descriptors;
@@ -72,9 +81,9 @@ function ownDescriptors(value) {
   }
 }
 
-function safeId(message) {
+function safeId(message, maxItems) {
   try {
-    const descriptor = ownDescriptors(message).id;
+    const descriptor = ownDescriptors(message, maxItems).id;
     if (!descriptor || !('value' in descriptor)) return undefined;
     const id = descriptor.value;
     if (id === null) return null;
@@ -86,17 +95,17 @@ function safeId(message) {
   }
 }
 
-function hasOwnId(message) {
+function hasOwnId(message, maxItems) {
   try {
-    const descriptors = ownDescriptors(message);
+    const descriptors = ownDescriptors(message, maxItems);
     return Object.prototype.hasOwnProperty.call(descriptors, 'id');
   } catch {
     return true;
   }
 }
 
-function notificationCandidate(message) {
-  return plainObject(message) && !hasOwnId(message);
+function notificationCandidate(message, maxItems) {
+  return plainObject(message) && !hasOwnId(message, maxItems);
 }
 
 function normalizeLimits(options = {}) {
@@ -122,8 +131,8 @@ function errorFor(error) {
 function mapKey(id) { return `${typeof id}:${String(id)}`; }
 
 function validateMessage(message, context) {
-  const notification = notificationCandidate(message);
-  const id = safeId(message);
+  const notification = notificationCandidate(message, context.limits.maxItems);
+  const id = safeId(message, context.limits.maxItems);
   try {
     assertJsonSafe(message, context.limits);
   } catch {
@@ -131,7 +140,7 @@ function validateMessage(message, context) {
   }
   if (!plainObject(message)) return { ok: false, notification: false, id };
   let descriptors;
-  try { descriptors = ownDescriptors(message); } catch { return { ok: false, notification, id }; }
+  try { descriptors = ownDescriptors(message, context.limits.maxItems); } catch { return { ok: false, notification, id }; }
   const keys = Object.keys(descriptors);
   const jsonrpc = descriptors.jsonrpc?.value;
   const method = descriptors.method?.value;
@@ -161,6 +170,27 @@ function makeCallContext(ctx, id, sequence) {
   if (parent?.aborted) controller.abort();
   else parent?.addEventListener?.('abort', abort, { once: true });
   return { controller, sequence, context: { ...ctx, signal: controller.signal, requestId: id }, cleanup: () => parent?.removeEventListener?.('abort', abort) };
+}
+
+function callWithAbort(call, invoke) {
+  let operation;
+  try { operation = Promise.resolve().then(invoke); }
+  catch (error) { operation = Promise.reject(error); }
+  operation.catch(() => {});
+  const signal = call.controller.signal;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener('abort', onAbort);
+      callback(value);
+    };
+    const onAbort = () => finish(reject, new McpToolError('request cancelled', 'ERR_CANCELLED'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    operation.then((value) => finish(resolve, value), (error) => finish(reject, error));
+    if (signal.aborted) onAbort();
+  });
 }
 
 /** Handle one parsed JSON value. Notifications never produce a response. */
@@ -210,7 +240,7 @@ export async function handleMcpMessage(message, context = {}, metadata = {}) {
     const call = makeCallContext(ctx, id, metadata.sequence);
     ctx.inFlight.set(mapKey(id), call);
     try {
-      const result = await ctx.tools.call(params.name, params.arguments ?? {}, call.context);
+      const result = await callWithAbort(call, () => ctx.tools.call(params.name, params.arguments ?? {}, call.context));
       if (call.controller.signal.aborted || ctx.closed) return null;
       return { jsonrpc: '2.0', id, result };
     } catch (error) {
@@ -334,7 +364,7 @@ export function createMcpServer(options = {}) {
 
   const processEntry = async (entry) => {
     try { pendingResponses.set(entry.sequence, await handleMcpMessage(entry.message, context, { sequence: entry.sequence })); }
-    catch { pendingResponses.set(entry.sequence, isJsonRpcNotification(entry.message) ? null : jsonRpcError(safeId(entry.message), -32603, 'internal error')); }
+    catch { pendingResponses.set(entry.sequence, isJsonRpcNotification(entry.message) ? null : jsonRpcError(safeId(entry.message, limits.maxItems), -32603, 'internal error')); }
     finally {
       processCount -= 1;
       flushOrdered();
@@ -354,11 +384,11 @@ export function createMcpServer(options = {}) {
   const cancellationRequestId = (message) => {
     try {
       if (!plainObject(message)) return undefined;
-      const descriptors = ownDescriptors(message);
+      const descriptors = ownDescriptors(message, limits.maxItems);
       if (Object.prototype.hasOwnProperty.call(descriptors, 'id') || descriptors.method?.value !== 'notifications/cancelled') return undefined;
       const params = descriptors.params?.value;
       if (!plainObject(params)) return undefined;
-      const requestId = ownDescriptors(params).requestId?.value;
+      const requestId = ownDescriptors(params, limits.maxItems).requestId?.value;
       if (typeof requestId === 'string' && requestId.length > 0 && requestId.length <= 128 && !/[\u0000-\u001f\u007f]/u.test(requestId)) return requestId;
       if (typeof requestId === 'number' && Number.isFinite(requestId) && Math.abs(requestId) <= Number.MAX_SAFE_INTEGER) return requestId;
       return undefined;
@@ -376,7 +406,7 @@ export function createMcpServer(options = {}) {
       return;
     }
     if (queue.length + processCount >= limits.maxQueuedMessages) {
-      if (!notificationCandidate(message)) enqueueOutput(jsonRpcError(safeId(message), -32600, 'server busy'));
+      if (!notificationCandidate(message, limits.maxItems)) enqueueOutput(jsonRpcError(safeId(message, limits.maxItems), -32600, 'server busy'));
       return;
     }
     queue.push({ message, sequence: sequence++ });

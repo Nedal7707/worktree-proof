@@ -1,5 +1,7 @@
 /** Bounded, injected MCP tool allowlist. No private state, process, or I/O. */
 
+import { types as utilTypes } from 'node:util';
+
 export const DEFAULT_TOOL_LIMITS = Object.freeze({
   maxInputBytes: 16 * 1024,
   maxOutputBytes: 16 * 1024,
@@ -37,6 +39,7 @@ export class McpToolError extends Error {
 
 function plainObject(value) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (utilTypes.isProxy(value)) return false;
   try {
     const prototype = Object.getPrototypeOf(value);
     return prototype === Object.prototype || prototype === null;
@@ -81,13 +84,20 @@ export function boundedText(value, maxBytes) {
   return `${prefix}${marker}`;
 }
 
-function descriptors(value) {
+function descriptors(value, maxItems = DEFAULT_TOOL_LIMITS.maxItems) {
   try {
-    const own = Object.create(null);
-    for (const key of Reflect.ownKeys(value)) {
+    if (utilTypes.isProxy(value)) throw new McpToolError('proxy is not JSON-safe', 'ERR_INVALID_PARAMS');
+    const keys = Reflect.ownKeys(value);
+    const array = Array.isArray(value);
+    let items = 0;
+    for (const key of keys) {
       if (typeof key !== 'string') throw new McpToolError('symbols are not JSON-safe', 'ERR_INVALID_PARAMS');
+      if (!(array && key === 'length') && ++items > maxItems) throw new McpToolError('value has too many items', 'ERR_INVALID_PARAMS');
+    }
+    const own = Object.create(null);
+    for (const key of keys) {
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(Array.isArray(value) && key === 'length'))) throw new McpToolError('accessor or non-enumerable value is not JSON-safe', 'ERR_INVALID_PARAMS');
+      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(array && key === 'length'))) throw new McpToolError('accessor or non-enumerable value is not JSON-safe', 'ERR_INVALID_PARAMS');
       own[key] = descriptor;
     }
     return own;
@@ -114,7 +124,7 @@ function validateNode(value, limits, state, depth = 0) {
   let own;
   try {
     if (!Array.isArray(value) && !plainObject(value)) throw new McpToolError('value is not a plain object', 'ERR_INVALID_PARAMS');
-    own = descriptors(value);
+    own = descriptors(value, limits.maxItems);
     const keys = Object.keys(own).filter((key) => !(Array.isArray(value) && key === 'length'));
     if (keys.length > limits.maxItems) throw new McpToolError('value has too many items', 'ERR_INVALID_PARAMS');
     for (const key of keys) {
@@ -146,12 +156,12 @@ function sanitizeNode(value, limits, state, key = '', depth = 0) {
   let result;
   try {
     if (Array.isArray(value)) {
-      const own = descriptors(value);
+      const own = descriptors(value, limits.maxItems);
       const keys = Object.keys(own).filter((item) => item !== 'length').sort((a, b) => Number(a) - Number(b)).slice(0, limits.maxItems);
       result = keys.map((item) => DANGEROUS_KEYS.has(item) ? '[redacted]' : own[item] && 'value' in own[item] ? sanitizeNode(own[item].value, limits, state, '', depth + 1) : '[redacted]');
       if (Object.keys(own).filter((item) => item !== 'length').length > limits.maxItems) result.push('[truncated]');
     } else if (plainObject(value)) {
-      const own = descriptors(value);
+      const own = descriptors(value, limits.maxItems);
       result = {};
       const keys = Object.keys(own).sort();
       for (const property of keys.slice(0, limits.maxItems)) {

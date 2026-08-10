@@ -1,0 +1,59 @@
+{
+  "name": "worktree-proof",
+  "version": "0.1.0",
+  "description": "Evidence-backed guardrails for AI coding agents.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./cli": "./src/cli.js",
+    "./adapters": "./src/adapters.js",
+    "./init": "./src/init.js",
+    "./scope": "./src/scope.js",
+    "./planner": "./src/planner.js",
+    "./leases": "./src/leases.js",
+    "./evidence": "./src/evidence.js",
+    "./runner": "./src/runner.js",
+    "./resources": "./src/resources.js",
+    "./bridge": "./src/bridge.js",
+    "./tasks": "./src/tasks.js",
+    "./tools": "./src/tools.js",
+    "./git": "./src/git.js",
+    "./worktree": "./src/worktree.js",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "worktree-proof": "bin/worktree-proof.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check bin/worktree-proof.js && node --check src/cli.js && node --check src/index.js && node --check src/adapters.js && node --check src/bridge.js && node --check src/evidence.js && node --check src/git.js && node --check src/init.js && node --check src/leases.js && node --check src/planner.js && node --check src/resources.js && node --check src/runner.js && node --check src/scope.js && node --check src/tasks.js && node --check src/tools.js && node --check src/worktree.js",
+    "check": "npm run lint && npm test"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "bin/",
+    "src/",
+    "schemas/",
+    "examples/",
+    "catalog/",
+    "recipes/",
+    "templates/",
+    "integrations/",
+    "lessons/",
+    "skills/",
+    "docs/",
+    "site/",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "LICENSE",
+    "NOTICE.md",
+    "README.md",
+    "SECURITY.md"
+  ]
+}

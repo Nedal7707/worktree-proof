@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "performance",
+  "name": "Measured performance improvement",
+  "description": "Improve one measurable performance budget with a repeatable before result, focused change, and honest variance note.",
+  "outcomes": [
+    { "id": "measurement", "description": "A representative workload has a repeatable before and after measurement tied to one budget.", "evidence": ["before result", "after result"] },
+    { "id": "correctness", "description": "The optimization preserves correctness, accessibility, and the declared user behavior.", "evidence": ["regression checks", "budget summary"] }
+  ],
+  "prerequisites": [
+    { "id": "budget", "description": "The latency, size, memory, rendering, or throughput budget and workload are explicit.", "check": "Choose one representative workload and record how it is measured." },
+    { "id": "baseline", "description": "A stable before measurement exists without changing production or hiding slower cases.", "check": "Capture baseline conditions and variance in a safe environment." }
+  ],
+  "lanes": [
+    { "laneId": "measure-performance", "fileScope": "notes/performance", "objective": "Define the budget, representative workload, baseline, and bottleneck hypothesis.", "mode": "audit", "dependsOn": [], "deliverables": ["measurement brief", "baseline result"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "optimize-performance", "fileScope": "src/performance", "objective": "Apply one focused optimization while preserving behavior and measurement shape.", "mode": "build", "dependsOn": ["measure-performance"], "deliverables": ["performance change", "correctness checks"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-performance", "fileScope": "test/performance", "objective": "Repeat the same workload, check the budget, and inspect correctness and accessibility.", "mode": "audit", "dependsOn": ["optimize-performance"], "deliverables": ["after measurement", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "performance", "receipt"],
+  "qualityGates": [
+    { "id": "repeatable", "description": "Before and after measurements use the same workload, conditions, and reporting method.", "evidence": ["measurement note", "paired results"] },
+    { "id": "budget", "description": "The stated budget improves or the receipt explains variance and why no claim is made.", "evidence": ["budget check", "variance note"] },
+    { "id": "correct", "description": "Relevant behavior, accessibility, and regression checks remain green after the optimization.", "evidence": ["test result", "accessibility result"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response while measuring performance.", "boundary": "Stop and hand the entry to the owner; use safe synthetic or existing preview data instead.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Change billing, account security, destructive data, or live financial behavior to improve a metric.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Performance work must remain reversible and behavior-preserving." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Return to the last known-good integration point when the measurement is not repeatable or correctness regresses.", "rescueSteps": ["Preserve paired measurements and workload facts.", "Keep the optimization isolated from unrelated cleanup.", "Record the variance or regression and abandon an unsupported claim."], "stopConditions": ["The workload or budget cannot be repeated.", "The optimization changes correctness or accessibility.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["before and after measurement", "budget result", "correctness checks"], "redactionRules": ["Omit credentials, tokens, private paths, and private user data.", "Record metric names, units, and safe summaries only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

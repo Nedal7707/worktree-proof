@@ -1,0 +1,5 @@
+# Add this step to an existing CI job with Node.js 20+ available.
+# It does not install software or call a network.
+- name: WorktreeProof validate
+  if: ${{ hashFiles('bin/worktree-proof.js') != '' }}
+  run: node ./bin/worktree-proof.js validate .

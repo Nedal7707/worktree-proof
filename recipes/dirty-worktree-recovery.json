@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "dirty-worktree-recovery",
+  "name": "Dirty-worktree recovery",
+  "description": "Recover a dirty worktree without losing useful changes, overwriting another lane, or claiming cleanliness before evidence exists.",
+  "outcomes": [
+    { "id": "preserved", "description": "Useful changes and untracked decisions are preserved in a named, reviewable rescue state.", "evidence": ["before status", "preservation note"] },
+    { "id": "clean", "description": "The chosen keep, move, or abandon decision ends with an accurately reported worktree state.", "evidence": ["after status", "closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "status", "description": "Current branch, changed files, untracked data, and active lane ownership are visible.", "check": "Capture status and changed-file names before touching the worktree." },
+    { "id": "ownership", "description": "No rescue step will overwrite another lane or copy secret material into evidence.", "check": "Compare scopes and mark unknown files for explicit review." }
+  ],
+  "lanes": [
+    { "laneId": "inspect-dirty", "fileScope": "notes/dirty-worktree", "objective": "Inventory branch, changed files, untracked data, ownership, and rescue choices.", "mode": "audit", "dependsOn": [], "deliverables": ["status inventory", "ownership note"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "preserve-dirty", "fileScope": "rescue/dirty-worktree", "objective": "Preserve useful changes in a reviewable scoped patch without forceful destruction.", "mode": "cleanup", "dependsOn": ["inspect-dirty"], "deliverables": ["rescue patch", "keep or abandon decision"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-dirty", "fileScope": "test/dirty-worktree", "objective": "Verify the chosen worktree state, scope ownership, and recoverability after rescue.", "mode": "audit", "dependsOn": ["preserve-dirty"], "deliverables": ["clean-state result", "redacted evidence"], "commands": ["git status --short", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "evidence", "worktree", "receipt"],
+  "qualityGates": [
+    { "id": "inventoried", "description": "Every changed and untracked item has a safe owner or explicit rescue decision.", "evidence": ["before status", "file inventory"] },
+    { "id": "preserved", "description": "Useful work is retained in the reserved scope and unknown data is not silently removed.", "evidence": ["rescue summary", "scope review"] },
+    { "id": "accurate", "description": "After-state evidence accurately reports clean, still-dirty, or deliberately abandoned worktree status.", "evidence": ["after status", "receipt outcome"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response while inspecting a worktree.", "boundary": "Stop and hand the entry to the owner; keep rescue evidence local and redacted.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Delete unknown data, change account security or billing, perform destructive data work, or execute live financial behavior.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Recovery must preserve uncertainty rather than destroy it." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the original status inventory and use the preserved patch or last known-good integration point to recover from a mistaken rescue choice.", "rescueSteps": ["Record changed-file names and ownership before editing.", "Preserve a redacted patch or explicit abandonment decision.", "Recheck status and scope before declaring the worktree clean."], "stopConditions": ["Ownership of a changed file is unclear.", "A rescue step would overwrite or remove unknown work.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["before and after status", "preservation decision", "scope review"], "redactionRules": ["Omit credentials, tokens, private paths, and secret file contents.", "Record file names only when they are safe to disclose."], "terminalOutcomes": ["merged", "abandoned"] }
+}

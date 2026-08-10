@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "incident-rescue",
+  "name": "Incident rescue",
+  "description": "Rescue an active incident with facts first, the smallest reversible recovery action, and an honest record of residual risk.",
+  "outcomes": [
+    { "id": "timeline", "description": "Observed events, impact, and current safety boundaries are ordered without invented causes.", "evidence": ["factual timeline", "impact summary"] },
+    { "id": "recovery", "description": "A bounded recovery or safe abandonment decision is verified and recorded for follow-up.", "evidence": ["recovery check", "redacted incident receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "signals", "description": "The incident has observable signals, affected surface, and a current impact statement.", "check": "Separate observed facts from hypotheses before proposing a change." },
+    { "id": "safety", "description": "The smallest reversible recovery action and its stop conditions are understood.", "check": "Identify the restore route and owner boundaries before acting." }
+  ],
+  "lanes": [
+    { "laneId": "timeline-incident", "fileScope": "notes/incident", "objective": "Build a factual timeline, impact summary, hypotheses, and explicit stop conditions.", "mode": "audit", "dependsOn": [], "deliverables": ["incident timeline", "impact note"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "recover-incident", "fileScope": "rescue/incident", "objective": "Apply or prepare the smallest reversible recovery action inside the declared scope.", "mode": "cleanup", "dependsOn": ["timeline-incident"], "deliverables": ["recovery action", "decision note"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-incident", "fileScope": "test/incident-rescue", "objective": "Verify recovery signals, user impact, and follow-up evidence without rewriting the timeline.", "mode": "audit", "dependsOn": ["recover-incident"], "deliverables": ["recovery result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "test", "preview", "incident", "evidence", "receipt"],
+  "qualityGates": [
+    { "id": "factual", "description": "The timeline distinguishes observations, hypotheses, actions, and unknowns.", "evidence": ["timeline", "source summary"] },
+    { "id": "reversible", "description": "The recovery action has a known restore route and does not broaden the incident scope.", "evidence": ["recovery plan", "stop conditions"] },
+    { "id": "verified", "description": "Post-action health or impact checks support the stated recovery outcome or abandonment.", "evidence": ["health result", "residual-risk note"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response during incident rescue.", "boundary": "Stop and hand the entry to the owner; preserve a redacted context package for the human step.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Perform destructive data work, billing or account-security changes, or live financial execution while recovering.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Incident urgency does not remove protected owner boundaries." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Prefer the last known-good release or documented reversible action, and preserve the factual timeline if recovery fails.", "rescueSteps": ["Capture redacted observations before and after the action.", "Stop on contradictory health or impact signals.", "Record unresolved risk and hand off rather than guessing."], "stopConditions": ["Impact cannot be measured safely.", "The proposed recovery is irreversible or unreviewed.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["factual timeline", "recovery result", "residual-risk note"], "redactionRules": ["Omit credentials, tokens, private paths, and sensitive user content.", "Record event classes and safe release identifiers only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

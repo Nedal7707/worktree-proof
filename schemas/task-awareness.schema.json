@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/task-awareness.schema.json",
+  "title": "WorktreeProof redacted task awareness snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "currentTaskId", "tasks", "activeCount", "otherActiveReservations", "modeVisibility", "warnings"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "source": { "const": "host-injected" },
+    "currentTaskId": { "type": ["string", "null"], "pattern": "^[a-f0-9]{16}$" },
+    "tasks": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "status", "reportedMode", "resourceReservation", "updatedAt"],
+        "properties": {
+          "taskId": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+          "status": { "type": "string", "enum": ["active", "idle", "not-loaded", "unknown"] },
+          "reportedMode": { "type": "string", "enum": ["ultra", "xhigh", "max", "high", "medium", "low", "standard", "other", "unknown"] },
+          "resourceReservation": { "type": "integer", "minimum": 0, "maximum": 24 },
+          "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+        }
+      }
+    },
+    "activeCount": { "type": "integer", "minimum": 0, "maximum": 256 },
+    "otherActiveReservations": { "type": "integer", "minimum": 0 },
+    "modeVisibility": { "type": "string", "enum": ["unknown", "partial-or-reported"] },
+    "warnings": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tool Orchestrator"
+  short_description: "Choose installed tools by capability and risk"
+  default_prompt: "Use $tool-orchestrator to discover available tools, choose a safe capability, and confirm consequential actions."

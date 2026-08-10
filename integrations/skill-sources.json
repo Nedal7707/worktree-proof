@@ -1,0 +1,29 @@
+{
+  "$schema": "../schemas/skill-source.schema.json",
+  "sources": [
+    {
+      "id": "delegate-skills",
+      "repository": "amElnagdy/delegate-skills",
+      "url": "https://github.com/amElnagdy/delegate-skills",
+      "license": "MIT",
+      "upstreamRef": "f9f2528525b820e7fd24724f87d6821c0e272947",
+      "purpose": "Optional upstream Agent Skills for delegation-oriented workflows.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["amElnagdy/delegate-skills"],
+        "licenseOwner": "amElnagdy/delegate-skills"
+      },
+      "install": {
+        "list": "npx skills add https://github.com/amElnagdy/delegate-skills --list",
+        "selective": "npx skills add https://github.com/amElnagdy/delegate-skills --skill <skill-name>"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    }
+  ]
+}
+

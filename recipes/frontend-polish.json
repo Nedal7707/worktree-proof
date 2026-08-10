@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "frontend-polish",
+  "name": "Frontend polish",
+  "description": "Polish one visible frontend journey with measured layout, interaction, responsive, and accessibility evidence.",
+  "outcomes": [
+    { "id": "visual", "description": "The targeted journey has a clearer visual hierarchy and responsive layout at agreed viewports.", "evidence": ["redacted visual comparison", "viewport notes"] },
+    { "id": "interaction", "description": "The journey still behaves correctly for keyboard, pointer, loading, and failure states.", "evidence": ["interaction checks", "console summary"] }
+  ],
+  "prerequisites": [
+    { "id": "journey", "description": "The screen, user action, supported viewports, and visual success signal are named.", "check": "Write a short before-state description and the important states to inspect." },
+    { "id": "evidence", "description": "A safe local or preview environment is available for visual and behavior checks.", "check": "Confirm no credentials, private content, or live mutation is needed." }
+  ],
+  "lanes": [
+    { "laneId": "frame-frontend", "fileScope": "notes/frontend-polish", "objective": "Define the target journey, states, viewports, and visual acceptance evidence.", "mode": "audit", "dependsOn": [], "deliverables": ["visual brief", "viewport matrix"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-frontend", "fileScope": "src/frontend-polish", "objective": "Apply the focused visual and interaction improvements without unrelated screen changes.", "mode": "build", "dependsOn": ["frame-frontend"], "deliverables": ["frontend change", "focused checks"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-frontend", "fileScope": "test/frontend-polish", "objective": "Inspect visual, responsive, keyboard, and console outcomes against the brief.", "mode": "audit", "dependsOn": ["build-frontend"], "deliverables": ["visual evidence", "behavior result"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "browser", "preview", "accessibility", "receipt"],
+  "qualityGates": [
+    { "id": "visual", "description": "The intended visual difference is visible at each agreed viewport without clipping.", "evidence": ["before and after capture", "viewport notes"] },
+    { "id": "behavior", "description": "Interaction, loading, failure, and keyboard checks show no regression on the journey.", "evidence": ["interaction result", "console summary"] },
+    { "id": "scope", "description": "Only the named journey and its owned files changed, with a redacted receipt ready.", "evidence": ["changed-file list", "receipt preview"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response while viewing the journey.", "boundary": "Stop and hand the entry to the owner; inspect only a safe logged-in session already available.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Change billing, account security, destructive data, or live financial behavior from the polished screen.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Visual work must stay in a preview or safe test path." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the before-state capture and return to the last known-good visual integration point if behavior or layout regresses.", "rescueSteps": ["Save redacted captures and console summaries.", "Preserve the scoped style or component patch.", "Record which viewport or state remains unresolved."], "stopConditions": ["The target journey cannot be reproduced safely.", "A visual change requires unrelated product behavior.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["visual comparison", "interaction result", "changed-file review"], "redactionRules": ["Omit credentials, tokens, private paths, and private page content.", "Use redacted captures and safe route names only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

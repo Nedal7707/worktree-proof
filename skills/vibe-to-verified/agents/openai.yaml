@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vibe to Verified"
+  short_description: "Turn ideas into tested, reversible delivery"
+  default_prompt: "Use $vibe-to-verified to turn an idea into scoped lanes, checks, a preview, rollback, and closure evidence."

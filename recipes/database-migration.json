@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "database-migration",
+  "name": "Reversible database migration",
+  "description": "Design and verify a backwards-compatible database migration with restore evidence, observable rollout, and explicit data boundaries.",
+  "outcomes": [
+    { "id": "migration", "description": "The schema change has an ordered migration path, compatibility window, and tested constraints.", "evidence": ["migration review", "isolated check"] },
+    { "id": "restore", "description": "A receipt names a restorable snapshot or export and the post-change verification result.", "evidence": ["restore metadata", "redacted closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "shape", "description": "Current and target schema shape, data ownership, constraints, and indexes are understood.", "check": "Review metadata and list reads and writes affected by the change." },
+    { "id": "restore", "description": "A restorable snapshot or export exists before any destructive or irreversible operation.", "check": "Verify restore metadata without copying data values into the lane." }
+  ],
+  "lanes": [
+    { "laneId": "review-schema", "fileScope": "notes/database-migration", "objective": "Describe current shape, target shape, compatibility order, and restore plan.", "mode": "audit", "dependsOn": [], "deliverables": ["schema note", "rollout plan"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "write-migration", "fileScope": "db/migrations", "objective": "Write the bounded migration and safe compatibility checks for the target schema.", "mode": "build", "dependsOn": ["review-schema"], "deliverables": ["migration file", "migration checks"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-migration", "fileScope": "test/database-migration", "objective": "Run isolated apply, compatibility, constraint, and restore-route checks.", "mode": "audit", "dependsOn": ["write-migration"], "deliverables": ["migration result", "restore evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "database", "destructive", "receipt"],
+  "qualityGates": [
+    { "id": "compatible", "description": "Reads and writes remain compatible for the declared rollout window.", "evidence": ["compatibility matrix", "isolated result"] },
+    { "id": "restorable", "description": "The snapshot or export and restore route are identifiable before applying a risky step.", "evidence": ["restore metadata", "rescue note"] },
+    { "id": "verified", "description": "Constraints, indexes, data shape, and post-change checks pass without exposing values.", "evidence": ["migration output", "redaction review"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response for a database check.", "boundary": "Stop and hand the entry to the owner; use an approved safe session or isolated fixture instead.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Apply destructive schema or data work, billing or account-security changes, or live financial behavior.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "A migration must prove reversal before live data impact." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Use the verified restore route or a forward-compatible corrective migration; never discard data to hide an incomplete check.", "rescueSteps": ["Preserve migration and restore metadata without values.", "Stop at the first incompatible read or write.", "Record whether the migration was merged, abandoned, or safely reversed."], "stopConditions": ["No restorable snapshot or export is identifiable.", "Compatibility cannot be demonstrated in isolation.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["migration identifier", "restore metadata", "post-change checks"], "redactionRules": ["Never include database values, credentials, tokens, or private connection paths.", "Name schema objects and migration identifiers only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

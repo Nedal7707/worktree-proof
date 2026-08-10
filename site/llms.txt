@@ -1,0 +1,34 @@
+# WorktreeProof
+
+> Vibe fast. Ship with proof.
+
+## Summary
+
+WorktreeProof is open-source vibe coding guardrails for AI coding agents. It is a local-first JavaScript and Node.js toolkit for naming a bounded lane, reserving a non-overlapping scope, running focused checks, and recording a redacted closure receipt.
+
+## What is included
+
+- Plain Agent Skills for portable scope-and-proof habits.
+- Safe delegation patterns with unique lane identities and explicit ownership.
+- Worktree and reservation helpers for isolated parallel changes.
+- Capability-aware tool selection and focused recipes.
+- UI review notes alongside keyboard and responsive checks.
+- Best-practice guidance for bounded context and resource-aware runs.
+- Closure receipts that keep commands, checks, evidence, and disposition inspectable.
+
+## Facts
+
+- Repository: https://github.com/Nedal7707/worktree-proof
+- Landing page: https://nedal7707.github.io/worktree-proof/
+- License: Apache-2.0
+- Version shown on this page: 0.1.0
+- Runtime: Node.js 20 or newer
+- Runtime dependencies: none
+
+## Privacy and limits
+
+The toolkit keeps state in the project where it runs and has no built-in telemetry by default. Read the source before enabling integrations. WorktreeProof does not replace human review, release ownership, or a security process, and it makes no claims about adoption, popularity, or guaranteed outcomes.
+
+## Contribution
+
+Read the repository contributing notes, try a focused recipe, and propose a small, inspectable change.

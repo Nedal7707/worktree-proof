@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "api",
+  "name": "API contract change",
+  "description": "Design and verify one API boundary with explicit request, response, error, compatibility, and observability behavior.",
+  "outcomes": [
+    { "id": "contract", "description": "The API contract documents success, validation, failure, timeout, and compatibility behavior.", "evidence": ["contract cases", "fixture result"] },
+    { "id": "implementation", "description": "The implementation and deterministic checks agree on the declared boundary without live secrets.", "evidence": ["focused test output", "redacted receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "consumer", "description": "The caller, expected data shape, compatibility window, and error semantics are known.", "check": "List request and response cases before editing the handler." },
+    { "id": "safe-environment", "description": "The contract can be exercised with local fixtures or a non-sensitive preview.", "check": "Confirm no live customer data or credential value is needed." }
+  ],
+  "lanes": [
+    { "laneId": "frame-api", "fileScope": "notes/api-contract", "objective": "Describe request, success, error, timeout, and compatibility cases for the boundary.", "mode": "audit", "dependsOn": [], "deliverables": ["contract note", "fixture matrix"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-api", "fileScope": "src/api", "objective": "Implement the agreed API behavior and safe validation without unrelated endpoints.", "mode": "build", "dependsOn": ["frame-api"], "deliverables": ["API change", "contract update"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-api", "fileScope": "test/api-contract", "objective": "Run deterministic success, validation, error, timeout, and compatibility checks.", "mode": "audit", "dependsOn": ["build-api"], "deliverables": ["contract result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "preview", "api", "receipt"],
+  "qualityGates": [
+    { "id": "contract-cases", "description": "Every declared request and response case has a deterministic fixture or reasoned exception.", "evidence": ["case matrix", "fixture output"] },
+    { "id": "compatibility", "description": "Existing callers retain compatible behavior or the change records a clear migration path.", "evidence": ["compatibility check", "consumer note"] },
+    { "id": "safe-observability", "description": "Errors and metrics are useful while payloads and credentials remain redacted.", "evidence": ["error summary", "redaction review"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response for an API check.", "boundary": "Stop and hand the entry to the owner; use local fixtures or a safe session instead.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Send a live request that mutates data, billing, account security, or financial execution.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Contract work can be verified without live mutation." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the previous contract fixture set and return to the last known-good integration point if compatibility is uncertain.", "rescueSteps": ["Capture redacted request and response shapes.", "Preserve the implementation and fixture changes separately.", "Record the first unresolved case and abandon rather than guessing."], "stopConditions": ["The consumer contract is unknown.", "A fixture needs real customer or secret data.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["contract matrix", "deterministic test result", "redaction review"], "redactionRules": ["Omit tokens, authorization headers, private paths, and payload secrets.", "Record status classes and field names without sensitive values."], "terminalOutcomes": ["merged", "abandoned"] }
+}

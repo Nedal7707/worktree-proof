@@ -1,0 +1,5 @@
+interface:
+  display_name: "Best-Practice Guard"
+  short_description: "Stack-aware quality gates with sourced evidence"
+  default_prompt: "Use $best-practice-guard to choose stack-aware quality gates and report measured, source-grounded results."
+

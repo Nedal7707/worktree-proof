@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resource-Efficient Coding"
+  short_description: "Bound CPU, RAM, disk, and parallel coding work"
+  default_prompt: "Use $resource-efficient-coding to choose measured resource budgets, bounded jobs, cache hygiene, and evidence-safe cleanup plans."

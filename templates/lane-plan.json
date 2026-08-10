@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "recipeId": "idea-to-prototype",
+  "objective": "Turn a small idea into a verified and reversible prototype.",
+  "lanes": [
+    {
+      "laneId": "plan-scope",
+      "fileScope": "notes/plan",
+      "task": "Describe the smallest useful behavior and its acceptance evidence.",
+      "mode": "audit",
+      "dependsOn": [],
+      "deliverables": ["scope note", "acceptance checklist"],
+      "commands": ["git status --short", "git diff --check"]
+    },
+    {
+      "laneId": "build-prototype",
+      "fileScope": "src/prototype",
+      "task": "Build the smallest reversible implementation behind a clear boundary.",
+      "mode": "build",
+      "dependsOn": ["plan-scope"],
+      "deliverables": ["prototype change", "focused checks"],
+      "commands": ["git diff --stat", "git diff --check"]
+    },
+    {
+      "laneId": "verify-prototype",
+      "fileScope": "test/prototype",
+      "task": "Exercise the happy path, one failure path, and the rollback note.",
+      "mode": "audit",
+      "dependsOn": ["build-prototype"],
+      "deliverables": ["test result", "redacted evidence"],
+      "commands": ["git diff --check", "git log -1 --oneline"]
+    }
+  ]
+}

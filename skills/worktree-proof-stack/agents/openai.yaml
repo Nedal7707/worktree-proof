@@ -1,0 +1,4 @@
+interface:
+  display_name: "WorktreeProof Stack"
+  short_description: "From bounded work to verified closure receipts"
+  default_prompt: "Use $worktree-proof-stack to move a bounded task from scope to verified closure."

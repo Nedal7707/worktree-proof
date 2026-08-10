@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/bridge-message.schema.json",
+  "title": "WorktreeProof bridge message",
+  "description": "A bounded local handoff message. It never contains hidden reasoning, credentials, commands, or executable payloads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["messageId", "sender", "recipient", "type", "summary", "createdAt", "expiresAt", "status"],
+  "properties": {
+    "messageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$" },
+    "sender": { "$ref": "#/$defs/agentId" },
+    "recipient": { "$ref": "#/$defs/agentId" },
+    "type": { "type": "string", "enum": ["task", "status", "result", "question", "cancel"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "laneId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$", "maxLength": 128 },
+    "fileScope": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])[^\\u0000]*$" },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._/-]{0,63}$" }
+    },
+    "replyTo": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["pending", "claimed", "completed", "failed", "cancelled"] },
+    "claimedBy": { "$ref": "#/$defs/agentId" },
+    "claimedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "ackAt": { "type": "string", "format": "date-time" },
+    "idempotencyKey": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "reclaimedFrom": { "$ref": "#/$defs/agentId" },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "evidence": { "type": "array", "maxItems": 32, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+        "receiptRef": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "task" } }, "required": ["type"] },
+      "then": { "required": ["fileScope"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "claimed" } }, "required": ["status"] },
+      "then": { "required": ["claimedBy", "claimedAt"] }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["completed", "failed", "cancelled"] } }, "required": ["status"] },
+      "then": { "required": ["completedAt"] }
+    }
+  ],
+  "$defs": {
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,31}$" }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "security-review",
+  "name": "Bounded security review",
+  "description": "Review one security surface through trust boundaries, abuse cases, static evidence, mitigations, and clearly stated residual risk.",
+  "outcomes": [
+    { "id": "findings", "description": "Validated findings are tied to reachable inputs, impact, mitigation, and severity rationale.", "evidence": ["finding summaries", "validation result"] },
+    { "id": "risk", "description": "A receipt records trust boundaries, residual risk, and safe owner actions without sensitive proof.", "evidence": ["threat note", "redacted closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "surface", "description": "The in-scope component, data flow, identities, and trust boundaries are named.", "check": "Draw the boundary in plain language before running checks." },
+    { "id": "authorization", "description": "The review can use source, fixtures, or an authorized safe environment without exploiting live accounts.", "check": "Confirm test data and owner boundary before collecting evidence." }
+  ],
+  "lanes": [
+    { "laneId": "frame-security", "fileScope": "notes/security-review", "objective": "Map trust boundaries, inputs, identities, abuse cases, and intended mitigations.", "mode": "audit", "dependsOn": [], "deliverables": ["threat note", "review scope"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "check-security", "fileScope": "security/review", "objective": "Run bounded static and dependency checks and record findings without retaining sensitive proof.", "mode": "audit", "dependsOn": ["frame-security"], "deliverables": ["finding summaries", "mitigation notes"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-security", "fileScope": "test/security-review", "objective": "Validate reachable findings, mitigation behavior, and residual risk in a safe environment.", "mode": "audit", "dependsOn": ["check-security"], "deliverables": ["validation result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "test", "security", "evidence", "secrets-sensitive", "receipt"],
+  "qualityGates": [
+    { "id": "boundary", "description": "Trust boundaries, assets, identities, and in-scope paths are explicit before findings are ranked.", "evidence": ["threat note", "scope review"] },
+    { "id": "validated", "description": "Important findings are reproduced or reasoned from reachable code and have a mitigation disposition.", "evidence": ["validation output", "mitigation note"] },
+    { "id": "redacted", "description": "The receipt communicates risk without secret values, exploit payloads, or private evidence.", "evidence": ["redaction review", "residual-risk summary"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response during the security review.", "boundary": "Stop and hand the entry to the owner; inspect only authorized safe evidence afterward.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Test live accounts, billing, account security, destructive data, or live financial execution.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Security review must not become unauthorized live exploitation." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Preserve the review scope and return to the last known-good mitigation state if validation is inconclusive or introduces risk.", "rescueSteps": ["Capture finding classes and safe reproduction summaries.", "Remove sensitive proof and keep mitigations separately reviewable.", "Record residual risk and abandon an unvalidated claim."], "stopConditions": ["Authorization or scope is unclear.", "A test would touch a live account or sensitive data.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["trust-boundary note", "validated finding summaries", "residual-risk decision"], "redactionRules": ["Never include credentials, tokens, exploit payloads, private paths, or sensitive data.", "Name finding classes and safe identifiers only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

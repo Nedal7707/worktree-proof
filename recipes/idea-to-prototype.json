@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "idea-to-prototype",
+  "name": "Idea to prototype",
+  "description": "Turn a rough idea into the smallest useful prototype while keeping scope, evidence, and reversal clear for a beginner.",
+  "outcomes": [
+    { "id": "prototype", "description": "A narrow prototype demonstrates one agreed user path without production side effects.", "evidence": ["prototype diff", "short behavior note"] },
+    { "id": "decision", "description": "A receipt records what the prototype proves, leaves out, and should decide next.", "evidence": ["acceptance result", "redacted closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "problem", "description": "The user problem and smallest useful behavior are written in plain language.", "check": "Read the scope note and name one happy path and one failure path." },
+    { "id": "boundary", "description": "The prototype can use local or disposable data without paid or live actions.", "check": "Confirm that credentials, billing, and live execution are outside the lane." }
+  ],
+  "lanes": [
+    { "laneId": "frame-idea", "fileScope": "notes/idea-to-prototype", "objective": "Define the user problem, non-goals, acceptance evidence, and reversible boundary.", "mode": "audit", "dependsOn": [], "deliverables": ["scope note", "acceptance checklist"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-prototype", "fileScope": "src/prototype", "objective": "Implement the smallest change that demonstrates the agreed path behind a clear boundary.", "mode": "build", "dependsOn": ["frame-idea"], "deliverables": ["prototype change", "focused check"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-prototype", "fileScope": "test/prototype", "objective": "Exercise the happy path, failure path, and explicit limits before integration.", "mode": "audit", "dependsOn": ["build-prototype"], "deliverables": ["verification result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "preview", "receipt"],
+  "qualityGates": [
+    { "id": "scope", "description": "The prototype has one user path, one failure path, and named non-goals.", "evidence": ["scope note", "lane plan"] },
+    { "id": "behavior", "description": "Focused checks show the path works and the failure path stays safe.", "evidence": ["test output", "diff review"] },
+    { "id": "reversal", "description": "A reviewer can identify the integration point and a safe way to abandon the prototype.", "evidence": ["canonical reference", "rescue note"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response.", "boundary": "Stop and hand the entry to the owner; prepare context without typing or recording the secret.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Apply paid, destructive, account-security, or live financial behavior.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "A prototype must remain reversible and outside live side effects." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the prototype isolated and return to the last known-good integration point if evidence is incomplete.", "rescueSteps": ["Capture redacted status and diff evidence.", "Preserve useful work in its reserved scope.", "Record whether the prototype is merged or abandoned."], "stopConditions": ["The request expands beyond the named user path.", "A check cannot establish a repeatable result.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["scope and acceptance result", "focused check output", "redaction review"], "redactionRules": ["Omit credentials, tokens, private paths, and personal data.", "Record names and identifiers without secret values."], "terminalOutcomes": ["merged", "abandoned"] }
+}

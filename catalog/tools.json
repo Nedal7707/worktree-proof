@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "id": "codex-cli",
+      "name": "Codex CLI",
+      "description": "A command-line AI coding assistant.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "codex",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "description": "A terminal-oriented AI coding assistant.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "claude",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "aider",
+      "name": "Aider",
+      "description": "A command-line AI pair-programming tool.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "aider",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "cursor-cli",
+      "name": "Cursor CLI",
+      "description": "A command-line interface associated with an AI code editor.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "cursor",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "github-copilot-cli",
+      "name": "GitHub Copilot CLI",
+      "description": "A command-line AI assistance interface for developer workflows.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "copilot",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "continue-cli",
+      "name": "Continue CLI",
+      "description": "A command-line interface for an extensible AI coding assistant.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "continue",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "amazon-q-cli",
+      "name": "Amazon Q CLI",
+      "description": "A command-line AI assistance interface for developer workflows.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "q",
+      "probes": [{ "args": ["--version"] }]
+    },
+    {
+      "id": "windsurf-cli",
+      "name": "Windsurf CLI",
+      "description": "A command-line interface associated with an AI coding environment.",
+      "categories": ["ai-coding"],
+      "capabilities": ["code-generation", "code-review", "terminal-assistance"],
+      "tags": ["ai", "coding", "assistant"],
+      "command": "windsurf",
+      "probes÷Ş¶¶‰ËkºwµçH$½‰Í•ÉÙ…‰¥±¥Ñäİ½É­™±½İÌ¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰½‰Í•ÉÙ…‰¥±¥Ñä‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰µ•ÑÉ¥Ìˆ°€‰ÑÉ…•Ìˆ°€‰É•±•…Í”µÑÉ…­¥¹œ‰t°(€€€€€€‰Ñ…Ìˆèl‰½‰Í•ÉÙ…‰¥±¥Ñäˆ°€‰¤‰t°(€€€€€€‰½µµ…¹ˆè€‰‘…Ñ…‘½œµ¤ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰É…™…¹„µ±¤ˆ°(€€€€€€‰¹…µ”ˆè€‰É…™…¹„1$ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰½µµ…¹µ±¥¹”ÕÑ¥±¥Ñä™½ÈÉ…™…¹„…‘µ¥¹¥ÍÑÉ…Ñ¥½¸İ½É­™±½İÌ¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰½‰Í•ÉÙ…‰¥±¥Ñä‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘…Í¡‰½…É‘Ìˆ°€‰µ½¹¥Ñ½É¥¹œ‰t°(€€€€€€‰Ñ…Ìˆèl‰½‰Í•ÉÙ…‰¥±¥Ñäˆ°€‰‘…Í¡‰½…É‘Ì‰t°(€€€€€€‰½µµ…¹ˆè€‰É…™…¹„µ±¤ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°((€€€ì(€€€€€€‰¥ˆè€‰Á…¹‘½Œˆ°(€€€€€€‰¹…µ”ˆè€‰A…¹‘½Œˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰‘½Õµ•¹Ğ½¹Ù•ÉÍ¥½¸½µµ…¹µ±¥¹”Ñ½½°¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘½Õµ•¹ÑÌˆ°€‰½¹Ù•ÉÍ¥½¸ˆ°€‰µ…É­‘½İ¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰µ…É­‘½İ¸ˆ°€‰ÁÕ‰±¥Í¡¥¹œ‰t°(€€€€€€‰½µµ…¹ˆè€‰Á…¹‘½Œˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰ÅÕ…ÉÑ¼ˆ°(€€€€€€‰¹…µ”ˆè€‰EÕ…ÉÑ¼ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰‘½Õµ•¹Ğ…¹ÁÕ‰±¥Í¡¥¹œ½µµ…¹µ±¥¹”Ñ½½°¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘½Õµ•¹ÑÌˆ°€‰ÁÕ‰±¥Í¡¥¹œˆ°€‰µ…É­‘½İ¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰ÁÕ‰±¥Í¡¥¹œ‰t°(€€€€€€‰½µµ…¹ˆè€‰ÅÕ…ÉÑ¼ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰ÑåÁÍĞˆ°(€€€€€€‰¹…µ”ˆè€‰QåÁÍĞˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰µ…É­ÕÀµ‰…Í•‘½Õµ•¹ĞÑåÁ•Í•ÑÑ¥¹œ½µµ…¹¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘½Õµ•¹ÑÌˆ°€‰ÑåÁ•Í•ÑÑ¥¹œ‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰ÁÕ‰±¥Í¡¥¹œ‰t°(€€€€€€‰½µµ…¹ˆè€‰ÑåÁÍĞˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰µ‘‰½½¬ˆ°(€€€€€€‰¹…µ”ˆè€‰µ‘	½½¬ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰½µµ…¹µ±¥¹”Ñ½½°™½È‰Õ¥±‘¥¹œ5…É­‘½İ¸‰½½­Ì¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘½Õµ•¹ÑÌˆ°€‰ÁÕ‰±¥Í¡¥¹œˆ°€‰µ…É­‘½İ¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰µ…É­‘½İ¸‰t°(€€€€€€‰½µµ…¹ˆè€‰µ‘‰½½¬ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰Á±…¹ÑÕµ°ˆ°(€€€€€€‰¹…µ”ˆè€‰A±…¹ÑU50ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰‘¥…É…´•¹•É…Ñ¥½¸½µµ…¹µ±¥¹”Ñ½½°¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘¥…É…µÌˆ°€‰‘½Õµ•¹Ñ…Ñ¥½¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰‘¥…É…µÌ‰t°(€€€€€€‰½µµ…¹ˆè€‰Á±…¹ÑÕµ°ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰µ•Éµ…¥µ±¤ˆ°(€€€€€€‰¹…µ”ˆè€‰5•Éµ…¥1$ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰½µµ…¹µ±¥¹”É•¹‘•É•È™½È5•Éµ…¥‘¥…É…µÌ¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘¥…É…µÌˆ°€‰‘½Õµ•¹Ñ…Ñ¥½¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰‘¥…É…µÌ‰t°(€€€€€€‰½µµ…¹ˆè€‰µµ‘Œˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô°(€€€ì(€€€€€€‰¥ˆè€‰‘É…İ¥¼ˆ°(€€€€€€‰¹…µ”ˆè€‰‘É…Ü¹¥¼ˆ°(€€€€€€‰‘•ÍÉ¥ÁÑ¥½¸ˆè€‰‘¥…É…´•‘¥Ñ½È•á•ÕÑ…‰±”Ñ¡…Ğ…¸‰”ÕÍ•¥¸‘½Õµ•¹Ñ…Ñ¥½¸İ½É­™±½İÌ¸ˆ°(€€€€€€‰…Ñ•½É¥•Ìˆèl‰‘•Í¥¸µ‘½Ì‰t°(€€€€€€‰…Á…‰¥±¥Ñ¥•Ìˆèl‰‘¥…É…µÌˆ°€‰‘½Õµ•¹Ñ…Ñ¥½¸‰t°(€€€€€€‰Ñ…Ìˆèl‰‘½Ìˆ°€‰‘¥…É…µÌˆ°€‰‘•Í¥¸‰t°(€€€€€€‰½µµ…¹ˆè€‰‘É…İ¥¼ˆ°(€€€€€€‰ÁÉ½‰•Ìˆèmì€‰…ÉÌˆèlˆ´µÙ•ÉÍ¥½¸‰tõt(€€€ô(€t)ô

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/resource-profile.schema.json",
+  "title": "WorktreeProof Resource Profile and Scan",
+  "description": "Read-only, bounded host diagnostics and the conservative execution profile derived from them.",
+  "type": "object",
+  "required": ["name", "maxConcurrency", "memoryPerWorkerBytes", "cacheMode", "artifactPolicy"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": ["low-resource", "balanced", "fast", "ci"]
+    },
+    "maxConcurrency": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 24
+    },
+    "concurrency": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "memoryPerWorkerBytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "cacheMode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactPolicy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "diskReserveRatio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "cpuUtilization": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "requested": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selectedBy": {
+      "type": "string",
+      "enum": ["requested", "detected"]
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "limits": {
+      "type": "object",
+      "required": ["maxConcurrency", "memoryPerWorkerBytes", "diskReserveRatio"],
+      "properties": {
+        "maxConcurrency": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "memoryPerWorkerBytes": { "type": "integer", "minimum": 1 },
+        "diskReserveRatio": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "boundedMetric": {
+      "type": "object",
+      "required": ["bytes", "files", "directories", "status", "bounded"],
+      "properties": {
+        "path": { "type": ["string", "null"] },
+        "present": { "type": "boolean" },
+        "bytes": { "type": "number", "minimum": 0 },
+        "files": { "type": "integer", "minimum": 0 },
+        "directories": { "type": "integer", "minimum": 0 },
+        "entries": { "type": "integer", "minimum": 0 },
+        "scannedEntries": { "type": "integer", "minimum": 0 },
+        "status": { "type": "string", "enum": ["ok", "partial", "blocked", "unavailable"] },
+        "bounded": { "const": true },
+        "maxDepth": { "type": "integer", "minimum": 1 },
+        "maxEntries": { "type": "integer", "minimum": 1 },
+        "truncated": { "type": "boolean" },
+        "blockedPaths": { "type": "array", "items": { "type": "string" } },
+        "unreadablePaths": { "type": "array", "items": { "type": "string" } },
+        "escapingPaths": { "type": "array", "items": { "type": "string" } },
+        "symlinkPaths": { "type": "array", "items": { "type": "string" } },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "cleanupItem": {
+      "type": "object",
+      "required": ["category", "path", "bytes", "requiresConfirmation", "safeToDelete", "recoverability"],
+      "properties": {
+        "category": { "type": "string", "enum": ["cache", "build", "worktree"] },
+        "path": { "type": "string" },
+        "bytes": { "type": "number", "minimum": 0 },
+        "requiresConfirmation": { "const": true },
+        "safeToDelete": { "const": false },
+        "recoverability": { "type": "string", "enum": ["rebuildable", "conditional", "unknown"] }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "feature",
+  "name": "Bounded feature",
+  "description": "Deliver one well-scoped feature from acceptance behavior through implementation, checks, and a reviewable terminal receipt.",
+  "outcomes": [
+    { "id": "behavior", "description": "The requested feature behavior is implemented with explicit success and failure handling.", "evidence": ["acceptance note", "focused checks"] },
+    { "id": "integration", "description": "The change has a named integration point, quality result, and safe rescue route.", "evidence": ["diff summary", "closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "acceptance", "description": "The feature request names user-visible behavior, non-goals, and acceptance evidence.", "check": "Read the acceptance note and split it into observable cases." },
+    { "id": "scope", "description": "The files and external resources needed by the feature can be reserved without overlap.", "check": "List relative scopes and check active reservations before editing." }
+  ],
+  "lanes": [
+    { "laneId": "frame-feature", "fileScope": "notes/feature", "objective": "Turn the request into acceptance cases, non-goals, and independent scopes.", "mode": "audit", "dependsOn": [], "deliverables": ["acceptance cases", "lane plan"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-feature", "fileScope": "src/feature", "objective": "Implement the agreed feature behavior without unrelated cleanup.", "mode": "build", "dependsOn": ["frame-feature"], "deliverables": ["feature change", "focused tests"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-feature", "fileScope": "test/feature", "objective": "Verify acceptance, failure handling, compatibility, and the declared non-goals.", "mode": "audit", "dependsOn": ["build-feature"], "deliverables": ["verification result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "preview", "receipt"],
+  "qualityGates": [
+    { "id": "accepted", "description": "Every acceptance case maps to an observable check and a named owner scope.", "evidence": ["acceptance map", "lane scopes"] },
+    { "id": "verified", "description": "Focused and relevant broad checks pass with no ignored failures.", "evidence": ["test output", "failure-path result"] },
+    { "id": "reviewable", "description": "The diff is narrow, documented, and tied to a terminal integration target.", "evidence": ["diff check", "integration reference"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response.", "boundary": "Stop and hand the entry to the owner; prepare context without typing or recording the secret.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Change billing, account security, destructive data, or live financial behavior as part of the feature.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Feature work is limited to reversible and verified behavior." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the acceptance cases and return to the last known-good integration point if a gate fails.", "rescueSteps": ["Capture redacted status, diff, and check results.", "Preserve the feature patch in its reserved scope.", "Record whether the feature was merged or abandoned."], "stopConditions": ["Acceptance behavior is ambiguous.", "The change needs an overlapping scope.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["acceptance mapping", "test result", "reviewed diff"], "redactionRules": ["Omit credentials, tokens, private paths, and personal data.", "Keep only safe identifiers and summarized outcomes."], "terminalOutcomes": ["merged", "abandoned"] }
+}

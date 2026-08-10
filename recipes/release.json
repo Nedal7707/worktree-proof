@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "release",
+  "name": "Release readiness",
+  "description": "Run a release readiness pass from a reviewed integration point with reproducible artifacts, explicit gates, and rollback evidence.",
+  "outcomes": [
+    { "id": "ready", "description": "Scope, version, changelog, tests, observability, owner boundaries, and artifact checks have outcomes.", "evidence": ["release checklist", "gate summary"] },
+    { "id": "traceable", "description": "The release artifact and previous release are identifiable in a redacted terminal receipt.", "evidence": ["artifact digest", "rollback reference"] }
+  ],
+  "prerequisites": [
+    { "id": "integration", "description": "The source is at a reviewed integration point with no unresolved scope or test failure.", "check": "Inspect status, diff summary, and relevant test result before release work." },
+    { "id": "communication", "description": "The intended audience, release notes, health signal, and rollback owner are known.", "check": "Write the communication and rescue facts without private or secret values." }
+  ],
+  "lanes": [
+    { "laneId": "check-release", "fileScope": "notes/release", "objective": "Walk through readiness, version, changelog, observability, owner boundaries, and rollback gates.", "mode": "audit", "dependsOn": [], "deliverables": ["release checklist", "gate outcome"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-release", "fileScope": "artifacts/release", "objective": "Build and inspect a reproducible release artifact from the reviewed integration point.", "mode": "build", "dependsOn": ["check-release"], "deliverables": ["release artifact", "artifact digest"] , "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-release", "fileScope": "test/release", "objective": "Verify release checks, artifact traceability, health evidence, and rollback identification.", "mode": "audit", "dependsOn": ["build-release"], "deliverables": ["release result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "build", "test", "deploy", "release", "receipt"],
+  "qualityGates": [
+    { "id": "checklist", "description": "Every readiness gate has a pass, fail, or explicit not-applicable result.", "evidence": ["checklist", "gate summary"] },
+    { "id": "artifact", "description": "The artifact is reproducible and traceable to the reviewed integration point.", "evidence": ["artifact digest", "canonical reference"] },
+    { "id": "rollback", "description": "Health evidence and the prior release route are recorded before any irreversible promotion.", "evidence": ["health result", "rollback reference"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response for a release system.", "boundary": "Stop and hand the entry to the owner; prepare artifacts and evidence without typing secrets.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Promote live traffic, change billing or account security, perform destructive work, or execute live financial behavior.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Readiness evidence does not itself authorize live impact." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the prior release and return to it through the documented route when a release gate or health signal fails.", "rescueSteps": ["Capture redacted checklist, artifact, and health summaries.", "Preserve the release artifact for review without promoting it.", "Record the failed gate and mark the release abandoned when needed."], "stopConditions": ["A readiness gate is missing or contradictory.", "The artifact cannot be traced to reviewed source.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["readiness gate outcomes", "artifact digest", "rollback reference"], "redactionRules": ["Omit credentials, tokens, private paths, and private communication content.", "Record safe release identifiers and status summaries only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

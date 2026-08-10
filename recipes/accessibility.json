@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "accessibility",
+  "name": "Accessibility pass",
+  "description": "Audit and improve one user journey for keyboard, semantic, visual, motion, and assistive technology quality.",
+  "outcomes": [
+    { "id": "access", "description": "The targeted journey has an explicit result for keyboard, focus, semantics, contrast, and assistive output.", "evidence": ["audit checklist", "focused result"] },
+    { "id": "limits", "description": "A receipt records covered states, remaining limitations, and a safe follow-up path.", "evidence": ["redacted evidence", "limitation note"] }
+  ],
+  "prerequisites": [
+    { "id": "journey", "description": "The user journey, supported inputs, important states, and expected inclusive behavior are named.", "check": "Write the path and its loading, empty, error, and success states." },
+    { "id": "surface", "description": "The journey can be inspected in a safe local or preview environment.", "check": "Confirm that no credential value or live mutation is needed for the audit." }
+  ],
+  "lanes": [
+    { "laneId": "frame-access", "fileScope": "notes/accessibility", "objective": "Map the journey, assistive expectations, and evidence checklist.", "mode": "audit", "dependsOn": [], "deliverables": ["accessibility brief", "state matrix"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "fix-access", "fileScope": "src/accessibility", "objective": "Apply focused semantic, focus, contrast, or motion improvements in the owned scope.", "mode": "build", "dependsOn": ["frame-access"], "deliverables": ["accessibility change", "focused checks"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-access", "fileScope": "test/accessibility", "objective": "Run keyboard, focus, semantic, visual, and assistive output checks against the brief.", "mode": "audit", "dependsOn": ["fix-access"], "deliverables": ["audit result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "browser", "accessibility", "receipt"],
+  "qualityGates": [
+    { "id": "keyboard", "description": "The journey is usable with keyboard navigation, visible focus, and predictable focus recovery.", "evidence": ["keyboard pass", "focus notes"] },
+    { "id": "semantics", "description": "Names, roles, states, contrast, and motion behavior match the declared user journey.", "evidence": ["accessibility tree", "visual check"] },
+    { "id": "limits", "description": "Uncovered combinations and known limitations are stated rather than implied away.", "evidence": ["coverage note", "receipt review"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response during an accessibility check.", "boundary": "Stop and hand the entry to the owner; inspect only safe content after access is already available.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Change billing, account security, destructive data, or live financial behavior while auditing the journey.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Accessibility work belongs in a safe test or preview path." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the before-state audit and return to the last known-good integration point if an inclusive behavior regresses.", "rescueSteps": ["Capture redacted tree, keyboard, and visual summaries.", "Preserve the focused semantic or style patch.", "Record the uncovered state and mark the lane abandoned when proof is incomplete."], "stopConditions": ["The journey cannot be reached safely.", "A fix changes unrelated behavior.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["keyboard and focus result", "semantic and visual result", "limitations note"], "redactionRules": ["Omit credentials, tokens, private paths, and private page content.", "Use redacted captures and safe route names only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

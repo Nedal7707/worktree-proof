@@ -1,0 +1,26 @@
+[
+  {
+    "laneId": "docs-api",
+    "fileScope": "docs/api",
+    "task": "Refresh the public API guide",
+    "mode": "build",
+    "branch": "lane/docs-api",
+    "integrationTarget": "main",
+    "status": "planned",
+    "metadata": {
+      "owner": "example"
+    }
+  },
+  {
+    "laneId": "tests-cli",
+    "fileScope": "test/cli",
+    "task": "Add command-line contract tests",
+    "mode": "build",
+    "branch": "lane/tests-cli",
+    "integrationTarget": "main",
+    "status": "planned",
+    "metadata": {
+      "owner": "example"
+    }
+  }
+]

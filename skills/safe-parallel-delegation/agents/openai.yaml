@@ -1,0 +1,4 @@
+interface:
+  display_name: "Safe Parallel Delegation"
+  short_description: "Model-agnostic safe parallel delegation"
+  default_prompt: "Use $safe-parallel-delegation to split work into safe, non-overlapping lanes."

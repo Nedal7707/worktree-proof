@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "purpose": "Beginner-friendly prompts for turning a rough request into bounded, verified WorktreeProof work.",
+  "briefs": [
+    {
+      "recipeId": "accessibility",
+      "prompt": "Guide a careful accessibility pass for the requested user journey. First state the user-visible behavior and the changed relative scopes. Check semantics, keyboard order, focus recovery, contrast, reduced motion, and assistive output. Keep each lane independent, run a focused check before a broad check, and stop at any credential, payment, destructive, or live-action boundary. End with redacted evidence and a closure receipt.",
+      "antiGoals": ["Do not claim compliance from a static scan alone.", "Do not change unrelated screens while fixing one journey."],
+      "receiptFocus": ["keyboard and assistive-path evidence", "remaining limitations"]
+    },
+    {
+      "recipeId": "api",
+      "prompt": "Turn the API request into a small contract-first change. Describe request, success, validation, error, timeout, and compatibility behavior before editing. Reserve sibling lanes for contract notes, implementation, and deterministic fixture checks. Keep credentials and live traffic out of commands, verify observability, and record a reversible integration point with a redacted receipt.",
+      "antiGoals": ["Do not broaden the endpoint contract without evidence.", "Do not exercise a live customer or financial operation."],
+      "receiptFocus": ["contract cases", "compatibility result", "redaction status"]
+    },
+    {
+      "recipeId": "bug-fix",
+      "prompt": "Use a prove-it workflow for the reported bug. Capture the smallest reproduction, identify the expected state, and write a focused regression check before changing behavior. Split reproduction, fix, and verification into non-overlapping scopes. Keep the patch narrow, inspect the diff, run the focused check and the relevant suite, and leave a rescue note if the cause remains uncertain.",
+      "antiGoals": ["Do not hide the bug by weakening an assertion.", "Do not mix cleanup or unrelated refactoring into the fix."],
+      "receiptFocus": ["reproduction before and after", "first failing evidence", "regression result"]
+    },
+    {
+      "recipeId": "ci-repair",
+      "prompt": "Repair one continuous-integration failure from its first actionable log line. Record the failing job and environment facts, reproduce the smallest useful step, and reserve separate lanes for diagnosis, repair, and verification. Prefer deterministic configuration or test fixes, preserve the safety boundary, and verify both the focused job and the neighboring checks before closing with redacted log evidence.",
+      "antiGoals": ["Do not delete a failing job to make the run green.", "Do not add retries that conceal a flaky root cause."],
+      "receiptFocus": ["failure identifier", "reproduction command", "green verification"]
+    },
+    {
+      "recipeId": "database-migration",
+      "prompt": "Plan a backwards-cÛm{¶‰ËkºwµçqÌˆèl‰¼¹½Ğ‘•±…É”…±°‘•Ù¥•Ì½Ù•É•™É½´½¹”Í¥µÕ±…Ñ½ÈÉÕ¸¸ˆ°€‰¼¹½ĞÁ±…”Í¥¹¥¹œµ…Ñ•É¥…°½ÈÁÉ¥Ù…Ñ”‘•Ù¥”‘…Ñ„¥¸½ÕÑÁÕĞ¸‰t°(€€€€€€‰É••¥ÁÑ½ÕÌˆèl‰Á±…Ñ™½É´…¹Ù…É¥…¹Ğµ…ÑÉ¥àˆ°€‰±¥™•å±”É•ÍÕ±Ğˆ°€‰É•‘…Ñ•Ù¥ÍÕ…°•Ù¥‘•¹”‰t(€€€ô°(€€€ì(€€€€€€‰É•¥Á•%ˆè€‰Á•É™½Éµ…¹”ˆ°(€€€€€€‰ÁÉ½µÁĞˆè€‰%µÁÉ½Ù”½¹”µ•…ÍÕÉ…‰±”Á•É™½Éµ…¹”‰Õ‘•ĞÉ…Ñ¡•ÈÑ¡…¸¡…Í¥¹œÙ…Õ”ÍÁ••¸…ÁÑÕÉ”„É•ÁÉ•Í•¹Ñ…Ñ¥Ù”‰•™½É”µ•…ÍÕÉ•µ•¹Ğ°¥‘•¹Ñ¥™äÑ¡”‰½ÑÑ±•¹•¬°…¹­••ÀÁÉ½™¥±¥¹œ°¥µÁ±•µ•¹Ñ…Ñ¥½¸°…¹‰Õ‘•ĞÙ•É¥™¥…Ñ¥½¸¥¸Í•Á…É…Ñ”Í½Á•Ì¸¡…¹”½¹”™…Ñ½È…Ğ„Ñ¥µ”°É•Á•…ĞÑ¡”Í…µ”İ½É­±½…°ÁÉ•Í•ÉÙ”½ÉÉ•Ñ¹•ÍÌ…¹…•ÍÍ¥‰¥±¥Ñä°…¹É•Á½ÉĞÙ…É¥…¹”½Èµ¥ÍÍ¥¹œÁÉ½‘ÕÑ¥½¸•Ù¥‘•¹”±•…É±ä¸ˆ°(€€€€€€‰…¹Ñ¥½…±Ìˆèl‰¼¹½Ğ½ÁÑ¥µ¥é”„Íå¹Ñ¡•Ñ¥Œ¹Õµ‰•Èİ¡¥±”ÕÍ•È‰•¡…Ù¥½ÈÉ•É•ÍÍ•Ì¸ˆ°€‰¼¹½Ğ¡¥‘”„Í±½İ•È…Í”‰ä¡…¹¥¹œÑ¡”µ•…ÍÕÉ•µ•¹Ğ¸‰t°(€€€€€€‰É••¥ÁÑ½ÕÌˆèl‰‰•™½É”…¹…™Ñ•Èµ•…ÍÕÉ•µ•¹Ğˆ°€‰‰Õ‘•ĞÑ¡É•Í¡½±ˆ°€‰İ½É­±½…‘•ÍÉ¥ÁÑ¥½¸‰t(€€€ô°(€€€ì(€€€€€€‰É•¥Á•%ˆè€‰É•™…Ñ½Èˆ°(€€€€€€‰ÁÉ½µÁĞˆè€‰I•™…Ñ½È™½È±…É¥Ñäİ¡¥±”­••Á¥¹œ‰•¡…Ù¥½ÈÍÑ…‰±”¸•ÍÉ¥‰”Ñ¡”ÕÉÉ•¹Ğ½¹ÑÉ…Ğ…¹Ñ¡”É•…Í½¸™½ÈÑ¡”¡…¹”°Ñ¡•¸É•Í•ÉÙ”¡…É…Ñ•É¥é…Ñ¥½¸°É•™…Ñ½È°…¹É•É•ÍÍ¥½¸µ¡•¬±…¹•Ìİ¥Ñ ¹½¸µ½Ù•É±…ÁÁ¥¹œÍ½Á•Ì¸-••À‘¥™™Ìµ•¡…¹¥…°İ¡•É”Á½ÍÍ¥‰±”°…Ù½¥™•…ÑÕÉ”¡…¹•Ì°ÉÕ¸Ñ¡”É•±•Ù…¹ĞÑ•ÍÑÌ°…¹µ…­”Ñ¡”É•ÍÕ”É½ÕÑ”Ñ¡”±…ÍĞ­¹½İ¸µ½½¥¹Ñ•É…Ñ¥½¸Á½¥¹Ğ¸ˆ°(€€€€€€‰…¹Ñ¥½…±Ìˆèl‰¼¹½Ğ¡…¹”‰•¡…Ù¥½ÈÕ¹‘•ÈÑ¡”±…‰•°½˜±•…¹ÕÀ¸ˆ°€‰¼¹½Ğ‰É½…‘•¸Ñ¡”™¥±”Í½Á”‰•…ÕÍ”„¹•…É‰ä¥µÁÉ½Ù•µ•¹Ğ±½½­ÌÑ•µÁÑ¥¹œ¸‰t°(€€€€€€‰É••¥ÁÑ½ÕÌˆèl‰¡…É…Ñ•É¥é…Ñ¥½¸É•ÍÕ±Ğˆ°€‰‘¥™˜É•Ù¥•Üˆ°€‰É•É•ÍÍ¥½¸É•ÍÕ±Ğ‰t(€€€ô°(€€€ì(€€€€€€‰É•¥Á•%ˆè€‰É•±•…Í”ˆ°(€€€€€€‰ÁÉ½µÁĞˆè€‰IÕ¸„É•±•…Í”É•…‘¥¹•ÍÌÁ…ÍÌ™É½´„É•Ù¥•İ•¥¹Ñ•É…Ñ¥½¸Á½¥¹Ğ¸¡•¬Í½Á”°Ù•ÉÍ¥½¹¥¹œ°¡…¹•±½œ°…ÉÑ¥™…ĞÉ•ÁÉ½‘Õ¥‰¥±¥Ñä°Ñ•ÍÑÌ°½‰Í•ÉÙ…‰¥±¥Ñä°½İ¹•È‰½Õ¹‘…É¥•Ì°…¹É½±±‰…¬¥‘•¹Ñ¥™¥…Ñ¥½¸¸-••À¡•­±¥ÍĞ°…ÉÑ¥™…Ğ°…¹™¥¹…°•Ù¥‘•¹”¥¸¥¹‘•Á•¹‘•¹Ğ±…¹•Ì¸9•Ù•È¥¹±Õ‘”É•‘•¹Ñ¥…±Ì½ÈÁÉ¥Ù…Ñ”‘…Ñ„°…¹±½Í”İ¥Ñ …¸•áÁ±¥¥Ğµ•É•½È…‰…¹‘½¹•½ÕÑ½µ”É…Ñ¡•ÈÑ¡…¸„Á±…¹¹•É•±•…Í”±…¥´¸ˆ°(€€€€€€‰…¹Ñ¥½…±Ìˆèl‰¼¹½Ğ…±°„‘É…™Ğ…ÉÑ¥™…Ğ„É•±•…Í•…ÉÑ¥™…Ğ¸ˆ°€‰¼¹½Ğ‰åÁ…ÍÌ„™…¥±•Í…™•Ñä½ÈÉ½±±‰…¬…Ñ”Ñ¼µ••Ğ„‘…Ñ”¸‰t°(€€€€€€‰É••¥ÁÑ½ÕÌˆèl‰É•±•…Í”¥‘•¹Ñ¥™¥•Èˆ°€‰¡•­±¥ÍĞ½ÕÑ½µ”ˆ°€‰É½±±‰…¬•Ù¥‘•¹”‰t(€€€ô°(€€€ì(€€€€€€‰É•¥Á•%ˆè€‰Í•ÕÉ¥ÑäµÉ•Ù¥•Üˆ°(€€€€€€‰ÁÉ½µÁĞˆè€‰I•Ù¥•Ü½¹”‰½Õ¹‘•Í•ÕÉ¥ÑäÍÕÉ™…”İ¥Ñ „±•…ÈÑÉÕÍĞ‰½Õ¹‘…Éä¸%¹Ù•¹Ñ½Éä¥¹ÁÕÑÌ°¥‘•¹Ñ¥Ñ¥•Ì°‘…Ñ„™±½İÌ°…‰ÕÍ”…Í•Ì°µ¥Ñ¥…Ñ¥½¹Ì°…¹É•Í¥‘Õ…°É¥Í¬°Ñ¡•¸É•Í•ÉÙ”ÍÑ…Ñ¥Œ¡•­Ì°Ñ¡É•…ĞÉ•…Í½¹¥¹œ°…¹Ù…±¥‘…Ñ¥½¸±…¹•Ì¸-••À™¥¹‘¥¹Ì™…ÑÕ…°…¹É•‘…Ñ•°¹•Ù•ÈÑ•ÍĞ……¥¹ÍĞ…½Õ¹ÑÌ½È‘…Ñ„İ¥Ñ¡½ÕĞ…ÕÑ¡½É¥é…Ñ¥½¸°…¹ÍÑ½À…ĞÉ•‘•¹Ñ¥…°°‰¥±±¥¹œ°…½Õ¹ĞµÍ•ÕÉ¥Ñä°½È±¥Ù”µ…Ñ¥½¸‰½Õ¹‘…É¥•Ì¸ˆ°(€€€€€€‰…¹Ñ¥½…±Ìˆèl‰¼¹½Ğ±…¥´„±•…¸É•Ù¥•Ü™É½´„Í…¹¹•Èİ¥Ñ ¹¼Ñ¡É•…ĞÉ•…Í½¹¥¹œ¸ˆ°€‰¼¹½Ğ•áÁ±½¥Ğ„±¥Ù”ÍåÍÑ•´½ÈÉ•Ñ…¥¸Í•¹Í¥Ñ¥Ù”ÁÉ½½˜¸‰t°(€€€€€€‰É••¥ÁÑ½ÕÌˆèl‰ÑÉÕÍĞ‰½Õ¹‘…Éäˆ°€‰Ù…±¥‘…Ñ•™¥¹‘¥¹Ìˆ°€‰É•Í¥‘Õ…°É¥Í¬…¹½İ¹•È…Ñ¥½¸‰t(€€€ô(€t)ô

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nedal7707.github.io/worktree-proof/sitemap.xml

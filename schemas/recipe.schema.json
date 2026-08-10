@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/recipe.schema.json",
+  "title": "WorktreeProof vibe-to-verified recipe",
+  "description": "A portable, beginner-friendly workflow recipe with bounded lanes, capability tags, safety gates, rescue guidance, and a terminal receipt contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "description",
+    "outcomes",
+    "prerequisites",
+    "lanes",
+    "toolCapabilities",
+    "qualityGates",
+    "ownerConfirmationBoundaries",
+    "rollbackRescue",
+    "closureReceiptRequirements"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Stable recipe identifier used in filenames and prompt briefs.",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "description": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 2000
+    },
+    "outcomes": {
+      "type": "array",
+      "description": "Concrete results that can be shown in a closure receipt.",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "evidence"],
+        "properties": {
+          "id": { "$ref": "#/$defs/identifier" },
+          "description": { "$ref": "#/$defs/longText" },
+          "evidence": { "$ref": "#/$defs/stringList" }
+        }
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "description": "Checks to make before reserving a lane.",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "check"],
+        "properties": {
+          "id": { "$ref": "#/$defs/identifier" },
+          "description": { "$ref": "#/$defs/longText" },
+          "check": { "$ref": "#/$defs/longText" }
+        }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "description": "Independently owned scopes. Sibling scopes are required; overlapping work is not a valid recipe.",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["laneId", "fileScope", "objective", "mode", "dependsOn", "deliverables", "commands"],
+        "properties": {
+          "laneId": {
+            "$ref": "#/$defs/identifier",
+            "description": "Unique lane name within this recipe."
+          },
+          "fileScope": {
+            "$ref": "#/$defs/relativeScope",
+            "description": "Relative scope owned by this lane; sibling scopes must not overlap."
+          },
+          "objective": { "$ref": "#/$defs/longText" },
+          "mode": {
+            "type": "string",
+            "enum": ["build", "integ€ø-¢Gß≤⁄Óù∆≠y⁄      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "evidence"],
+        "properties": {
+          "id": { "$ref": "#/$defs/identifier" },
+          "description": { "$ref": "#/$defs/longText" },
+          "evidence": { "$ref": "#/$defs/stringList" }
+        }
+      }
+    },
+    "ownerConfirmationBoundaries": {
+      "type": "array",
+      "description": "Actions that are either explicitly safe to do autonomously or require a human confirmation.",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "action", "boundary", "requiresConfirmation", "reason"],
+        "properties": {
+          "id": { "$ref": "#/$defs/identifier" },
+          "action": { "$ref": "#/$defs/longText" },
+          "boundary": { "$ref": "#/$defs/longText" },
+          "requiresConfirmation": { "type": "boolean" },
+          "reason": { "$ref": "#/$defs/longText" }
+        }
+      }
+    },
+    "rollbackRescue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rollbackPlan", "rescueSteps", "stopConditions"],
+      "properties": {
+        "rollbackPlan": { "$ref": "#/$defs/longText" },
+        "rescueSteps": { "$ref": "#/$defs/stringList" },
+        "stopConditions": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "closureReceiptRequirements": {
+      "type": "object",
+      "description": "The evidence a lane must leave when it is merged or deliberately abandoned.",
+      "additionalProperties": false,
+      "required": ["requiredFields", "evidence", "redactionRules", "terminalOutcomes"],
+      "properties": {
+        "requiredFields": { "$ref": "#/$defs/stringList" },
+        "evidence": { "$ref": "#/$defs/stringList" },
+        "redactionRules": { "$ref": "#/$defs/stringList" },
+        "terminalOutcomes": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "enum": ["merged", "abandoned"]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "capability": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "relativeScope": {
+      "type": "string",
+      "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$))[^\\u0000]+$",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "longText": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 2000
+    },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      }
+    }
+  }
+}

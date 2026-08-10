@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "bug-fix",
+  "name": "Prove and fix a bug",
+  "description": "Reproduce one reported defect, make the smallest safe fix, and prove the regression is guarded without hiding uncertainty.",
+  "outcomes": [
+    { "id": "reproduction", "description": "The original failure is captured as a deterministic before-state check.", "evidence": ["reproduction result", "expected versus actual note"] },
+    { "id": "regression", "description": "The narrow fix passes its regression check and relevant neighboring tests.", "evidence": ["focused test output", "diff review"] }
+  ],
+  "prerequisites": [
+    { "id": "report", "description": "The defect has a concrete input, observed result, and expected result.", "check": "Read the report and restate it without guessing at the cause." },
+    { "id": "baseline", "description": "The current behavior can be observed without changing production data or credentials.", "check": "Run the smallest safe reproduction and preserve its output." }
+  ],
+  "lanes": [
+    { "laneId": "reproduce-bug", "fileScope": "test/reproduction", "objective": "Write and run a failing reproduction that names the expected and actual state.", "mode": "audit", "dependsOn": [], "deliverables": ["reproduction check", "failure evidence"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "fix-bug", "fileScope": "src/bug-fix", "objective": "Apply the smallest implementation change that addresses the proven cause.", "mode": "build", "dependsOn": ["reproduce-bug"], "deliverables": ["narrow fix", "change rationale"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-bug", "fileScope": "test/regression", "objective": "Run the regression and relevant neighboring checks, including the failure path.", "mode": "audit", "dependsOn": ["fix-bug"], "deliverables": ["test result", "redacted receipt evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "evidence", "receipt"],
+  "qualityGates": [
+    { "id": "reproduced", "description": "The pre-fix check fails for the stated reason and does not rely on timing luck.", "evidence": ["before result", "reproduction note"] },
+    { "id": "fixed", "description": "The focused regression passes without weakening the assertion or broadening scope.", "evidence": ["after result", "changed-file diff"] },
+    { "id": "neighboring", "description": "Relevant neighboring tests and a clean diff show no unrelated regression.", "evidence": ["suite result", "diff check"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response.", "boundary": "Stop and hand the entry to the owner; prepare context without typing or recording the secret.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Apply a destructive data change, account-security change, or live financial action while fixing the defect.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "A bug fix can be verified in a safe environment without live impact." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the failing reproduction and return to the last known-good change if the fix does not explain the failure.", "rescueSteps": ["Preserve the first failure and the exact changed scope.", "Record a clear hypothesis and what evidence is missing.", "Mark the lane abandoned if a repeatable proof cannot be recovered."], "stopConditions": ["The reproduction is not deterministic.", "The fix requires unrelated behavior changes.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["before and after reproduction", "regression result", "diff review"], "redactionRules": ["Omit credentials, tokens, private paths, and personal data.", "Include error names and safe summaries without payload secrets."], "terminalOutcomes": ["merged", "abandoned"] }
+}

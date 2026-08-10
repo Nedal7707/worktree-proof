@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "laneId": "lane-plan",
+  "outcome": "merged",
+  "closedAt": "2026-01-01T00:00:00Z",
+  "canonicalRef": "main",
+  "mergeSha": "0000000000000000000000000000000000000000",
+  "tests": {
+    "commands": ["git diff --check", "git status --short"],
+    "result": "passed",
+    "summary": "Focused checks completed with no unreviewed failures."
+  },
+  "evidence": {
+    "summary": "The lane reached its declared outcome and left a reviewable redacted record.",
+    "artifacts": ["changed-file summary", "check output summary"],
+    "secretsRedacted": true
+  },
+  "notes": "Use outcome abandoned with branchDeleted and worktreeClean when rescue stops the lane before merge."
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nedal7707/worktree-proof/schemas/failure-class.schema.json",
+  "title": "WorktreeProof failure-class lessons",
+  "description": "A versioned, portable collection of public coordination failure lessons.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "lessons"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "lessons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/failureClass"
+      }
+    }
+  },
+  "$defs": {
+    "failureClass": {
+      "title": "Failure-class lesson",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "symptom",
+        "invariant",
+        "mechanicalControl",
+        "recovery",
+        "testableAcceptance"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "symptom": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "invariant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "mechanicalControl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "recovery": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "testableAcceptance": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    }
+  }
+}

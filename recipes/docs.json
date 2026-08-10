@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "docs",
+  "name": "Documentation update",
+  "description": "Write and render a clear documentation update with accurate prerequisites, examples, safety notes, and link evidence.",
+  "outcomes": [
+    { "id": "reader", "description": "A named audience can follow the documented task from prerequisite through expected result.", "evidence": ["reader path", "example review"] },
+    { "id": "rendered", "description": "The changed documentation renders cleanly and leaves a redacted closure record.", "evidence": ["preview result", "link check"] }
+  ],
+  "prerequisites": [
+    { "id": "audience", "description": "The audience, task, prerequisite knowledge, and success signal are explicit.", "check": "State what a beginner should be able to do after reading." },
+    { "id": "source", "description": "The behavior being documented is verified or clearly labeled as an example.", "check": "Compare claims with a safe current source before writing." }
+  ],
+  "lanes": [
+    { "laneId": "frame-docs", "fileScope": "notes/documentation", "objective": "Outline audience, task, prerequisites, example path, and safety notes.", "mode": "audit", "dependsOn": [], "deliverables": ["documentation outline", "claim checklist"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "write-docs", "fileScope": "docs/update", "objective": "Write the scoped documentation in plain language with accurate examples.", "mode": "build", "dependsOn": ["frame-docs"], "deliverables": ["documentation change", "example review"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-docs", "fileScope": "test/documentation", "objective": "Render the change and check links, headings, terminology, and safety notes.", "mode": "audit", "dependsOn": ["write-docs"], "deliverables": ["preview result", "redacted evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "preview", "docs", "receipt"],
+  "qualityGates": [
+    { "id": "accurate", "description": "Instructions and examples match an observed safe behavior or state their limits plainly.", "evidence": ["claim checklist", "source note"] },
+    { "id": "usable", "description": "A beginner can follow the task with clear prerequisites, steps, and expected result.", "evidence": ["reader path", "terminology review"] },
+    { "id": "rendered", "description": "The preview, links, headings, and navigation checks pass without private content.", "evidence": ["preview output", "link result"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response to verify documentation.", "boundary": "Stop and hand the entry to the owner; use public or safe existing evidence instead.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Document or trigger billing, account security, destructive data, or live financial behavior as a test step.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "Documentation examples must remain safe and reversible." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the previous rendered documentation and return to its last known-good integration point if a claim or link is wrong.", "rescueSteps": ["Capture the failed claim, link, or render summary.", "Preserve the scoped text patch for review.", "Mark the update abandoned when the source behavior cannot be verified."], "stopConditions": ["The documented behavior is unknown or contradictory.", "An example needs private or secret data.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["claim review", "rendered preview", "link and terminology result"], "redactionRules": ["Omit credentials, tokens, private paths, and private dashboard content.", "Use synthetic examples and safe route names."], "terminalOutcomes": ["merged", "abandoned"] }
+}

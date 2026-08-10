@@ -1,0 +1,5 @@
+interface:
+  display_name: "UI Proof Loop"
+  short_description: "Bounded UI evidence with redaction and review"
+  default_prompt: "Use $ui-proof-loop to inventory UI states, run short proof rounds, redact evidence, and obtain operator review."
+

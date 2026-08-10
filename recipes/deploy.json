@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "deploy",
+  "name": "Reversible deployment",
+  "description": "Prepare and verify a deployment artifact in a safe preview path while preserving health evidence and a known rollback route.",
+  "outcomes": [
+    { "id": "artifact", "description": "A reviewed artifact is reproducible, identifiable, and suitable for the declared target.", "evidence": ["artifact summary", "build result"] },
+    { "id": "rollback", "description": "The previous release and health signal remain identifiable for a bounded rollback.", "evidence": ["health result", "rollback note"] }
+  ],
+  "prerequisites": [
+    { "id": "reviewed", "description": "The source change has passed its relevant checks and has a named integration reference.", "check": "Inspect the diff summary, test result, and canonical reference before packaging." },
+    { "id": "target", "description": "The target, owner boundary, health signal, and previous release identifier are known.", "check": "Write the target facts without copying credentials or private configuration values." }
+  ],
+  "lanes": [
+    { "laneId": "frame-deploy", "fileScope": "notes/deploy", "objective": "Define artifact, target, health, owner boundary, and rollback evidence.", "mode": "audit", "dependsOn": [], "deliverables": ["deployment brief", "health checklist"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "build-deploy", "fileScope": "dist/deploy", "objective": "Build and inspect the deployment artifact without changing the reviewed source scope.", "mode": "build", "dependsOn": ["frame-deploy"], "deliverables": ["artifact", "artifact summary"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-deploy", "fileScope": "test/deploy", "objective": "Verify the preview or staging health signal and the previous-release rollback route.", "mode": "audit", "dependsOn": ["build-deploy"], "deliverables": ["health result", "redacted deployment evidence"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "build", "test", "preview", "deploy", "secrets-sensitive", "receipt"],
+  "qualityGates": [
+    { "id": "artifact", "description": "The artifact builds from the reviewed source and has a safe identifying summary.", "evidence": ["build result", "artifact identifier"] },
+    { "id": "health", "description": "The preview or staging health signal and key user path behave as expected.", "evidence": ["health check", "smoke result"] },
+    { "id": "rollback", "description": "The prior release remains identifiable and its restoration route is documented.", "evidence": ["previous release reference", "rollback check"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response for deployment access.", "boundary": "Stop and hand the entry to the owner; prepare the artifact and preview evidence without typing secrets.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Promote live traffic, change account security or billing, perform destructive work, or execute live financial behavior.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "This recipe proves a reversible preview; live impact needs a separate decision." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Keep the previous release identifiable and restore it through the approved reversible route if health evidence fails.", "rescueSteps": ["Capture redacted artifact and health summaries.", "Do not remove the previous release while the new health signal is uncertain.", "Record the deployment as abandoned when no safe proof exists."], "stopConditions": ["The artifact cannot be tied to reviewed source.", "The health signal is unavailable or contradictory.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["artifact identifier", "health result", "rollback route"], "redactionRules": ["Omit credentials, tokens, private paths, and private configuration values.", "Record release identifiers and safe status summaries only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

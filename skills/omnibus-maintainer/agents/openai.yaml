@@ -1,0 +1,4 @@
+interface:
+  display_name: "Omnibus Maintainer"
+  short_description: "Progressive OSS maintenance coordination"
+  default_prompt: "Use $omnibus-maintainer to triage and deliver a bounded OSS maintenance change."

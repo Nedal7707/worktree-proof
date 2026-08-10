@@ -1,0 +1,4 @@
+interface:
+  display_name: "WorktreeProof"
+  short_description: "Conflict-safe lane receipts for agents"
+  default_prompt: "Use $worktree-proof to plan, reserve, run, and close a conflict-safe lane."

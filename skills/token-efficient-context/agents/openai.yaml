@@ -1,0 +1,5 @@
+interface:
+  display_name: "Token-Efficient Context"
+  short_description: "Small, fresh task briefs with budgeted context"
+  default_prompt: "Use $token-efficient-context to build a minimal, source-led brief with a context budget, freshness checks, and stop conditions."
+

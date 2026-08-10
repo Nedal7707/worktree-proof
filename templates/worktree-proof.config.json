@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "canonicalRef": "main",
+  "worktreeRoot": ".worktree-proof/worktrees",
+  "leaseStore": ".worktree-proof/leases.json",
+  "closureStore": ".worktree-proof/closures",
+  "bridgeRoot": ".worktree-proof/bridge",
+  "resourcePolicy": {
+    "requested": 8,
+    "configuredMax": 24
+  },
+  "defaults": {
+    "mode": "build",
+    "integrationTarget": "main",
+    "requireNonOverlappingScopes": true,
+    "requireRedactedEvidence": true
+  }
+}

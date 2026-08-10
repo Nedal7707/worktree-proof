@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1",
+  "lessons": [
+    {
+      "id": "silent-wait-deadlock",
+      "title": "Silent wait or deadlock",
+      "symptom": "A lane stays idle while it waits for a reply, approval, or event that may never arrive; no new artifact or bounded next action appears.",
+      "invariant": "A lane must not depend on an unbounded human or system response to make progress.",
+      "mechanicalControl": "Set an explicit wait deadline and one blocker record; when the deadline is reached, stop and return a resumable handoff instead of polling.",
+      "recovery": "Record what was checked, mark the blocker, release the scope, and resume only when a fresh bounded action is available.",
+      "testableAcceptance": "A harness that withholds a reply observes a blocker and a released scope without an unbounded wait loop."
+    },
+    {
+      "id": "identical-tool-retries",
+      "title": "Repeated identical tool retries",
+      "symptom": "The same command or request is issued again after the same failure without changing its input, environment, or diagnosis.",
+      "invariant": "Each retry must be justified by a changed condition or a newly learned fact; a retry budget is finite.",
+      "mechanicalControl": "Classify the failure, record the attempted input, and stop when the configured retry budget is exhausted or no meaningful change is possible.",
+      "recovery": "Preserve the first useful error, correct the actual input once, then switch to a different bounded path or report the blocker.",
+      "testableAcceptance": "A simulated repeated failure produces a finite attempt record and no further identical call after the retry budget is reached."
+    },
+    {
+      "id": "wrong-workspace-target",
+      "title": "Wrong workspace or target",
+      "symptom": "Commands inspect or change a different checkout, branch, project root, or revision than the task names.",
+      "invariant": "Every read and write must be anchored to an explicitly verified target before mutation begins.",
+      "mechanicalControl": "Record the current directory, repository identity, branch, and target revision at start; reject writes when any check disagrees.",
+      "recovery": "Stop writes, preserve any uncommitted rescue data, compare the intended and actual targets, and continue only from the verified target.",
+      "testableAcceptance": "A test substitutes a different directory or revision and proves the operation fails before changing a file."
+    },
+    {
+      "id": "overlapping-file-lanes",
+      "title": "Overlapping file lanes",
+      "symptom": "Two active lanes claim the same file, a parent directory and its child, or equivalent paths written in different forms.",
+      "invariant": "Active lanes must have unique, normalized, non-overlapping relative scopes.",
+      "mechanicalControl": "Normalize separators and traversal, reject duplicate or nested scopes at reservation time, and keep one owner for each mutable scope.",
+      "recovery": "Release the conflicti˜Õ≠¢Gß≤⁄Óù∆≠y‘ and preserved before any destructive operation.",
+      "mechanicalControl": "Check cleanliness, create a patch or other rescue artifact, and fail closed if preservation cannot be verified before proceeding.",
+      "recovery": "Restore from the rescue artifact, verify the recovered diff, and let the scope owner reclaim the lane before further mutation.",
+      "testableAcceptance": "A test injects dirty files and proves a destructive operation is blocked unless a valid rescue artifact exists."
+    },
+    {
+      "id": "unbounded-tool-spend",
+      "title": "Unbounded token or tool spend",
+      "symptom": "One item consumes increasing calls, tokens, or time without producing a committed artifact or a clear next command.",
+      "invariant": "Each item has a finite budget and a stop condition tied to observable progress.",
+      "mechanicalControl": "Record the start, budget, and produced artifact; stop at the configured limit or after repeated no-progress results and emit a blocker.",
+      "recovery": "Summarize progress and the blocker, preserve useful artifacts, and split a fresh bounded follow-up instead of extending the same loop.",
+      "testableAcceptance": "A simulated no-progress sequence stops at its configured budget and emits no extra calls after the stop condition."
+    },
+    {
+      "id": "unsafe-credential-handling",
+      "title": "Unsafe credential or login handling",
+      "symptom": "A command prints, persists, or requests secret values, or attempts to automate a security challenge outside the approved path.",
+      "invariant": "Secret values stay out of source, arguments, logs, receipts, and screenshots; human challenges fail closed.",
+      "mechanicalControl": "Use secret references and redaction, rely on the service's own sign-in controls, and refuse to enter passwords, one-time codes, captchas, or passkeys.",
+      "recovery": "Stop exposure, rotate or revoke the affected credential through an owner-controlled channel, scrub artifacts, and resume without secret values.",
+      "testableAcceptance": "A test supplies a sentinel secret and confirms outputs and receipts contain only redacted placeholders while a challenge path stops."
+    },
+    {
+      "id": "missing-terminal-evidence",
+      "title": "Missing terminal evidence",
+      "symptom": "Work is called done from a plan, branch, commit, passing local test, or status note alone.",
+      "invariant": "Closure requires a target revision, relevant checks, redacted evidence, and a merge or deployment outcome, or explicit abandonment proof.",
+      "mechanicalControl": "Require a machine-readable receipt listing the target, checks, evidence, and disposition; keep intermediate artifacts open.",
+      "recovery": "Reopen the lane, collect the missing proof, or record an explicit abandon, delete, and clean result.",
+      "testableAcceptance": "A validator rejects closure that lacks a terminal target, check result, redacted evidence, or abandonment proof."
+    }
+  ]
+}

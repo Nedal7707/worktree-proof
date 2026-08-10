@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "id": "ci-repair",
+  "name": "Continuous-integration repair",
+  "description": "Find the first actionable continuous-integration failure, reproduce it narrowly, and repair it without hiding flaky behavior.",
+  "outcomes": [
+    { "id": "cause", "description": "The failing job and first actionable error are tied to a reproducible local or isolated check.", "evidence": ["job summary", "reproduction result"] },
+    { "id": "green", "description": "The repair passes the focused job and relevant neighboring checks with a clear receipt.", "evidence": ["verification output", "redacted closure receipt"] }
+  ],
+  "prerequisites": [
+    { "id": "failure", "description": "A failed job, step, or observable warning is identified without relying on a guess.", "check": "Read the log from the first actionable error and record its stable identifier." },
+    { "id": "environment", "description": "The failure can be reproduced without exposing credentials or modifying production state.", "check": "Compare safe runtime facts and choose the smallest reproduction command." }
+  ],
+  "lanes": [
+    { "laneId": "inspect-ci", "fileScope": "notes/ci-repair", "objective": "Capture the first actionable failure, environment facts, and expected green signal.", "mode": "audit", "dependsOn": [], "deliverables": ["failure note", "reproduction plan"], "commands": ["git status --short", "git diff --check"] },
+    { "laneId": "fix-ci", "fileScope": "ci/repair", "objective": "Apply the smallest configuration, test, or environment fix that addresses the failure.", "mode": "build", "dependsOn": ["inspect-ci"], "deliverables": ["CI repair", "focused check"], "commands": ["git diff --stat", "git diff --check"] },
+    { "laneId": "verify-ci", "fileScope": "test/ci-repair", "objective": "Re-run the focused failure and neighboring checks while looking for hidden flakiness.", "mode": "audit", "dependsOn": ["fix-ci"], "deliverables": ["green result", "redacted log summary"], "commands": ["git diff --check", "git log -1 --oneline"] }
+  ],
+  "toolCapabilities": ["inspect", "edit", "test", "ci", "evidence", "receipt"],
+  "qualityGates": [
+    { "id": "first-error", "description": "The repair is linked to the first actionable error rather than a later cascade.", "evidence": ["log summary", "cause note"] },
+    { "id": "reproduced", "description": "The smallest useful local or isolated check demonstrates the failure before the fix.", "evidence": ["before result", "environment facts"] },
+    { "id": "green", "description": "The focused and neighboring checks pass without deleting coverage or masking retries.", "evidence": ["after result", "job summary"] }
+  ],
+  "ownerConfirmationBoundaries": [
+    { "id": "credentials", "action": "Enter a password, one-time code, passkey, or challenge response to inspect a job.", "boundary": "Stop and hand the entry to the owner; use redacted logs or an existing safe session instead.", "requiresConfirmation": true, "reason": "Authentication material is a human-only boundary." },
+    { "id": "live-impact", "action": "Change billing, account security, destructive data, or live financial behavior to make CI green.", "boundary": "Stop before the action and obtain one explicit owner confirmation for that individual action.", "requiresConfirmation": true, "reason": "CI must be repaired through code or configuration, not live side effects." }
+  ],
+  "rollbackRescue": { "rollbackPlan": "Preserve the failing log summary and return to the last known-good configuration when the repair makes the signal less trustworthy.", "rescueSteps": ["Capture the first failure and safe environment facts.", "Keep the repair diff isolated and reviewable.", "Record any unresolved flakiness and abandon rather than adding concealment."], "stopConditions": ["The first failure cannot be reproduced or isolated.", "The proposed fix deletes coverage or hides a retry.", "A protected owner boundary is reached."] },
+  "closureReceiptRequirements": { "requiredFields": ["laneId", "outcome", "closedAt", "canonicalRef", "tests", "evidence"], "evidence": ["failure identifier", "before and after result", "neighboring check result"], "redactionRules": ["Omit credentials, tokens, private paths, and sensitive log payloads.", "Keep safe job names and error classes only."], "terminalOutcomes": ["merged", "abandoned"] }
+}

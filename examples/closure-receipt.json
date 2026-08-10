@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1",
+  "laneId": "docs-api",
+  "outcome": "merged",
+  "closedAt": "2026-01-01T12:00:00Z",
+  "canonicalRef": "main",
+  "mergeSha": "merge-reference",
+  "tests": [
+    {
+      "name": "docs-check",
+      "passed": true
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "test",
+      "ref": "test-reference",
+      "summary": "Documentation checks passed"
+    }
+  ],
+  "checks": [
+    {
+      "name": "scope-is-contained",
+      "passed": true,
+      "summary": "The lane stayed within its declared scope"
+    }
+  ],
+  "notes": "Example only; replace references with project-specific evidence."
+}

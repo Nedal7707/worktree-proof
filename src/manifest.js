@@ -18,6 +18,8 @@ const CLIENT_ID = /^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$/;
 const ABSOLUTE_PATH = /^(?:[a-zA-Z]:[\\/]|[\\/]{1,2})/;
 const PRIVATE_IDENTIFIER = /(?:secret|token|password|passwd|cookie|credential|authorization|private[-_.]?key|api[-_.]?key)/i;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/u;
+const MANIFEST_KEYS = Object.freeze(['capabilities', 'client', 'manifestHash', 'protocol', 'protocolVersion', 'scope']);
+const INPUT_KEYS = Object.freeze(['capabilities', 'client', 'manifestHash', 'protocol', 'protocolVersion', 'scope']);
 
 export class ManifestError extends TypeError {
   constructor(message, code = 'ERR_INVALID_MANIFEST') {
@@ -63,6 +65,27 @@ function normalizeClient(client) {
     throw new ManifestError('client must be a public identifier', 'ERR_INVALID_CLIENT');
   }
   return normalized;
+}
+
+function assertObject(value, message = 'manifest must be an object') {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ManifestError(message, 'ERR_INVALID_MANIFEST');
+  }
+}
+
+function assertKnownKeys(value, allowed, code = 'ERR_UNKNOWN_MANIFEST_FIELD') {
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) throw new ManifestError('manifest contains an unknown field', code);
+  }
+}
+
+function assertProtocol(protocol, protocolVersion) {
+  if (protocol !== undefined && protocol !== MANIFEST_PROTOCOL) {
+    throw new ManifestError('manifest protocol is unsupported', 'ERR_INVALID_PROTOCOL');
+  }
+  if (protocolVersion !== undefined && protocolVersion !== MANIFEST_PROTOCOL_VERSION) {
+    throw new ManifestError('manifest protocol version is unsupported', 'ERR_INVALID_PROTOCOL_VERSION');
+  }
 }
 
 function capabilityId(value) {
@@ -126,7 +149,11 @@ function assertManifestHash(value) {
 }
 
 /** Create a deterministic, immutable public integration manifest. */
-export function createIntegrationManifest({ client, capabilities, scope } = {}) {
+export function createIntegrationManifest(input = {}) {
+  assertObject(input, 'manifest input must be an object');
+  assertKnownKeys(input, INPUT_KEYS);
+  assertProtocol(input.protocol, input.protocolVersion);
+  const { client, capabilities, scope } = input;
   const body = canonicalize({
     protocol: MANIFEST_PROTOCOL,
     protocolVersion: MANIFEST_PROTOCOL_VERSION,
@@ -135,18 +162,27 @@ export function createIntegrationManifest({ client, capabilities, scope } = {}) 
     scope: normalizeScopes(scope ?? ['.']),
   });
   const manifestHash = sha256(canonicalJson(body));
+  if (input.manifestHash !== undefined) {
+    assertManifestHash(input.manifestHash);
+    if (input.manifestHash !== manifestHash) {
+      throw new ManifestError('manifest hash does not match canonical content', 'ERR_INVALID_MANIFEST_HASH');
+    }
+  }
   return deepFreeze({ ...body, manifestHash });
 }
 
 function normalizeManifest(manifest) {
-  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
-    throw new ManifestError('manifest must be an object', 'ERR_INVALID_MANIFEST');
+  assertObject(manifest);
+  assertKnownKeys(manifest, MANIFEST_KEYS);
+  if (!Object.hasOwn(manifest, 'protocol') || !Object.hasOwn(manifest, 'protocolVersion')) {
+    throw new ManifestError('manifest protocol fields are required', 'ERR_INVALID_MANIFEST');
   }
-  const normalized = createIntegrationManifest(manifest);
-  if (manifest.manifestHash !== undefined && manifest.manifestHash !== normalized.manifestHash) {
-    throw new ManifestError('manifest hash does not match canonical content', 'ERR_INVALID_MANIFEST_HASH');
+  assertProtocol(manifest.protocol, manifest.protocolVersion);
+  for (const key of MANIFEST_KEYS) {
+    if (!Object.hasOwn(manifest, key)) throw new ManifestError('manifest is incomplete', 'ERR_INVALID_MANIFEST');
   }
-  return normalized;
+  assertManifestHash(manifest.manifestHash);
+  return createIntegrationManifest(manifest);
 }
 
 const PREVIEW_INSTRUCTIONS = Object.freeze([
@@ -168,7 +204,6 @@ export function renderClientPreview(target, manifest) {
   const normalized = normalizeManifest(manifest);
   const preview = {
     target,
-    fixture: `${target}-public`,
     protocol: normalized.protocol,
     protocolVersion: normalized.protocolVersion,
     client: normalized.client,
@@ -176,6 +211,7 @@ export function renderClientPreview(target, manifest) {
     scope: [...normalized.scope],
     manifestHash: normalized.manifestHash,
     manifest: normalized,
+    verification: { status: 'unverified', invokesClient: false, manifestHash: normalized.manifestHash },
     instructions: [...PREVIEW_INSTRUCTIONS],
   };
   return deepFreeze(preview);

@@ -445,6 +445,59 @@ function redact(value, key = '') {
   return value;
 }
 
+function publicMigrationPlan(plan) {
+  if (!isObject(plan)) return plan;
+  return {
+    version: plan.version,
+    protocol: plan.protocol,
+    protocolVersion: plan.protocolVersion,
+    clients: Array.isArray(plan.clients) ? [...plan.clients] : [],
+    planHash: plan.planHash,
+    artifact: isObject(plan.artifact) ? {
+      manifestHash: plan.artifact.manifestHash,
+      files: Array.isArray(plan.artifact.files)
+        ? plan.artifact.files.map((file) => ({ path: file.path, contentHash: file.contentHash }))
+        : [],
+    } : undefined,
+    writes: Array.isArray(plan.writes)
+      ? plan.writes.map((write) => ({
+        path: write.path,
+        markerPath: write.markerPath,
+        contentHash: write.contentHash,
+        markerHash: write.markerHash,
+        mode: write.mode,
+        existing: write.existing,
+      }))
+      : [],
+    preview: plan.preview === true,
+    rollback: plan.rollback,
+  };
+}
+
+function publicMigrationReceipt(receipt) {
+  if (!isObject(receipt)) return receipt;
+  return {
+    kind: receipt.kind,
+    receiptVersion: receipt.receiptVersion,
+    planHash: receipt.planHash,
+    written: Array.isArray(receipt.written) ? [...receipt.written] : [],
+    backups: Array.isArray(receipt.backups)
+      ? receipt.backups.map((entry) => ({
+        path: entry.path,
+        markerPath: entry.markerPath,
+        existed: entry.existed,
+        sha256: entry.sha256,
+        markerSha256: entry.markerSha256,
+        appliedContentHash: entry.appliedContentHash,
+        appliedMarkerHash: entry.appliedMarkerHash,
+      }))
+      : [],
+    preview: receipt.preview === true,
+    confirmed: receipt.confirmed === true,
+    receiptHash: receipt.receiptHash,
+  };
+}
+
 const LEASE_OUTPUT_FIELDS = Object.freeze([
   'laneId',
   'fileScope',
@@ -492,7 +545,8 @@ function safeJson(value) {
 }
 
 function errorMessage(error) {
-  if (error instanceof CliUsageError || error instanceof CliOperationError) return error.message;
+  if (error instanceof CliUsageError) return error.message;
+  if (error instanceof CliOperationError) return 'operation failed';
   if (error?.name === 'ProtocolError') return 'protocol operation failed';
   if (error instanceof SyntaxError) return 'invalid JSON input';
   // Adapter errors can contain command output, paths, or user-provided values.
@@ -1503,11 +1557,11 @@ async function executeCommand(parsed, context) {
     const plan = await migrationApi.planLocalMigration({ home, clients, artifact });
     const action = parsed.positionals[0] ?? 'preview';
     if (action === 'preview' || payload.dryRun) {
-      return { action: 'preview', plan, result: await migrationApi.applyLocalMigration(plan, { confirm: false }) };
+      return { action: 'preview', plan: publicMigrationPlan(plan), result: publicMigrationReceipt(await migrationApi.applyLocalMigration(plan, { confirm: false })) };
     }
     if (action !== 'apply') throw new CliUsageError(`unknown migrate action: ${action}`);
     if (options.confirm !== true) throw new CliUsageError('migrate apply requires --confirm');
-    return { action, plan, result: await migrationApi.applyLocalMigration(plan, { confirm: true, backupRoot: options.backupRoot }) };
+    return { action, plan: publicMigrationPlan(plan), result: publicMigrationReceipt(await migrationApi.applyLocalMigration(plan, { confirm: true, backupRoot: options.backupRoot })) };
   }
   if (command === 'leases'
       && (parsed.positionals[0] ?? 'inspect') === 'recover'

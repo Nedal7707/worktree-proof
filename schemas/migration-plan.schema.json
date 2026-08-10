@@ -5,11 +5,12 @@
   "description": "A preview-first, explicitly confirmed, reversible local migration.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "protocol", "protocolVersion", "home", "clients", "artifact", "writes", "preview", "rollback"],
+  "required": ["version", "protocol", "protocolVersion", "home", "clients", "artifact", "writes", "preview", "rollback", "planHash"],
   "properties": {
     "version": { "const": 1 },
     "protocol": { "const": "worktreeproof" },
     "protocolVersion": { "const": "1.0" },
+    "planHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "home": { "type": "string", "minLength": 1 },
     "clients": {
       "type": "array",
@@ -46,13 +47,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "content", "contentHash", "markerPath", "markerContent", "mode", "existing", "owner"],
+        "required": ["path", "content", "contentHash", "markerPath", "markerContent", "markerHash", "mode", "existing", "existingHash", "owner"],
         "properties": {
           "path": { "type": "string", "minLength": 1 },
           "content": { "type": "string" },
           "contentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
           "markerPath": { "type": "string", "minLength": 1 },
           "markerContent": { "type": "string", "minLength": 1 },
+          "markerHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
           "mode": { "enum": ["create", "replace"] },
           "existing": { "type": "boolean" },
           "existingHash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },

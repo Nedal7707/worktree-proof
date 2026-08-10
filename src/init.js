@@ -4,7 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { renderAdapter, normalizeAdapterTarget } from './adapters.js';
-import { canonicalJson, validateIntegrationManifest } from './manifest.js';
+import {
+  canonicalJson,
+  createIntegrationManifest,
+  renderClientPreview,
+} from './manifest.js';
 import { containsSecretLikeValue } from './text-safety.js';
 
 const MAX_METADATA_BYTES = 512 * 1024;
@@ -502,8 +506,17 @@ export async function buildInitPlan(options = {}) {
     capabilities: isObject(options.capabilities) ? options.capabilities : {},
   };
   assertNoSecretInput(context);
+  const integrationManifest = createIntegrationManifest(options.manifest ?? {
+    client: 'worktree-proof',
+    capabilities: Object.keys(context.capabilities).filter((key) => context.capabilities[key] === true),
+    scope: ['.'],
+  });
+  const previews = [];
   for (const requested of requestedTargets) {
     const target = normalizeAdapterTarget(requested);
+    const previewTarget = target === 'agent-skills' ? 'codex' : target === 'claude-code' ? 'claude' : 'generic';
+    const preview = renderClientPreview(previewTarget, integrationManifest);
+    previews.push({ target: previewTarget, manifestHash: preview.manifestHash, verification: preview.verification });
     if (targets.includes(target)) continue;
     const rendered = renderAdapter(target, context);
     targets.push(target);
@@ -513,15 +526,9 @@ export async function buildInitPlan(options = {}) {
   // A public integration manifest is an additive init output. It is opt-in,
   // deterministic, and still goes through the same create-only safety checks.
   if (options.manifest !== undefined) {
-    let manifest;
-    try {
-      manifest = validateIntegrationManifest(options.manifest);
-    } catch (error) {
-      throw new InitSafetyError('invalid integration manifest', error?.code ?? 'ERR_INVALID_MANIFEST');
-    }
     files.push({
       path: '.worktree-proof/worktree-proof.manifest.json',
-      content: `${canonicalJson(manifest)}\n`,
+      content: `${canonicalJson(integrationManifest)}\n`,
       adapter: 'manifest',
     });
     warnings.push('Integration manifest output is public and preview-only; verify client capabilities before use.');
@@ -543,6 +550,8 @@ export async function buildInitPlan(options = {}) {
     root,
     preset,
     targets: Object.freeze(targets),
+    manifest: integrationManifest,
+    previews: Object.freeze(previews.map((preview) => Object.freeze(preview))),
     project: Object.freeze(project),
     writes: Object.freeze(writes),
     warnings: Object.freeze(sortedUnique(warnings)),

@@ -1,5 +1,4 @@
 {
-  "$schema": "../schemas/integration-manifest.schema.json",
   "capabilities": [
     "scope.validate"
   ],

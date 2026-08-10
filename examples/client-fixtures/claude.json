@@ -1,0 +1,17 @@
+{
+  "target": "claude",
+  "manifest": {
+    "capabilities": ["scope.validate"],
+    "client": "any-cli",
+    "protocol": "worktreeproof",
+    "protocolVersion": "1.0",
+    "scope": ["src"],
+    "manifestHash": "6eab97ab35c9dc5c4622e31fbe4c67011e94f86f016edd2e4b905f02dec1b17d"
+  },
+  "manifestHash": "6eab97ab35c9dc5c4622e31fbe4c67011e94f86f016edd2e4b905f02dec1b17d",
+  "verification": {
+    "status": "public-fixture",
+    "invokesClient": false,
+    "manifestHash": "6eab97ab35c9dc5c4622e31fbe4c67011e94f86f016edd2e4b905f02dec1b17d"
+  }
+}

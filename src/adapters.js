@@ -8,6 +8,14 @@
 
 import { containsSecretLikeValue, toSafeIdentifier } from './text-safety.js';
 
+// Portable protocol previews live in their own deterministic module but are
+// re-exported here for embedders that already consume the adapter surface.
+export {
+  createIntegrationManifest,
+  renderClientPreview,
+  validateIntegrationManifest,
+} from './manifest.js';
+
 export const ADAPTER_TARGETS = Object.freeze([
   'agent-skills',
   'claude-code',

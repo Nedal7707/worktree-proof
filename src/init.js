@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { renderAdapter, normalizeAdapterTarget } from './adapters.js';
+import { canonicalJson, validateIntegrationManifest } from './manifest.js';
 import { containsSecretLikeValue } from './text-safety.js';
 
 const MAX_METADATA_BYTES = 512 * 1024;
@@ -508,6 +509,22 @@ export async function buildInitPlan(options = {}) {
     targets.push(target);
     warnings.push(...rendered.warnings);
     for (const file of rendered.files) files.push({ ...file, adapter: target });
+  }
+  // A public integration manifest is an additive init output. It is opt-in,
+  // deterministic, and still goes through the same create-only safety checks.
+  if (options.manifest !== undefined) {
+    let manifest;
+    try {
+      manifest = validateIntegrationManifest(options.manifest);
+    } catch (error) {
+      throw new InitSafetyError('invalid integration manifest', error?.code ?? 'ERR_INVALID_MANIFEST');
+    }
+    files.push({
+      path: '.worktree-proof/worktree-proof.manifest.json',
+      content: `${canonicalJson(manifest)}\n`,
+      adapter: 'manifest',
+    });
+    warnings.push('Integration manifest output is public and preview-only; verify client capabilities before use.');
   }
   // Validate generated paths/content without checking filesystem collisions yet;
   // this keeps plan construction read-only while apply remains fail-closed.

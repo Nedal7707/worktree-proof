@@ -1,0 +1,13 @@
+{
+  "$schema": "../schemas/integration-manifest.schema.json",
+  "capabilities": [
+    "scope.validate"
+  ],
+  "client": "generic",
+  "protocol": "worktreeproof",
+  "protocolVersion": "1.0",
+  "scope": [
+    "src"
+  ],
+  "manifestHash": "797ec168a0b1f3aba8c252bf9db8313cb9ccda0365229fafa9599ac0eabe0348"
+}

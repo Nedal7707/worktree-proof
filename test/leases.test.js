@@ -8,13 +8,37 @@ import {
   LeaseError,
   LeaseRegistry,
   RegistryStateError,
+  inspectLeaseRegistry,
+  recoverExpiredLease,
   withRegistryLock,
 } from '../src/leases.js';
+
+const NOW = Date.parse('2032-05-18T03:33:22.000Z');
 
 async function temporaryRegistry(t) {
   const directory = await mkdtemp(join(tmpdir(), 'worktree-proof-leases-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   return join(directory, 'registry.json');
+}
+
+async function expiredRegistry(t, laneId) {
+  const registryPath = await temporaryRegistry(t);
+  await writeFile(registryPath, JSON.stringify({
+    version: 1,
+    leases: [{
+      leaseId: `lease-${laneId}`,
+      laneId,
+      fileScope: `src/${laneId}.js`,
+      owner: 'owner-private',
+      session: 'session-private',
+      timestamp: '2032-05-18T03:33:20.000Z',
+      ttlMs: 1_000,
+      expiresAt: '2032-05-18T03:33:21.000Z',
+      status: 'active',
+      active: true,
+    }],
+  }), 'utf8');
+  return registryPath;
 }
 
 test('reserves and releases a lease with owner/session, timestamp, TTL, and status', async (t) => {
@@ -111,6 +135,27 @@ test('malformed and stale registry entries fail closed', async (t) => {
     }],
   }), 'utf8');
   await assert.rejects(registry.reserve({ laneId: 'new', fileScope: 'new.js', owner: 'o', session: 's' }), (error) => error.code === 'ERR_STALE_REGISTRY');
+});
+
+test('expired leases are inspectable and recoverable only with confirmation', async (t) => {
+  const registryPath = await expiredRegistry(t, 'blocked');
+  const report = await inspectLeaseRegistry(registryPath, { clock: () => NOW });
+  assert.deepEqual(report.stale.map(({ laneId }) => laneId), ['blocked']);
+  await assert.rejects(
+    recoverExpiredLease(
+      registryPath,
+      { laneId: 'blocked', reason: 'terminal work merged', confirm: false },
+      { clock: () => NOW },
+    ),
+    (error) => error.code === 'ERR_CONFIRM_REQUIRED',
+  );
+  const lease = await recoverExpiredLease(
+    registryPath,
+    { laneId: 'blocked', reason: 'terminal work merged', confirm: true },
+    { clock: () => NOW },
+  );
+  assert.equal(lease.status, 'released');
+  assert.equal((await inspectLeaseRegistry(registryPath, { clock: () => NOW })).stale.length, 0);
 });
 
 test('concurrent reservations serialize through an atomic mkdir lock', async (t) => {

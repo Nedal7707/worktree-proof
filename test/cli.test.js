@@ -155,6 +155,70 @@ test('JSON output redacts sensitive fields', async () => {
   assert.doesNotMatch(stream.out[0], /do-not-print/);
 });
 
+test('leases inspect is routed with safe metadata and recovery requires confirmation', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'worktree-proof-cli-leases-'));
+  try {
+    const registryDirectory = path.join(root, '.worktree-proof');
+    await (await import('node:fs/promises')).mkdir(registryDirectory, { recursive: true });
+    await writeFile(path.join(registryDirectory, 'leases.json'), JSON.stringify({
+      version: 1,
+      leases: [{
+        leaseId: 'lease-private',
+        laneId: 'blocked',
+        fileScope: 'src/blocked.js',
+        owner: 'owner-private',
+        session: 'session-private',
+        timestamp: '2020-01-01T00:00:00.000Z',
+        ttlMs: 1_000,
+        expiresAt: '2020-01-01T00:00:01.000Z',
+        status: 'active',
+        active: true,
+      }],
+    }), 'utf8');
+
+    const inspectStream = capture();
+    const inspected = await runCli(['leases', 'inspect', 'blocked', '--repo', root, '--json'], {
+      io: inspectStream.io,
+      deps: {
+        leases: {
+          inspectLeaseRegistry: async () => ({
+            version: 1,
+            leases: [{
+              leaseId: 'lease-private',
+              laneId: 'blocked',
+              fileScope: 'src/blocked.js',
+              owner: 'owner-private',
+              session: 'session-private',
+              status: 'active',
+              active: true,
+            }],
+            stale: [{
+              leaseId: 'lease-private',
+              laneId: 'blocked',
+              fileScope: 'src/blocked.js',
+              owner: 'owner-private',
+              session: 'session-private',
+              status: 'active',
+              active: true,
+            }],
+          }),
+        },
+      },
+    });
+    assert.equal(inspected.code, EXIT_CODES.OK);
+    assert.equal(JSON.parse(inspectStream.out[0]).result.stale[0].laneId, 'blocked');
+    assert.doesNotMatch(inspectStream.out[0], /owner-private|session-private|lease-private/);
+
+    const refusalStream = capture();
+    const refusal = await runCli(['leases', 'recover', 'blocked', '--repo', root, '--reason', 'merged', '--json'], {
+      io: refusalStream.io,
+    });
+    assert.equal(refusal.code, EXIT_CODES.ERROR);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('run dry-run reports shape without executing a process', async () => {
   const stream = capture();
   let called = false;

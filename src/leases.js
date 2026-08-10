@@ -83,7 +83,7 @@ function registryFileScope(value, label) {
   }
 }
 
-function validateLeaseEntry(entry, index, now) {
+function validateLeaseEntry(entry, index, now, { allowStale = false } = {}) {
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
     throw new RegistryStateError(`registry lease ${index} must be an object`);
   }
@@ -106,7 +106,7 @@ function validateLeaseEntry(entry, index, now) {
   if (typeof entry.active !== 'boolean' || entry.active !== (entry.status === 'active')) {
     throw new RegistryStateError(`registry lease ${index}.active must match status`);
   }
-  if (entry.status === 'active' && expiresAtMs <= now) {
+  if (!allowStale && entry.status === 'active' && expiresAtMs <= now) {
     throw new RegistryStateError(
       `registry lease ${JSON.stringify(leaseId)} is stale (expired at ${entry.expiresAt})`,
       'ERR_STALE_REGISTRY',
@@ -127,7 +127,7 @@ function validateLeaseEntry(entry, index, now) {
   };
 }
 
-function validateRegistry(value, now) {
+function validateRegistry(value, now, { allowStale = false, checkConflicts = true } = {}) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new RegistryStateError('registry root must be an object');
   }
@@ -137,7 +137,8 @@ function validateRegistry(value, now) {
   if (!Array.isArray(value.leases)) {
     throw new RegistryStateError('registry leases must be an array');
   }
-  const leases = value.leases.map((entry, index) => validateLeaseEntry(entry, index, now));
+  const leases = value.leases.map((entry, index) => validateLeaseEntry(entry, index, now, { allowStale }));
+  if (!checkConflicts) return { ...value, version: REGISTRY_VERSION, leases };
   const active = leases.filter((entry) => entry.status === 'active');
   const seenIds = new Set();
   for (const lease of active) {
@@ -260,6 +261,29 @@ async function readRegistryFile(registryPath, now) {
   return validateRegistry(parsed, now);
 }
 
+/**
+ * Read a registry for stale-state inspection.  Structural validation remains
+ * strict, but expired active leases are intentionally retained so a caller can
+ * make an explicit, confirmed recovery decision.  Conflict checks are deferred
+ * to the selector, which can fail closed with an actionable ambiguity code.
+ */
+async function readRegistryForInspection(registryPath, now) {
+  let raw;
+  try {
+    raw = await readFile(registryPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return stateSkeleton();
+    throw new RegistryStateError(`unable to read registry: ${error.message}`, 'ERR_REGISTRY_READ');
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new RegistryStateError(`registry JSON is malformed: ${error.message}`);
+  }
+  return validateRegistry(parsed, now, { allowStale: true, checkConflicts: false });
+}
+
 async function writeRegistryFile(registryPath, state) {
   await ensureParent(registryPath);
   const temporary = join(
@@ -285,6 +309,51 @@ async function writeRegistryFile(registryPath, state) {
   } finally {
     await rm(temporary, { force: true }).catch(() => {});
   }
+}
+
+function registryPathValue(registryPath) {
+  if (typeof registryPath !== 'string' || !registryPath.trim()) {
+    throw new LeaseError('registryPath must be a non-empty string', 'ERR_INVALID_REGISTRY_PATH');
+  }
+  return resolve(registryPath);
+}
+
+function lockOptions(options = {}) {
+  return {
+    attempts: options.lockAttempts ?? options.attempts ?? DEFAULT_LOCK_ATTEMPTS,
+    delayMs: options.lockDelayMs ?? options.delayMs ?? DEFAULT_LOCK_DELAY_MS,
+  };
+}
+
+function selectSingleExpired(state, laneId, now) {
+  let normalizedLaneId;
+  try {
+    normalizedLaneId = normalizeLaneId(laneId);
+  } catch (error) {
+    throw new LeaseError(`laneId is invalid: ${error.message}`, 'ERR_INVALID_LEASE_INPUT');
+  }
+  const candidates = state.leases.filter((entry) => (
+    entry.status === 'active'
+    && entry.laneId === normalizedLaneId
+    && timestamp(entry.expiresAt, 'lease expiresAt') <= now
+  ));
+  if (candidates.length > 1) {
+    throw new LeaseError('expired lease selector is ambiguous', 'ERR_RECOVERY_AMBIGUOUS');
+  }
+  if (candidates.length === 1) return candidates[0];
+
+  const matching = state.leases.filter((entry) => entry.laneId === normalizedLaneId);
+  if (matching.some((entry) => entry.status === 'active' && timestamp(entry.expiresAt, 'lease expiresAt') > now)) {
+    throw new LeaseError('lease has not expired', 'ERR_LEASE_NOT_EXPIRED');
+  }
+  throw new LeaseError('expired lease was not found', 'ERR_LEASE_NOT_FOUND');
+}
+
+function replaceLease(state, target, released) {
+  return {
+    ...state,
+    leases: state.leases.map((entry) => (entry === target ? released : entry)),
+  };
 }
 
 function leaseInput(input, now, defaultTtlMs, idFactory) {
@@ -434,6 +503,47 @@ export async function reserveLease(registryPath, input, options = {}) {
 
 export async function releaseLease(registryPath, selector, options = {}) {
   return new LeaseRegistry(registryPath, options).release(selector);
+}
+
+/** Inspect all leases while retaining expired active entries in `stale`. */
+export async function inspectLeaseRegistry(registryPath, options = {}) {
+  const target = registryPathValue(registryPath);
+  const now = currentTime(options.clock ?? Date.now);
+  return withRegistryLock(target, async () => {
+    const state = await readRegistryForInspection(target, now);
+    const stale = state.leases.filter((entry) => (
+      entry.status === 'active' && timestamp(entry.expiresAt, 'lease expiresAt') <= now
+    ));
+    return { version: state.version, leases: state.leases, stale };
+  }, lockOptions(options));
+}
+
+/** Release exactly one expired lease after an explicit confirmation. */
+export async function recoverExpiredLease(registryPath, input, options = {}) {
+  if (input?.confirm !== true) {
+    throw new LeaseError('confirmation required', 'ERR_CONFIRM_REQUIRED');
+  }
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new LeaseError('recovery input must be an object', 'ERR_INVALID_LEASE_INPUT');
+  }
+  const reason = token(input.reason, 'reason');
+  const targetPath = registryPathValue(registryPath);
+  return withRegistryLock(targetPath, async () => {
+    const now = currentTime(options.clock ?? Date.now);
+    const state = await readRegistryForInspection(targetPath, now);
+    const target = selectSingleExpired(state, input.laneId, now);
+    const releasedAt = new Date(now).toISOString();
+    const released = {
+      ...target,
+      active: false,
+      status: 'released',
+      releasedAt,
+      updatedAt: releasedAt,
+      reason,
+    };
+    await writeRegistryFile(targetPath, replaceLease(state, target, released));
+    return released;
+  }, lockOptions(options));
 }
 
 export const registryVersion = REGISTRY_VERSION;

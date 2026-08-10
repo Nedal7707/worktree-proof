@@ -26,6 +26,7 @@ const COMMANDS = Object.freeze([
   'plan',
   'reserve',
   'release',
+  'leases',
   'run',
   'status',
   'close',
@@ -363,6 +364,7 @@ function usage() {
     '',
     'Commands:',
     '  doctor, plan, reserve, release, run, status, close, cleanup, validate',
+    '  leases inspect|recover <laneId>',
     '  tools list|scan|recommend',
     '  resources scan|plan',
     '  recipes list|show <name>',
@@ -411,6 +413,44 @@ function redact(value, key = '') {
   if (typeof value === 'bigint') return Number(value);
   if (typeof value === 'function') return '[function]';
   return value;
+}
+
+const LEASE_OUTPUT_FIELDS = Object.freeze([
+  'laneId',
+  'fileScope',
+  'timestamp',
+  'ttlMs',
+  'expiresAt',
+  'status',
+  'active',
+  'releasedAt',
+  'updatedAt',
+  'reason',
+]);
+
+function publicLeaseRecord(value) {
+  if (!isObject(value)) return value;
+  const output = {};
+  for (const field of LEASE_OUTPUT_FIELDS) {
+    if (hasOwn(value, field)) output[field] = value[field];
+  }
+  return output;
+}
+
+function sanitizeLeaseCommandResult(result) {
+  if (!isObject(result)) return publicLeaseRecord(result);
+  if (Array.isArray(result.leases) || Array.isArray(result.stale)) {
+    const output = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (key === 'leases' || key === 'stale') {
+        output[key] = Array.isArray(value) ? value.map(publicLeaseRecord) : [];
+      } else {
+        output[key] = value;
+      }
+    }
+    return output;
+  }
+  return publicLeaseRecord(result);
 }
 
 function safeJson(value) {
@@ -867,6 +907,42 @@ async function invokeAdapter(deps, command, payload, input) {
     };
   }
 
+  if (command === 'leases') {
+    const action = payload.positionals[0] ?? 'inspect';
+    if (!['inspect', 'recover'].includes(action)) {
+      throw new CliUsageError(`unknown leases action: ${action}`);
+    }
+    const laneId = payload.options.laneId ?? payload.positionals[1];
+    if (typeof laneId !== 'string' || !laneId.trim()) {
+      throw new CliUsageError(`leases ${action} requires a lane id`);
+    }
+    const registryPath = leasePath(payload);
+    if (action === 'inspect') {
+      const fn = findExport(deps.leases, ['inspectLeaseRegistry']);
+      if (!fn) return { supported: false, command, reason: 'lease inspection adapter unavailable' };
+      const report = await fn(registryPath);
+      const filtered = typeof laneId === 'string' && laneId.trim()
+        ? {
+          ...report,
+          leases: Array.isArray(report?.leases)
+            ? report.leases.filter((lease) => lease?.laneId === laneId)
+            : report?.leases,
+          stale: Array.isArray(report?.stale)
+            ? report.stale.filter((lease) => lease?.laneId === laneId)
+            : report?.stale,
+        }
+        : report;
+      return sanitizeLeaseCommandResult(filtered);
+    }
+    const fn = findExport(deps.leases, ['recoverExpiredLease']);
+    if (!fn) return { supported: false, command, reason: 'lease recovery adapter unavailable' };
+    return sanitizeLeaseCommandResult(await fn(registryPath, {
+      laneId,
+      reason: payload.options.reason,
+      confirm: payload.options.confirm === true,
+    }));
+  }
+
   if (command === 'bridge') {
     const action = payload.positionals[0] ?? 'inbox';
     const bridgeApi = deps.bridge;
@@ -1235,6 +1311,9 @@ function checkCommandPositionals(parsed) {
       && positionals.length > 1) {
     throw new CliUsageError(`${command} accepts at most one positional lane id`);
   }
+  if (command === 'leases' && positionals.length > 2) {
+    throw new CliUsageError('leases accepts an action and one lane id');
+  }
   if (command === 'validate' && positionals.length > 1) {
     throw new CliUsageError('validate accepts at most one receipt path');
   }
@@ -1273,6 +1352,17 @@ async function executeCommand(parsed, context) {
       planned: true,
       submitted: false,
       command,
+      reason: options.dryRun ? 'dry-run' : 'no-submit',
+    };
+  }
+  if (command === 'leases'
+      && (parsed.positionals[0] ?? 'inspect') === 'recover'
+      && (!payload.submit || options.dryRun)) {
+    return {
+      planned: true,
+      submitted: false,
+      command,
+      action: 'recover',
       reason: options.dryRun ? 'dry-run' : 'no-submit',
     };
   }

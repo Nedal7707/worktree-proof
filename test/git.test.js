@@ -32,7 +32,10 @@ test('discovers repository root, common directory, and configurable canonical re
   const nested = path.join(root, 'nested');
   fs.mkdirSync(nested);
   const discovered = discoverGitRepository(nested, { canonicalRef: 'HEAD' });
-  assert.equal(discovered.repoRoot, fs.realpathSync(root));
+  const rootIdentity = fs.statSync(root);
+  const discoveredIdentity = fs.statSync(discovered.repoRoot);
+  assert.equal(discoveredIdentity.dev, rootIdentity.dev);
+  assert.equal(discoveredIdentity.ino, rootIdentity.ino);
   assert.equal(path.basename(discovered.commonDir), '.git');
   assert.match(discovered.canonicalCommit, /^[0-9a-f]{40}$/);
 });

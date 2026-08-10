@@ -77,10 +77,15 @@ function ensureDirectory(directory) {
   }
 }
 
+function canonicalRealPath(target) {
+  const resolver = typeof fs.realpathSync.native === 'function' ? fs.realpathSync.native : fs.realpathSync;
+  return resolver(target);
+}
+
 function resolveRepository(config) {
   const supplied = config.repository ?? config.repo;
   if (config.repoRoot || config.root || supplied?.repoRoot || supplied?.root) {
-    const repoRoot = fs.realpathSync(path.resolve(config.repoRoot ?? config.root ?? supplied.repoRoot ?? supplied.root));
+    const repoRoot = canonicalRealPath(path.resolve(config.repoRoot ?? config.root ?? supplied.repoRoot ?? supplied.root));
     let commonDir;
     if (config.commonDir ?? supplied?.commonDir) {
       commonDir = path.resolve(config.commonDir ?? supplied.commonDir);
@@ -89,7 +94,7 @@ function resolveRepository(config) {
       if (!commonResult.ok) commonResult = gitCall(config, ['rev-parse', '--git-common-dir'], repoRoot);
       commonDir = path.resolve(repoRoot, commonResult.stdout.trim());
     }
-    commonDir = fs.realpathSync(commonDir);
+    commonDir = canonicalRealPath(commonDir);
     const canonicalRef = config.canonicalRef ?? supplied?.canonicalRef ?? 'HEAD';
     const canonicalCommit = config.canonicalCommit ?? supplied?.canonicalCommit ?? gitCall(config, ['rev-parse', '--verify', `${canonicalRef}^{commit}`], repoRoot).stdout.trim();
     return { repoRoot, commonDir, canonicalRef, canonicalCommit };
@@ -101,7 +106,7 @@ function resolveRepository(config) {
 function resolveRoot(repoRoot, config) {
   const root = path.resolve(config.worktreeRoot ?? path.join(repoRoot, '.worktree-proof-worktrees'));
   ensureDirectory(root);
-  const canonicalRoot = fs.realpathSync(root);
+  const canonicalRoot = canonicalRealPath(root);
   assertContainedRealPath(canonicalRoot, canonicalRoot, { allowMissing: false });
   return canonicalRoot;
 }
@@ -125,7 +130,7 @@ function managedPath(record, root) {
 
 function inspectTopLevel(worktreePath, config) {
   const top = gitCall(config, ['rev-parse', '--show-toplevel'], worktreePath, { throwOnError: false });
-  return top.ok ? fs.realpathSync(path.resolve(top.stdout.trim())) : undefined;
+  return top.ok ? canonicalRealPath(path.resolve(top.stdout.trim())) : undefined;
 }
 
 /**

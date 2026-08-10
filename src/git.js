@@ -129,6 +129,11 @@ function hasReparseLikeFlag(stats) {
   return Number.isInteger(attributes) && (attributes & 0x400) !== 0;
 }
 
+function canonicalRealPath(target) {
+  const resolver = typeof fs.realpathSync.native === 'function' ? fs.realpathSync.native : fs.realpathSync;
+  return resolver(target);
+}
+
 /**
  * Validate that a path remains physically inside a root. Every existing path
  * segment is inspected, not just the final realpath, so a junction/reparse
@@ -143,7 +148,7 @@ export function assertContainedRealPath(root, target, options = {}) {
   }
 
   const rootExisting = nearestExistingAncestor(rootResolved);
-  const rootReal = fs.realpathSync(rootExisting);
+  const rootReal = canonicalRealPath(rootExisting);
   if (hasReparseLikeFlag(fs.lstatSync(rootExisting))) {
     // A symlinked existing root/ancestor is not a safe containment boundary.
     // Comparing path strings is insufficient on Windows because an 8.3 short
@@ -175,12 +180,12 @@ export function assertContainedRealPath(root, target, options = {}) {
   }
 
   const existing = nearestExistingAncestor(targetResolved);
-  const existingReal = fs.realpathSync(existing);
+  const existingReal = canonicalRealPath(existing);
   if (!isPathContained(rootReal, existingReal)) {
     throw new Error(`realpath escapes managed root: ${targetResolved}`);
   }
   if (fs.existsSync(targetResolved)) {
-    const targetReal = fs.realpathSync(targetResolved);
+    const targetReal = canonicalRealPath(targetResolved);
     if (!isPathContained(rootReal, targetReal)) {
       throw new Error(`realpath escapes managed root: ${targetResolved}`);
     }
@@ -203,8 +208,8 @@ export function discoverGitRepository(startPath = process.cwd(), options = {}) {
   const commonDir = path.resolve(cwd, commonDirText);
   // The common dir may be outside the worktree for linked worktrees, but it
   // must still be a real directory and not a link to an unexpected location.
-  const repoReal = fs.realpathSync(repoRoot);
-  const commonReal = fs.realpathSync(commonDir);
+  const repoReal = canonicalRealPath(repoRoot);
+  const commonReal = canonicalRealPath(commonDir);
   const canonicalRef = options.canonicalRef ?? 'HEAD';
   const canonicalCommit = readText(invokeGit(['rev-parse', '--verify', `${canonicalRef}^{commit}`], options, repoRoot), 'canonical ref');
   return {

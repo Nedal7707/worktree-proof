@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, open, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -316,5 +316,246 @@ test('pre-rename parent swap is rejected without an out-of-root write', async ()
   } finally {
     await rm(home, { recursive: true, force: true });
     await rm(outside, { recursive: true, force: true });
+  }
+});
+
+function rehashPlan(plan, patch = {}) {
+  const body = { ...plan, ...patch };
+  delete body.planHash;
+  return { ...body, planHash: sha256(canonicalJson(body)) };
+}
+
+function rehashReceipt(receipt, patch = {}) {
+  const body = { ...receipt, ...patch };
+  delete body.receiptHash;
+  return { ...body, receiptHash: sha256(canonicalJson(body)) };
+}
+
+test('custom client roots remain closed in the plan and apply to those roots', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: [{ name: 'codex', root: './custom-codex' }], artifact: manifest });
+    assert.deepEqual(plan.clients, [{ name: 'codex', root: 'custom-codex' }]);
+    assert.equal(plan.writes[0].path, 'custom-codex/worktree-proof.manifest.json');
+    await applyLocalMigration(plan, { confirm: true });
+    assert.equal((await readFile(path.join(home, 'custom-codex', 'worktree-proof.manifest.json'), 'utf8')).length > 0, true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('migration schema mirrors the closed client-root and artifact-filter plan contract', async () => {
+  const schema = JSON.parse(await readFile(path.resolve('schemas/migration-plan.schema.json'), 'utf8'));
+  const clientSchema = schema.properties.clients.items;
+  const fileSchema = schema.properties.artifact.properties.files.items;
+  assert.equal(clientSchema.additionalProperties, false);
+  assert.deepEqual([...clientSchema.required].sort(), ['name', 'root']);
+  assert.equal(fileSchema.additionalProperties, false);
+  assert.deepEqual([...fileSchema.required].sort(), ['clients', 'contentHash', 'path']);
+  assert.equal(fileSchema.properties.clients.oneOf[0].type, 'null');
+  assert.equal(fileSchema.properties.clients.oneOf[1].maxItems, 20);
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: [{ name: 'codex', root: './custom' }], artifact: { manifest, files: [{ path: 'filtered.txt', content: 'safe', clients: ['codex'] }] } });
+    await assert.rejects(
+      () => applyLocalMigration(rehashPlan(plan, { clients: ['codex'] }), { confirm: true }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_PLAN',
+    );
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('per-file client filters are retained and apply only to selected roots', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const artifact = {
+      manifest,
+      files: [
+        { path: 'shared.txt', content: 'shared' },
+        { path: 'codex-only.txt', content: 'codex', clients: ['codex'] },
+      ],
+    };
+    const plan = await planLocalMigration({ home, clients: ['codex', 'claude'], artifact });
+    assert.deepEqual(plan.artifact.files.map((file) => file.clients), [['codex'], null]);
+    assert.deepEqual(plan.writes.map((write) => write.path), ['.claude/shared.txt', '.codex/codex-only.txt', '.codex/shared.txt']);
+    await applyLocalMigration(plan, { confirm: true });
+    await access(path.join(home, '.codex', 'codex-only.txt'));
+    await assert.rejects(access(path.join(home, '.claude', 'codex-only.txt')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('forged self-consistent root redirects fail before any target write', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: [{ name: 'codex', root: '.codex' }], artifact: manifest });
+    const forgedMarker = JSON.parse(plan.writes[0].markerContent);
+    forgedMarker.path = '.redirected/worktree-proof.manifest.json';
+    const forgedMarkerContent = `${canonicalJson(forgedMarker)}\n`;
+    const forged = rehashPlan(plan, {
+      writes: plan.writes.map((write) => ({ ...write, path: '.redirected/worktree-proof.manifest.json', markerPath: '.redirected/worktree-proof.manifest.json.worktree-proof-owner', markerContent: forgedMarkerContent, markerHash: sha256(forgedMarkerContent) })),
+    });
+    await assert.rejects(
+      () => applyLocalMigration(forged, { confirm: true }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_PLAN',
+    );
+    await assert.rejects(access(path.join(home, '.redirected', 'worktree-proof.manifest.json')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('plan and receipt hard bounds reject oversized clients, artifacts, writes, and backups', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    await assert.rejects(
+      () => planLocalMigration({ home, clients: Array.from({ length: 21 }, (_, index) => `client-${index}`), artifact: manifest }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_CLIENTS',
+    );
+    await assert.rejects(
+      () => planLocalMigration({ home, clients: ['codex'], artifact: { manifest, files: Array.from({ length: 101 }, (_, index) => ({ path: `file-${index}.txt`, content: 'safe' })) } }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_ARTIFACT_LIMIT',
+    );
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const receipt = await applyLocalMigration(plan, { confirm: true });
+    const entries = Array.from({ length: 101 }, (_, index) => ({ ...receipt.backups[0], path: `.codex/oversized-${index}.txt`, markerPath: `.codex/oversized-${index}.txt.worktree-proof-owner`, existed: false, backupPath: null, markerBackupPath: null, sha256: null, markerSha256: null }));
+    await assert.rejects(
+      () => rollbackLocalMigration(rehashReceipt(receipt, { written: entries.map((entry) => entry.path), backups: entries })),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_ROLLBACK',
+    );
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('deterministic journal collisions preserve arbitrary or stale bytes', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const backupRoot = path.join(home, '.worktree-proof', 'backups');
+    await (await import('node:fs/promises')).mkdir(backupRoot, { recursive: true });
+    const journalPath = path.join(backupRoot, `migration-${plan.planHash}.journal.json`);
+    const stale = Buffer.from('{"status":"stale","owner":"not-worktree-proof"}\n', 'utf8');
+    await writeFile(journalPath, stale);
+    await assert.rejects(
+      () => applyLocalMigration(plan, { confirm: true }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_JOURNAL_COLLISION',
+    );
+    assert.deepEqual(await readFile(journalPath), stale);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('forward-slash UNC and device spellings are refused for all migration roots', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    for (const unsafe of ['//server/share', '//?/C:/device', '//./pipe/device']) {
+      await assert.rejects(() => planLocalMigration({ home: unsafe, clients: ['codex'], artifact: manifest }), (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_HOME');
+      await assert.rejects(() => planLocalMigration({ home, clients: [{ name: 'codex', root: unsafe }], artifact: manifest }), (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_PATH');
+    }
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    await assert.rejects(() => applyLocalMigration(plan, { confirm: true, backupRoot: '//server/share' }), (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_BACKUP_ROOT');
+    const receipt = await applyLocalMigration(plan, { confirm: true });
+    for (const unsafe of ['//server/share', '//?/C:/device', '//./pipe/device']) {
+      await assert.rejects(() => rollbackLocalMigration(rehashReceipt(receipt, { backupRoot: unsafe })), (error) => error instanceof MigrationSafetyError && error.code === 'ERR_INVALID_ROLLBACK');
+    }
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('rollback acquires the migration lock and refuses contention', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    const receipt = await applyLocalMigration(plan, { confirm: true });
+    const lock = await open(path.join(receipt.backupRoot, '.migration.lock'), 'wx', 0o600);
+    await lock.writeFile('worktree-proof-owned:v1\n');
+    await lock.close();
+    await assert.rejects(() => rollbackLocalMigration(receipt), (error) => error instanceof MigrationSafetyError && error.code === 'ERR_MIGRATION_LOCK');
+    await rm(path.join(receipt.backupRoot, '.migration.lock'), { force: true });
+    assert.equal((await rollbackLocalMigration(receipt)).ok, true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('durable recovery failures return only the journal-persisted recovery id', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    let failure;
+    await assert.rejects(
+      () => applyLocalMigration(plan, {
+        confirm: true,
+        hooks: {
+          marker: async () => { throw new Error('marker write'); },
+          rollback: async () => { throw new Error('rollback write'); },
+          persistRecovery: async () => { throw new Error('recovery durability'); },
+        },
+      }),
+      (error) => { failure = error; return error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED'; },
+    );
+    assert.match(failure.recoveryReceipt, /^recovery-[a-f0-9]{64}$/u);
+    assert.doesNotMatch(failure.recoveryReceipt, /^unpersisted-/u);
+    const journal = JSON.parse(await readFile(path.join(home, '.worktree-proof', 'backups', `migration-${plan.planHash}.journal.json`), 'utf8'));
+    assert.equal(journal.recoveryId, failure.recoveryReceipt);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('interrupted marker restore preserves existing target bytes and resumes idempotently', async () => {
+  const home = await tempHome();
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const target = path.join(home, '.codex', 'worktree-proof.manifest.json');
+    const before = await readFile(target);
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    let fail = true;
+    await assert.rejects(() => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { if (fail) throw new Error('marker restore'); } } }), MigrationSafetyError);
+    assert.deepEqual(await readFile(target), before);
+    fail = false;
+    assert.equal((await rollbackLocalMigration(receipt)).ok, true);
+    assert.deepEqual(await readFile(target), before);
+    assert.equal((await rollbackLocalMigration(receipt)).ok, true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('explicit recover/resume API completes an interrupted apply without self-deadlocking', async () => {
+  const home = await tempHome();
+  try {
+    const manifest = createIntegrationManifest({ client: 'any-cli', capabilities: [], scope: ['src'] });
+    const plan = await planLocalMigration({ home, clients: ['codex'], artifact: manifest });
+    let failure;
+    await assert.rejects(() => applyLocalMigration(plan, {
+      confirm: true,
+      hooks: { marker: async () => { throw new Error('marker write'); }, rollback: async () => { throw new Error('rollback write'); } },
+    }), (error) => { failure = error; return error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED'; });
+    const migration = await import('../src/index.js');
+    const resume = migration.resumeLocalMigration ?? migration.recoverLocalMigration;
+    assert.equal(typeof resume, 'function');
+    assert.equal((await resume(failure.recoveryReceipt, { backupRoot: path.join(home, '.worktree-proof', 'backups') })).ok, true);
+    await assert.rejects(access(path.join(home, '.codex', 'worktree-proof.manifest.json')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
   }
 });

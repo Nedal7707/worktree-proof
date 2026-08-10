@@ -16,8 +16,15 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 20,
-      "uniqueItems": true,
-      "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$" }
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "root"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$" },
+          "root": { "type": "string", "minLength": 1 }
+        }
+      }
     },
     "artifact": {
       "type": "object",
@@ -27,13 +34,26 @@
         "manifestHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "files": {
           "type": "array",
+          "minItems": 1,
           "maxItems": 100,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["path", "contentHash"],
+            "required": ["path", "clients", "contentHash"],
             "properties": {
               "path": { "type": "string", "minLength": 1 },
+              "clients": {
+                "oneOf": [
+                  { "type": "null" },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$" }
+                  }
+                ]
+              },
               "contentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
             }
           }

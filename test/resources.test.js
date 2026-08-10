@@ -142,7 +142,7 @@ test('path escape and symlink entries fail closed', async (t) => {
   try {
     const escapeFs = {
       lstat: async (candidate) => candidate === root ? { isDirectory: () => true } : (() => { throw Object.assign(new Error('outside'), { code: 'ENOENT' }); })(),
-      readdir: async () => ['..\\outside'],
+      readdir: async () => [nodePath.join('..', 'outside')],
       statfs: async () => ({ blocks: 10, bavail: 5, bsize: 1 }),
     };
     const escaped = await scanResources({ repoPath: root, fs: escapeFs, os: mockedOs(), maxEntries: 10 });
@@ -182,7 +182,7 @@ test('cleanup is an explicit, non-mutating project inventory', async () => {
     assert.ok(plan.items.some((item) => item.category === 'cache'));
     assert.ok(plan.items.every((item) => item.safeToDelete === false && item.requiresConfirmation === true));
     assert.equal(await readFile(nodePath.join(root, 'README.txt'), 'utf8'), before);
-    await assert.rejects(() => Promise.resolve(planProjectCleanup(scan, { allowedRoots: ['..\\outside'] })).then((result) => result.blocked ? Promise.reject(new Error('blocked')) : result), /blocked/);
+    await assert.rejects(() => Promise.resolve(planProjectCleanup(scan, { allowedRoots: [nodePath.join('..', 'outside')] })).then((result) => result.blocked ? Promise.reject(new Error('blocked')) : result), /blocked/);
     await stat(root);
   } finally {
     await rm(root, { recursive: true, force: true });

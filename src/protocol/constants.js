@@ -22,4 +22,3 @@ export const PROTOCOL_LIMITS = Object.freeze({
 // timestamp or random UUID. Callers that need correlation should provide an
 // explicit safe id.
 export const DEFAULT_REQUEST_ID = 'req-0';
-

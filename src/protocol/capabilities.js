@@ -74,4 +74,3 @@ export function negotiateCapabilities({ protocolVersion, requested } = {}) {
 export function hasCapability(id) {
   return typeof id === 'string' && CAPABILITY_BY_ID.has(id);
 }
-

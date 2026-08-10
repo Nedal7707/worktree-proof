@@ -52,4 +52,3 @@ export function publicErrorMessage(code) {
 }
 
 export const PUBLIC_ERROR_CODES = Object.freeze(Object.keys(PUBLIC_MESSAGES));
-

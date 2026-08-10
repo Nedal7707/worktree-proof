@@ -83,8 +83,13 @@ export function boundedText(value, maxBytes) {
 
 function descriptors(value) {
   try {
-    const own = Object.getOwnPropertyDescriptors(value);
-    if (Object.getOwnPropertySymbols(value).length > 0) throw new McpToolError('symbols are not JSON-safe', 'ERR_INVALID_PARAMS');
+    const own = Object.create(null);
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== 'string') throw new McpToolError('symbols are not JSON-safe', 'ERR_INVALID_PARAMS');
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(Array.isArray(value) && key === 'length'))) throw new McpToolError('accessor or non-enumerable value is not JSON-safe', 'ERR_INVALID_PARAMS');
+      own[key] = descriptor;
+    }
     return own;
   } catch (error) {
     if (error instanceof McpToolError) throw error;
@@ -110,7 +115,7 @@ function validateNode(value, limits, state, depth = 0) {
   try {
     if (!Array.isArray(value) && !plainObject(value)) throw new McpToolError('value is not a plain object', 'ERR_INVALID_PARAMS');
     own = descriptors(value);
-    const keys = Object.keys(own);
+    const keys = Object.keys(own).filter((key) => !(Array.isArray(value) && key === 'length'));
     if (keys.length > limits.maxItems) throw new McpToolError('value has too many items', 'ERR_INVALID_PARAMS');
     for (const key of keys) {
       if (DANGEROUS_KEYS.has(key)) throw new McpToolError('dangerous key is not allowed', 'ERR_INVALID_PARAMS');

@@ -59,8 +59,13 @@ function plainObject(value) {
 
 function ownDescriptors(value) {
   try {
-    const descriptors = Object.getOwnPropertyDescriptors(value);
-    if (Object.getOwnPropertySymbols(value).length > 0) throw new Error('symbols');
+    const descriptors = Object.create(null);
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== 'string') throw new Error('symbols');
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !('value' in descriptor) || (!descriptor.enumerable && !(Array.isArray(value) && key === 'length'))) throw new Error('unsafe descriptor');
+      descriptors[key] = descriptor;
+    }
     return descriptors;
   } catch {
     throw new McpError(-32600, 'invalid request');
@@ -125,14 +130,17 @@ function validateMessage(message, context) {
     return { ok: false, notification, id };
   }
   if (!plainObject(message)) return { ok: false, notification: false, id };
-  let keys;
-  try { keys = Object.keys(ownDescriptors(message)); } catch { return { ok: false, notification, id }; }
-  if (message.jsonrpc !== '2.0' || typeof message.method !== 'string' || !message.method || message.method.length > 128 || keys.some((key) => DANGEROUS_KEYS.has(key))) {
+  let descriptors;
+  try { descriptors = ownDescriptors(message); } catch { return { ok: false, notification, id }; }
+  const keys = Object.keys(descriptors);
+  const jsonrpc = descriptors.jsonrpc?.value;
+  const method = descriptors.method?.value;
+  const params = descriptors.params?.value;
+  if (jsonrpc !== '2.0' || typeof method !== 'string' || !method || method.length > 128 || keys.some((key) => DANGEROUS_KEYS.has(key))) {
     return { ok: false, notification, id };
   }
-  if (Object.prototype.hasOwnProperty.call(message, 'id')) {
-    let idDescriptor;
-    try { idDescriptor = ownDescriptors(message).id; } catch { return { ok: false, notification, id }; }
+  if (Object.prototype.hasOwnProperty.call(descriptors, 'id')) {
+    const idDescriptor = descriptors.id;
     if (!idDescriptor || !('value' in idDescriptor) || id === null || (typeof id !== 'string' && typeof id !== 'number')) return { ok: false, notification, id };
   }
   try {
@@ -140,31 +148,30 @@ function validateMessage(message, context) {
   } catch {
     return { ok: false, notification, id };
   }
-  if (Object.prototype.hasOwnProperty.call(message, 'params') && (message.params === null || typeof message.params !== 'object' || (!plainObject(message.params) && !Array.isArray(message.params)))) {
+  if (Object.prototype.hasOwnProperty.call(descriptors, 'params') && (params === null || typeof params !== 'object' || (!plainObject(params) && !Array.isArray(params)))) {
     return { ok: false, notification, id };
   }
-  return { ok: true, notification, id };
+  return { ok: true, notification, id, method, params };
 }
 
-function makeCallContext(ctx, id) {
+function makeCallContext(ctx, id, sequence) {
   const controller = new AbortController();
   const parent = ctx.signal;
   const abort = () => controller.abort();
   if (parent?.aborted) controller.abort();
   else parent?.addEventListener?.('abort', abort, { once: true });
-  return { controller, context: { ...ctx, signal: controller.signal, requestId: id }, cleanup: () => parent?.removeEventListener?.('abort', abort) };
+  return { controller, sequence, context: { ...ctx, signal: controller.signal, requestId: id }, cleanup: () => parent?.removeEventListener?.('abort', abort) };
 }
 
 /** Handle one parsed JSON value. Notifications never produce a response. */
-export async function handleMcpMessage(message, context = {}) {
+export async function handleMcpMessage(message, context = {}, metadata = {}) {
   const ctx = context?.__mcpContext === true ? context : contextFrom(context);
   const checked = validateMessage(message, ctx);
   if (!checked.ok) return checked.notification ? null : jsonRpcError(checked.id, -32600, 'invalid request');
-  const { notification, id } = checked;
-  const method = message.method;
-  const params = message.params;
+  const { notification, id, method, params } = checked;
 
   if (method === 'initialize') {
+    if (notification) return null;
     if (ctx.state.initialized || !plainObject(params) || typeof params.protocolVersion !== 'string' || !plainObject(params.capabilities) || !plainObject(params.clientInfo) || typeof params.clientInfo.name !== 'string' || typeof params.clientInfo.version !== 'string') {
       return notification ? null : jsonRpcError(id, -32600, 'invalid request');
     }
@@ -200,7 +207,7 @@ export async function handleMcpMessage(message, context = {}) {
       return null;
     }
     if (ctx.inFlight.has(mapKey(id))) return jsonRpcError(id, -32600, 'invalid request');
-    const call = makeCallContext(ctx, id);
+    const call = makeCallContext(ctx, id, metadata.sequence);
     ctx.inFlight.set(mapKey(id), call);
     try {
       const result = await ctx.tools.call(params.name, params.arguments ?? {}, call.context);
@@ -326,7 +333,7 @@ export function createMcpServer(options = {}) {
   const finishIfIdle = () => { maybeCloseAfterDrain(); };
 
   const processEntry = async (entry) => {
-    try { pendingResponses.set(entry.sequence, await handleMcpMessage(entry.message, context)); }
+    try { pendingResponses.set(entry.sequence, await handleMcpMessage(entry.message, context, { sequence: entry.sequence })); }
     catch { pendingResponses.set(entry.sequence, isJsonRpcNotification(entry.message) ? null : jsonRpcError(safeId(entry.message), -32603, 'internal error')); }
     finally {
       processCount -= 1;
@@ -344,8 +351,30 @@ export function createMcpServer(options = {}) {
     }
   };
 
+  const cancellationRequestId = (message) => {
+    try {
+      if (!plainObject(message)) return undefined;
+      const descriptors = ownDescriptors(message);
+      if (Object.prototype.hasOwnProperty.call(descriptors, 'id') || descriptors.method?.value !== 'notifications/cancelled') return undefined;
+      const params = descriptors.params?.value;
+      if (!plainObject(params)) return undefined;
+      const requestId = ownDescriptors(params).requestId?.value;
+      if (typeof requestId === 'string' && requestId.length > 0 && requestId.length <= 128 && !/[\u0000-\u001f\u007f]/u.test(requestId)) return requestId;
+      if (typeof requestId === 'number' && Number.isFinite(requestId) && Math.abs(requestId) <= Number.MAX_SAFE_INTEGER) return requestId;
+      return undefined;
+    } catch { return undefined; }
+  };
+
   const enqueue = (message) => {
     if (state.closed) return;
+    const cancellationId = cancellationRequestId(message);
+    if (cancellationId !== undefined) {
+      // Cancellation notifications are lifecycle control messages. Validate
+      // and route them immediately so a saturated work queue cannot starve the
+      // abort path. They consume no response sequence and never reply.
+      void handleMcpMessage(message, context).catch((error) => writeDiagnostic(error));
+      return;
+    }
     if (queue.length + processCount >= limits.maxQueuedMessages) {
       if (!notificationCandidate(message)) enqueueOutput(jsonRpcError(safeId(message), -32600, 'server busy'));
       return;

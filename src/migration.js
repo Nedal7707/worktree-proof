@@ -51,10 +51,15 @@ const MAX_CLIENTS = 20;
 const MAX_ARTIFACT_FILES = 100;
 const MAX_WRITES = 100;
 const JOURNAL_KIND = 'worktree-proof-migration-journal';
+const LOCK_KIND = 'worktree-proof-migration-lock';
+const CLAIM_KIND = 'worktree-proof-migration-claim';
+const LOCK_VERSION = 1;
 const JOURNAL_KEYS = Object.freeze(['backupRoot', 'entries', 'home', 'journalPath', 'kind', 'owner', 'planHash', 'recoveryId', 'status', 'version']);
 const JOURNAL_ENTRY_KEYS = Object.freeze(['appliedContentHash', 'appliedMarkerHash', 'backupPath', 'existed', 'markerBackupPath', 'markerPath', 'path', 'preContentHash', 'preMarkerHash', 'state']);
 const JOURNAL_STATES = new Set(['planned', 'backed-up', 'target-written', 'applied', 'pending', 'target-restoring', 'target-restored', 'marker-restoring', 'marker-restored', 'restored']);
 const JOURNAL_STATUSES = new Set(['applying', 'applied', 'rolling-back', 'restored', 'rolled-back']);
+const LOCK_KEYS = Object.freeze(['backupRoot', 'journalPath', 'kind', 'owner', 'ownerNonce', 'planHash', 'recoveryId', 'state', 'version']);
+const CLAIM_KEYS = Object.freeze(['backupRoot', 'claimantNonce', 'journalPath', 'kind', 'lockOwnerNonce', 'owner', 'planHash', 'recoveryId', 'version']);
 
 const PLAN_KEYS = Object.freeze(['artifact', 'clients', 'home', 'planHash', 'preview', 'protocol', 'protocolVersion', 'rollback', 'version', 'writes']);
 const PLAN_BODY_KEYS = Object.freeze(PLAN_KEYS.filter((key) => key !== 'planHash'));
@@ -553,6 +558,37 @@ async function atomicWrite(file, data, { replace = false, root, relativePath, ho
   }
 }
 
+// Lock and claim records are protocol files rather than migration targets;
+// their canonical names intentionally contain the reserved `lock` segment.
+// Keep their write primitive separate so target-path validation cannot reject
+// the very lock needed to protect recovery.
+async function atomicProtocolWrite(file, data, root) {
+  const destination = resolve(file);
+  const rootPath = resolve(root);
+  ensureInside(rootPath, destination);
+  const parent = dirname(destination);
+  await rejectReparseAbsolute(rootPath, { allowMissing: false });
+  await mkdir(parent, { recursive: true });
+  await rejectReparseAbsolute(parent, { allowMissing: false });
+  const temporary = join(parent, `.${parse(destination).base}.${randomUUID()}.tmp`);
+  let handle;
+  try {
+    handle = await open(temporary, 'wx', 0o600);
+    await handle.writeFile(data);
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rejectReparseAbsolute(parent, { allowMissing: false });
+    await rename(temporary, destination);
+    await rejectReparseAbsolute(destination, { allowMissing: false });
+    const verify = await readFile(destination);
+    if (!verify.equals(Buffer.from(data))) throw new MigrationSafetyError('protocol record changed after rename', 'ERR_MIGRATION_LOCK');
+  } finally {
+    if (handle) await handle.close().catch(() => {});
+    await rm(temporary, { force: true }).catch(() => {});
+  }
+}
+
 async function safeRead(file, { root, relativePath, encoding } = {}) {
   if (root && relativePath) {
     ensureInside(root, resolve(root, relativePath));
@@ -580,10 +616,120 @@ async function backupBytes(backupRoot, index, bytes, hooks) {
   return backupPath;
 }
 
-const RETAINED_LOCKS = new Map();
-
 function recoveryIdFor(planHash) {
   return `recovery-${planHash}`;
+}
+
+function lockBody(lock) {
+  return {
+    version: LOCK_VERSION,
+    kind: LOCK_KIND,
+    owner: OWNER_MARKER,
+    state: lock.state,
+    backupRoot: lock.backupRoot,
+    journalPath: lock.journalPath,
+    planHash: lock.planHash,
+    recoveryId: lock.recoveryId,
+    ownerNonce: lock.ownerNonce,
+  };
+}
+
+function validateLockRecord(record, { expected } = {}) {
+  exactKeys(record, LOCK_KEYS, LOCK_KEYS, 'ERR_MIGRATION_LOCK');
+  if (record.version !== LOCK_VERSION || record.kind !== LOCK_KIND || record.owner !== OWNER_MARKER || !['active', 'recoverable'].includes(record.state)) {
+    throw new MigrationSafetyError('migration lock ownership or state is invalid', 'ERR_MIGRATION_LOCK');
+  }
+  const backupRootText = rejectUnsupportedAbsolute(record.backupRoot, 'ERR_MIGRATION_LOCK');
+  if (!isPortableAbsolute(backupRootText) || DEVICE_PATH.test(backupRootText) || UNC_PATH.test(backupRootText)) throw new MigrationSafetyError('migration lock backup root is invalid', 'ERR_MIGRATION_LOCK');
+  const backupRoot = resolve(backupRootText);
+  if (dirname(backupRoot) === backupRoot || backupRoot !== resolve(backupRootText)) throw new MigrationSafetyError('migration lock backup root is not canonical', 'ERR_MIGRATION_LOCK');
+  if (typeof record.journalPath !== 'string') throw new MigrationSafetyError('migration lock journal path is invalid', 'ERR_MIGRATION_LOCK');
+  const journalPath = validateBackupPath(backupRoot, backupRoot, record.journalPath, 'ERR_MIGRATION_LOCK');
+  assertHash(record.planHash, 'ERR_MIGRATION_LOCK');
+  if (record.recoveryId !== recoveryIdFor(record.planHash)) throw new MigrationSafetyError('migration lock recovery id is invalid', 'ERR_MIGRATION_LOCK');
+  if (typeof record.ownerNonce !== 'string' || !/^[0-9a-f-]{16,}$/iu.test(record.ownerNonce) || CONTROL.test(record.ownerNonce)) throw new MigrationSafetyError('migration lock owner nonce is invalid', 'ERR_MIGRATION_LOCK');
+  if (expected) {
+    if ((expected.backupRoot !== undefined && expected.backupRoot !== backupRoot)
+      || (expected.journalPath !== undefined && expected.journalPath !== journalPath)
+      || (expected.planHash !== undefined && expected.planHash !== record.planHash)
+      || (expected.recoveryId !== undefined && expected.recoveryId !== record.recoveryId)
+      || (expected.ownerNonce !== undefined && expected.ownerNonce !== record.ownerNonce)
+      || (expected.state !== undefined && expected.state !== record.state)) {
+      throw new MigrationSafetyError('migration lock does not match recovery journal', 'ERR_MIGRATION_LOCK');
+    }
+  }
+  return { ...record, backupRoot, journalPath };
+}
+
+async function readCanonicalLock(lockPath, expected = {}) {
+  const backupRoot = expected.backupRoot ?? dirname(lockPath);
+  let raw;
+  try {
+    ensureInside(backupRoot, resolve(lockPath));
+    await rejectReparseAbsolute(lockPath, { allowMissing: false });
+    raw = await readFile(lockPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw new MigrationSafetyError('migration lock is missing', 'ERR_MIGRATION_LOCK');
+    throw new MigrationSafetyError('migration lock is unreadable', 'ERR_MIGRATION_LOCK');
+  }
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { throw new MigrationSafetyError('migration lock is malformed', 'ERR_MIGRATION_LOCK'); }
+  const validated = validateLockRecord(parsed, expected);
+  if (raw !== `${canonicalJson(parsed)}\n`) throw new MigrationSafetyError('migration lock is not canonical', 'ERR_MIGRATION_LOCK');
+  return validated;
+}
+
+function claimBody(claim) {
+  return {
+    version: LOCK_VERSION,
+    kind: CLAIM_KIND,
+    owner: OWNER_MARKER,
+    backupRoot: claim.backupRoot,
+    journalPath: claim.journalPath,
+    planHash: claim.planHash,
+    recoveryId: claim.recoveryId,
+    lockOwnerNonce: claim.lockOwnerNonce,
+    claimantNonce: claim.claimantNonce,
+  };
+}
+
+function validateClaimRecord(record, { expected } = {}) {
+  exactKeys(record, CLAIM_KEYS, CLAIM_KEYS, 'ERR_MIGRATION_LOCK');
+  if (record.version !== LOCK_VERSION || record.kind !== CLAIM_KIND || record.owner !== OWNER_MARKER) throw new MigrationSafetyError('migration recovery claim is invalid', 'ERR_MIGRATION_LOCK');
+  const backupRootText = rejectUnsupportedAbsolute(record.backupRoot, 'ERR_MIGRATION_LOCK');
+  if (!isPortableAbsolute(backupRootText) || DEVICE_PATH.test(backupRootText) || UNC_PATH.test(backupRootText)) throw new MigrationSafetyError('migration recovery claim root is invalid', 'ERR_MIGRATION_LOCK');
+  const backupRoot = resolve(backupRootText);
+  const journalPath = validateBackupPath(backupRoot, backupRoot, record.journalPath, 'ERR_MIGRATION_LOCK');
+  assertHash(record.planHash, 'ERR_MIGRATION_LOCK');
+  if (record.recoveryId !== recoveryIdFor(record.planHash)) throw new MigrationSafetyError('migration recovery claim id is invalid', 'ERR_MIGRATION_LOCK');
+  for (const [name, value] of [['lockOwnerNonce', record.lockOwnerNonce], ['claimantNonce', record.claimantNonce]]) {
+    if (typeof value !== 'string' || !/^[0-9a-f-]{16,}$/iu.test(value) || CONTROL.test(value)) throw new MigrationSafetyError(`migration recovery claim ${name} is invalid`, 'ERR_MIGRATION_LOCK');
+  }
+  if (expected && (expected.backupRoot !== undefined && expected.backupRoot !== backupRoot
+    || expected.journalPath !== undefined && expected.journalPath !== journalPath
+    || expected.planHash !== undefined && expected.planHash !== record.planHash
+    || expected.recoveryId !== undefined && expected.recoveryId !== record.recoveryId
+    || expected.lockOwnerNonce !== undefined && expected.lockOwnerNonce !== record.lockOwnerNonce
+    || expected.claimantNonce !== undefined && expected.claimantNonce !== record.claimantNonce)) {
+    throw new MigrationSafetyError('migration recovery claim does not match lock', 'ERR_MIGRATION_LOCK');
+  }
+  return { ...record, backupRoot, journalPath };
+}
+
+async function readCanonicalClaim(claimPath, expected = {}) {
+  const backupRoot = expected.backupRoot ?? dirname(claimPath);
+  let raw;
+  try {
+    raw = await safeRead(claimPath, { root: backupRoot, relativePath: relative(backupRoot, claimPath), encoding: 'utf8' });
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw new MigrationSafetyError('migration recovery claim is missing', 'ERR_MIGRATION_LOCK');
+    throw new MigrationSafetyError('migration recovery claim is unreadable', 'ERR_MIGRATION_LOCK');
+  }
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { throw new MigrationSafetyError('migration recovery claim is malformed', 'ERR_MIGRATION_LOCK'); }
+  const validated = validateClaimRecord(parsed, expected);
+  if (raw !== `${canonicalJson(parsed)}\n`) throw new MigrationSafetyError('migration recovery claim is not canonical', 'ERR_MIGRATION_LOCK');
+  return validated;
 }
 
 function journalBody(journal) {
@@ -707,20 +853,34 @@ async function callHook(hooks, name, ...args) {
   if (typeof hooks?.[name] === 'function') await hooks[name](...args);
 }
 
-async function acquireMigrationLock(backupRoot) {
+async function acquireMigrationLock(backupRoot, metadata = {}) {
   await rejectReparseAbsolute(backupRoot);
   await mkdir(backupRoot, { recursive: true });
   await rejectReparseAbsolute(backupRoot, { allowMissing: false });
   const lockPath = join(backupRoot, '.migration.lock');
+  const planHashValue = metadata.planHash;
+  const journalPath = metadata.journalPath ?? join(backupRoot, `migration-${planHashValue}.journal.json`);
+  assertHash(planHashValue, 'ERR_MIGRATION_LOCK');
+  const lock = {
+    version: LOCK_VERSION,
+    kind: LOCK_KIND,
+    owner: OWNER_MARKER,
+    state: 'active',
+    backupRoot: resolve(backupRoot),
+    journalPath: resolve(journalPath),
+    planHash: planHashValue,
+    recoveryId: recoveryIdFor(planHashValue),
+    ownerNonce: randomUUID(),
+  };
+  validateLockRecord(lock);
   let handle;
   try {
     handle = await open(lockPath, 'wx', 0o600);
-    await handle.writeFile(`${OWNER_MARKER}\n`, 'utf8');
+    await handle.writeFile(`${canonicalJson(lockBody(lock))}\n`, 'utf8');
     await handle.sync();
     await handle.close();
     handle = undefined;
     await rejectReparseAbsolute(lockPath, { allowMissing: false });
-    RETAINED_LOCKS.set(lockPath, 'active');
     return lockPath;
   } catch (error) {
     if (handle) await handle.close().catch(() => {});
@@ -729,11 +889,66 @@ async function acquireMigrationLock(backupRoot) {
   }
 }
 
-async function releaseMigrationLock(lockPath) {
+async function persistLockState(lockPath, state, expected = {}) {
+  const current = await readCanonicalLock(lockPath, expected);
+  const next = { ...current, state };
+  validateLockRecord(next, { ...expected, ownerNonce: current.ownerNonce });
+  await atomicProtocolWrite(lockPath, `${canonicalJson(lockBody(next))}\n`, current.backupRoot);
+  return next;
+}
+
+async function createRecoveryClaim(lockPath, expected) {
+  const lock = await readCanonicalLock(lockPath, expected);
+  if (lock.state !== 'recoverable') throw new MigrationSafetyError('migration lock is not recoverable', 'ERR_MIGRATION_LOCK');
+  const claimPath = join(lock.backupRoot, '.migration.claim');
+  const claim = {
+    version: LOCK_VERSION,
+    kind: CLAIM_KIND,
+    owner: OWNER_MARKER,
+    backupRoot: lock.backupRoot,
+    journalPath: lock.journalPath,
+    planHash: lock.planHash,
+    recoveryId: lock.recoveryId,
+    lockOwnerNonce: lock.ownerNonce,
+    claimantNonce: randomUUID(),
+  };
+  validateClaimRecord(claim);
+  let handle;
+  try {
+    handle = await open(claimPath, 'wx', 0o600);
+    await handle.writeFile(`${canonicalJson(claimBody(claim))}\n`, 'utf8');
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rejectReparseAbsolute(claimPath, { allowMissing: false });
+    return { lock, claimPath, claim };
+  } catch (error) {
+    if (handle) await handle.close().catch(() => {});
+    if (error?.code === 'EEXIST') throw new MigrationSafetyError('another recovery claimant is active', 'ERR_MIGRATION_LOCK');
+    throw error;
+  }
+}
+
+async function releaseRecoveryClaim(claimPath, expected = {}) {
+  if (!claimPath) return;
+  const claim = await readCanonicalClaim(claimPath, expected);
+  await rejectReparseAbsolute(claimPath, { allowMissing: false });
+  await rm(claimPath, { force: true });
+  return claim;
+}
+
+async function releaseMigrationLock(lockPath, expected = {}) {
   if (!lockPath) return;
-  await rejectReparseAbsolute(lockPath, { allowMissing: false }).catch(() => {});
+  let lock;
+  try {
+    lock = await readCanonicalLock(lockPath, expected);
+  } catch (error) {
+    if (error?.code === 'ERR_MIGRATION_LOCK' && !(await pathExists(lockPath))) return;
+    throw error;
+  }
+  await rejectReparseAbsolute(lockPath, { allowMissing: false });
   await rm(lockPath, { force: true });
-  RETAINED_LOCKS.delete(lockPath);
+  return lock;
 }
 
 async function persistJournal(journal, { createOnly = false, hooks } = {}) {
@@ -790,6 +1005,8 @@ function validateReceipt(receipt) {
   if (dirname(backupRoot) === backupRoot) throw new MigrationSafetyError('rollback backup root is too broad', 'ERR_INVALID_ROLLBACK');
   assertHash(receipt.planHash, 'ERR_INVALID_ROLLBACK');
   if (typeof receipt.journalPath !== 'string') throw new MigrationSafetyError('rollback journal path is invalid', 'ERR_INVALID_ROLLBACK');
+  const journalAbsolute = resolve(rejectUnsupportedAbsolute(receipt.journalPath, 'ERR_INVALID_ROLLBACK'));
+  if (dirname(journalAbsolute) !== backupRoot) throw new MigrationSafetyError('rollback receipt root is not bound to its journal', 'ERR_RECEIPT_INTEGRITY');
   const journalPath = validateBackupPath(home, backupRoot, receipt.journalPath, 'ERR_INVALID_ROLLBACK');
   if (!Array.isArray(receipt.written) || receipt.written.length === 0 || receipt.written.length > MAX_WRITES || new Set(receipt.written).size !== receipt.written.length) throw new MigrationSafetyError('rollback written paths are invalid', 'ERR_INVALID_ROLLBACK');
   if (receipt.written.some((value, index, values) => normalizeRelative(value, 'rollback path') !== value || (index > 0 && values[index - 1].localeCompare(value) >= 0))) throw new MigrationSafetyError('rollback written paths are not canonical', 'ERR_INVALID_ROLLBACK');
@@ -883,6 +1100,10 @@ async function restoreReceipt(validated, { hooks, lockHeld = false } = {}) {
     recoveryId: recoveryIdFor(validated.receipt.planHash),
   });
   validated.journal = journal;
+  const expectedReceipt = buildReceiptFromJournal(journal);
+  if (canonicalJson(validated.receipt) !== canonicalJson(expectedReceipt)) {
+    throw new MigrationSafetyError('rollback receipt is not an exact view of the durable journal', 'ERR_RECEIPT_INTEGRITY');
+  }
   for (const receiptEntry of validated.receipt.backups) {
     const journalEntry = journal.entries.find((entry) => entry.path === receiptEntry.path && entry.markerPath === receiptEntry.markerPath);
     if (!journalEntry || journalEntry.existed !== receiptEntry.existed || journalEntry.appliedContentHash !== receiptEntry.appliedContentHash || journalEntry.appliedMarkerHash !== receiptEntry.appliedMarkerHash) throw new MigrationSafetyError('rollback receipt is not bound to the durable journal', 'ERR_INVALID_ROLLBACK');
@@ -1033,12 +1254,13 @@ export async function applyLocalMigration(plan, options = {}) {
   if (dirname(backupRoot) === backupRoot) throw new MigrationSafetyError('backup root is too broad', 'ERR_INVALID_BACKUP_ROOT');
   await rejectReparseAbsolute(backupRoot);
   const hooks = object(options.hooks) ? options.hooks : {};
-  const lockPath = await acquireMigrationLock(backupRoot);
+  const journalPath = join(backupRoot, `migration-${plan.planHash}.journal.json`);
+  const lockPath = await acquireMigrationLock(backupRoot, { planHash: plan.planHash, journalPath });
   const journal = {
     home,
     backupRoot,
     planHash: plan.planHash,
-    journalPath: join(backupRoot, `migration-${plan.planHash}.journal.json`),
+    journalPath,
     recoveryId: recoveryIdFor(plan.planHash),
     status: 'applying',
     entries: plan.writes.map((write) => ({
@@ -1117,7 +1339,12 @@ export async function applyLocalMigration(plan, options = {}) {
     }
     if (rollbackError) {
       keepLock = true;
-      RETAINED_LOCKS.set(lockPath, 'retained');
+      await persistLockState(lockPath, 'recoverable', {
+        backupRoot,
+        journalPath: journal.journalPath,
+        planHash: journal.planHash,
+        recoveryId: journal.recoveryId,
+      });
       let recovery;
       try {
         recovery = await persistRecovery(backupRoot, journal, error, rollbackError, hooks);
@@ -1175,20 +1402,66 @@ export async function rollbackLocalMigration(receipt, options = {}) {
   await rejectReparseAbsolute(validated.home, { allowMissing: false });
   await rejectReparseAbsolute(validated.backupRoot);
   const lockPath = join(validated.backupRoot, '.migration.lock');
-  let retained = false;
-  let lock = RETAINED_LOCKS.get(lockPath) === 'retained' ? lockPath : undefined;
-  if (lock) retained = true;
-  if (!lock) lock = await acquireMigrationLock(validated.backupRoot);
+  const lockExpected = {
+    backupRoot: validated.backupRoot,
+    journalPath: validated.journalPath,
+    planHash: validated.receipt.planHash,
+    recoveryId: recoveryIdFor(validated.receipt.planHash),
+  };
+  let lock;
+  let claimPath;
+  let lockOwnerNonce;
+  try {
+    lock = await acquireMigrationLock(validated.backupRoot, lockExpected);
+    const active = await readCanonicalLock(lock, lockExpected);
+    lockOwnerNonce = active.ownerNonce;
+  } catch (error) {
+    if (error?.code !== 'ERR_MIGRATION_LOCK') throw error;
+    const adopted = await createRecoveryClaim(lockPath, lockExpected);
+    lock = lockPath;
+    claimPath = adopted.claimPath;
+    lockOwnerNonce = adopted.lock.ownerNonce;
+  }
   try {
     const result = await restoreReceipt(validated, { hooks: object(options.hooks) ? options.hooks : {}, lockHeld: true });
-    await releaseMigrationLock(lock);
+    if (claimPath) await releaseRecoveryClaim(claimPath, { ...lockExpected, lockOwnerNonce });
+    await releaseMigrationLock(lock, { ...lockExpected, ownerNonce: lockOwnerNonce });
+    if (options.cleanupRecovery === true) await cleanupRecoveryArtifacts(validated, options.recoveryId ?? recoveryIdFor(validated.receipt.planHash));
     return result;
   } catch (error) {
-    // Keep the lock and durable progress journal for a bounded retry.  A
-    // same-process resume reuses this retained lock; another process sees the
-    // normal ERR_MIGRATION_LOCK contention result.
-    RETAINED_LOCKS.set(lock, 'retained');
+    // Keep a canonical durable lock in recoverable state.  The next process
+    // must claim that exact lock/journal pair before resuming; no process-local
+    // map is treated as authority.
+    try {
+      await persistLockState(lock, 'recoverable', { ...lockExpected, ownerNonce: lockOwnerNonce });
+    } catch {
+      // Preserve the original recovery error.  A malformed/missing lock remains
+      // fail-closed and cannot be silently replaced by a new claimant.
+    }
+    if (error instanceof MigrationSafetyError && !error.recoveryReceipt) error.recoveryReceipt = recoveryIdFor(validated.receipt.planHash);
     throw error;
+  }
+}
+
+async function cleanupRecoveryArtifacts(validated, recoveryId) {
+  const journal = await readCanonicalJournal(validated.journalPath, {
+    home: validated.home,
+    backupRoot: validated.backupRoot,
+    journalPath: validated.journalPath,
+    planHash: validated.receipt.planHash,
+    recoveryId,
+  });
+  if (!['restored', 'rolled-back'].includes(journal.status)) throw new MigrationSafetyError('recovery journal is not terminal', 'ERR_RECOVERY_REQUIRED');
+  const journalBytes = await safeRead(validated.journalPath, { root: validated.backupRoot, relativePath: relative(validated.backupRoot, validated.journalPath) });
+  if (canonicalJson(JSON.parse(journalBytes.toString('utf8'))) !== canonicalJson(journal)) throw new MigrationSafetyError('recovery journal changed before cleanup', 'ERR_RECEIPT_INTEGRITY');
+  await rm(validated.journalPath, { force: false });
+  const recoveryPath = join(validated.backupRoot, `recovery-${recoveryId}.json`);
+  if (await pathExists(recoveryPath)) {
+    const recoveryBytes = await safeRead(recoveryPath, { root: validated.backupRoot, relativePath: relative(validated.backupRoot, recoveryPath), encoding: 'utf8' });
+    let record;
+    try { record = JSON.parse(recoveryBytes); } catch { throw new MigrationSafetyError('recovery record is malformed', 'ERR_RECEIPT_INTEGRITY'); }
+    if (record.recoveryId !== recoveryId || recoveryBytes !== `${canonicalJson(record)}\n`) throw new MigrationSafetyError('recovery record ownership changed before cleanup', 'ERR_RECEIPT_INTEGRITY');
+    await rm(recoveryPath, { force: false });
   }
 }
 
@@ -1209,7 +1482,7 @@ export async function resumeLocalMigration(recovery, options = {}) {
     const journal = await readCanonicalJournal(journalPath, { backupRoot, journalPath, planHash: recovery.slice('recovery-'.length), recoveryId: recovery });
     receipt = buildReceiptFromJournal(journal);
   }
-  return rollbackLocalMigration(receipt, options);
+  return rollbackLocalMigration(receipt, { ...options, cleanupRecovery: true, recoveryId: recovery });
 }
 
 export const recoverLocalMigration = resumeLocalMigration;

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, open, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, open, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -555,6 +555,138 @@ test('explicit recover/resume API completes an interrupted apply without self-de
     assert.equal(typeof resume, 'function');
     assert.equal((await resume(failure.recoveryReceipt, { backupRoot: path.join(home, '.worktree-proof', 'backups') })).ok, true);
     await assert.rejects(access(path.join(home, '.codex', 'worktree-proof.manifest.json')));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('self-rehashed receipts cannot redirect restore to an attacker backup or alter receipt cardinality', async () => {
+  const home = await tempHome();
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const target = path.join(home, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    const appliedTarget = await readFile(target);
+    const appliedMarker = await readFile(marker);
+    const legitimateTargetBackup = await readFile(receipt.backups[0].backupPath);
+    const legitimateMarkerBackup = await readFile(receipt.backups[0].markerBackupPath);
+    const attackerRoot = path.join(receipt.backupRoot, 'attacker-controlled');
+    await mkdir(attackerRoot, { recursive: true });
+    const attackerTarget = path.join(attackerRoot, 'target.bin');
+    const attackerMarker = path.join(attackerRoot, 'marker.bin');
+    const attackerTargetBytes = Buffer.from('attacker target bytes');
+    const attackerMarkerBytes = Buffer.from('attacker marker bytes\n');
+    await writeFile(attackerTarget, attackerTargetBytes);
+    await writeFile(attackerMarker, attackerMarkerBytes);
+    const entry = receipt.backups[0];
+    const forged = rehashReceipt(receipt, {
+      backups: [{
+        ...entry,
+        backupPath: attackerTarget,
+        markerBackupPath: attackerMarker,
+        sha256: sha256(attackerTargetBytes),
+        markerSha256: sha256(attackerMarkerBytes),
+      }],
+    });
+    await assert.rejects(
+      () => rollbackLocalMigration(forged),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECEIPT_INTEGRITY',
+    );
+    assert.deepEqual(await readFile(target), appliedTarget);
+    assert.deepEqual(await readFile(marker), appliedMarker);
+    assert.deepEqual(await readFile(attackerTarget), attackerTargetBytes);
+    assert.deepEqual(await readFile(attackerMarker), attackerMarkerBytes);
+
+    const forgedRoot = rehashReceipt(receipt, { backupRoot: attackerRoot });
+    await assert.rejects(
+      () => rollbackLocalMigration(forgedRoot),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECEIPT_INTEGRITY',
+    );
+    assert.deepEqual(await readFile(target), appliedTarget);
+    assert.deepEqual(await readFile(marker), appliedMarker);
+
+    const malformed = [
+      rehashReceipt(receipt, { backups: [{ ...entry, unexpected: true }] }),
+      rehashReceipt(receipt, { backups: [{ ...entry, backupPath: undefined }] }),
+      rehashReceipt(receipt, { backups: [entry, entry] }),
+      rehashReceipt(receipt, { written: ['.codex/z'], backups: [{ ...entry, path: '.codex/z', markerPath: '.codex/z.worktree-proof-owner' }] }),
+    ];
+    for (const candidate of malformed) {
+      await assert.rejects(
+        () => rollbackLocalMigration(candidate),
+        (error) => error instanceof MigrationSafetyError && ['ERR_INVALID_ROLLBACK', 'ERR_RECEIPT_INTEGRITY'].includes(error.code),
+      );
+    }
+    assert.deepEqual(await readFile(target), appliedTarget);
+    assert.deepEqual(await readFile(marker), appliedMarker);
+    assert.deepEqual(await readFile(path.join(receipt.backupRoot, 'attacker-controlled', 'target.bin')), attackerTargetBytes);
+    assert.deepEqual(await readFile(path.join(receipt.backupRoot, 'attacker-controlled', 'marker.bin')), attackerMarkerBytes);
+    assert.deepEqual(await readFile(receipt.backups[0].backupPath), legitimateTargetBackup);
+    assert.deepEqual(await readFile(receipt.backups[0].markerBackupPath), legitimateMarkerBackup);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test('recovery adopts a durable lock across fresh processes and serializes claimants', async () => {
+  const home = await tempHome();
+  try {
+    const first = createIntegrationManifest({ client: 'any-cli', capabilities: ['first'], scope: ['src'] });
+    const firstPlan = await planLocalMigration({ home, clients: ['codex'], artifact: first });
+    await applyLocalMigration(firstPlan, { confirm: true });
+    const target = path.join(home, '.codex', 'worktree-proof.manifest.json');
+    const marker = `${target}.worktree-proof-owner`;
+    const originalTarget = await readFile(target);
+    const originalMarker = await readFile(marker);
+    const second = createIntegrationManifest({ client: 'any-cli', capabilities: ['second'], scope: ['test'] });
+    const secondPlan = await planLocalMigration({ home, clients: ['codex'], artifact: second });
+    const receipt = await applyLocalMigration(secondPlan, { confirm: true });
+    const backupRoot = receipt.backupRoot;
+
+    await assert.rejects(
+      () => rollbackLocalMigration(receipt, { hooks: { restoreMarker: async () => { throw new Error('injected marker rename failure'); } } }),
+      (error) => error instanceof MigrationSafetyError && error.code === 'ERR_RECOVERY_REQUIRED',
+    );
+    const recoveryId = `recovery-${secondPlan.planHash}`;
+    const lockPath = path.join(backupRoot, '.migration.lock');
+    const journalPath = path.join(backupRoot, `migration-${secondPlan.planHash}.journal.json`);
+    assert.match(await readFile(lockPath, 'utf8'), /recoverable/u);
+    assert.ok((await readFile(journalPath, 'utf8')).includes(recoveryId));
+
+    const freshTag = `${Date.now()}-${Math.random()}`;
+    const freshA = await import(`../src/migration.js?fresh=${freshTag}-a`);
+    const freshB = await import(`../src/migration.js?fresh=${freshTag}-b`);
+    let releaseMarker;
+    let markerStarted;
+    const markerStartedPromise = new Promise((resolveStarted) => { markerStarted = resolveStarted; });
+    const markerGate = new Promise((resolveGate) => { releaseMarker = resolveGate; });
+    const firstResume = freshA.resumeLocalMigration(recoveryId, {
+      backupRoot,
+      hooks: { restoreMarker: async () => { markerStarted(); await markerGate; } },
+    });
+    await markerStartedPromise;
+
+    await assert.rejects(
+      () => freshA.applyLocalMigration(firstPlan, { confirm: true, backupRoot }),
+      (error) => error?.code === 'ERR_MIGRATION_LOCK',
+    );
+    await assert.rejects(
+      () => freshB.resumeLocalMigration(recoveryId, { backupRoot }),
+      (error) => error?.code === 'ERR_MIGRATION_LOCK',
+    );
+    releaseMarker();
+    assert.equal((await firstResume).ok, true);
+    assert.deepEqual(await readFile(target), originalTarget);
+    assert.deepEqual(await readFile(marker), originalMarker);
+    await assert.rejects(access(journalPath));
+    await assert.rejects(access(lockPath));
+    await assert.rejects(access(path.join(backupRoot, '.migration.claim')));
   } finally {
     await rm(home, { recursive: true, force: true });
   }

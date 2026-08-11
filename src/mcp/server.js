@@ -14,7 +14,7 @@ import {
 } from './tools.js';
 
 export const MCP_PROTOCOL_VERSION = '2025-11-25';
-export const MCP_SERVER_INFO = Object.freeze({ name: 'worktree-proof', version: '0.1.0' });
+export const MCP_SERVER_INFO = Object.freeze({ name: 'worktree-proof', version: '0.2.0' });
 export const DEFAULT_MCP_LIMITS = Object.freeze({
   maxMessageBytes: 16 * 1024,
   maxInputBytes: 16 * 1024,

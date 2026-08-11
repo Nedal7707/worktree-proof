@@ -21,7 +21,7 @@ WorktreeProof is open-source vibe coding guardrails for AI coding agents. It is 
 - Repository: https://github.com/Nedal7707/worktree-proof
 - Landing page: https://nedal7707.github.io/worktree-proof/
 - License: Apache-2.0
-- Version shown on this page: 0.1.0
+- Version shown on this page: 0.2.0
 - Runtime: Node.js 20 or newer
 - Runtime dependencies: none
 

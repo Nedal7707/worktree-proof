@@ -24,7 +24,7 @@ The user chooses commands and may edit local files. The CLI, its state directory
 | Command injection | Pass command arguments without an implicit shell; show the command before execution where practical. |
 | Secret leakage | Avoid automatic environment dumps, redact known sensitive fields, and document that users must not put secrets in arguments. |
 | Malicious project content | Treat configuration and hooks as data until the user explicitly chooses to run them. |
-| Supply-chain drift | Keep runtime dependencies at zero in 0.1.0 and review future additions. |
+| Supply-chain drift | Keep runtime dependencies at zero in 0.2.0 and review future additions. |
 | Cross-agent prompt or credential forwarding | Bridge messages accept only bounded summaries, scopes, capability tags, and redacted evidence; executable, network, secret-looking, and arbitrary fields are rejected. |
 | Cross-task privacy leakage | Hash raw task IDs and discard titles, summaries, paths, prompts, and task contents. Never infer an unreported mode. |
 | Desktop resource exhaustion | Default to a bounded request, honor explicit host/runtime and CPU/RAM/disk gates, subtract active reservations, and queue rather than create overflow sessions. |

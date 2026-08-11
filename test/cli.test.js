@@ -9,6 +9,7 @@ import {
   parseArgs,
   runCli,
 } from '../src/cli.js';
+import { MAX_BATCH_ITEMS } from '../src/protocol/index.js';
 
 function capture() {
   const out = [];
@@ -180,7 +181,7 @@ test('capabilities emits one deterministic protocol envelope', async () => {
     'scope.validate',
   ]);
   assert.equal(envelope.result.limits.maxMessageBytes, 16_384);
-  assert.equal(envelope.result.limits.maxBatchItems, 100);
+  assert.equal(envelope.result.limits.maxBatchItems, MAX_BATCH_ITEMS);
 });
 
 test('capabilities uses stable operational and usage exit codes', async () => {
@@ -399,6 +400,44 @@ test('tools list is read-only and tools recommend accepts repeated goals', async
   assert.equal(result.code, EXIT_CODES.OK);
   const output = JSON.parse(stream.out[0]);
   assert.deepEqual(output.result.goals, ['testing', 'javascript']);
+});
+
+test('manifest preview accepts the documented action and target positionals', async () => {
+  const stream = capture();
+  const result = await runCli(['manifest', 'preview', 'codex', '--json'], {
+    io: stream.io,
+    deps: {
+      manifest: {
+        createIntegrationManifest: ({ client }) => ({ client, manifestHash: 'sha256:test' }),
+        renderClientPreview: (target, manifest) => ({ target, manifestHash: manifest.manifestHash }),
+      },
+    },
+  });
+
+  assert.equal(result.code, EXIT_CODES.OK);
+  assert.deepEqual(JSON.parse(stream.out[0]).result, {
+    target: 'codex',
+    manifestHash: 'sha256:test',
+  });
+});
+
+test('tools list preserves a catalog larger than the protocol batch default', async () => {
+  const stream = capture();
+  const catalog = Array.from({ length: 104 }, (_, index) => ({
+    id: `tool-${index}`,
+    name: `Tool ${index}`,
+    categories: ['testing'],
+    capabilities: ['inspect'],
+  }));
+  const result = await runCli(['tools', 'list', '--json'], {
+    io: stream.io,
+    deps: { tools: { loadToolCatalog: () => catalog } },
+  });
+
+  assert.equal(result.code, EXIT_CODES.OK);
+  const output = JSON.parse(stream.out[0]);
+  assert.equal(output.result.count, catalog.length);
+  assert.equal(output.result.tools.length, catalog.length);
 });
 
 test('resources plan remains non-mutating and init writes require confirmation', async () => {

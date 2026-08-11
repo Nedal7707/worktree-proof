@@ -11,7 +11,9 @@ export const PROTOCOL_VERSION = '1.0';
 export const SCHEMA_VERSION = '1';
 
 export const MAX_MESSAGE_BYTES = 16_384;
-export const MAX_BATCH_ITEMS = 100;
+// Keep protocol lists bounded while allowing the published tool catalog to be
+// returned in one deterministic CLI envelope.
+export const MAX_BATCH_ITEMS = 128;
 
 export const PROTOCOL_LIMITS = Object.freeze({
   maxMessageBytes: MAX_MESSAGE_BYTES,

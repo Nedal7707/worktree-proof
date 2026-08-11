@@ -30,6 +30,10 @@ test('adapter aliases render the same target without claiming unavailable capabi
   const codex = renderAdapter('codex', context);
   const skills = renderAdapter('agent-skills', context);
   assert.deepEqual(codex.files, skills.files);
+  const codexSkill = codex.files.find((file) => file.path.endsWith('/SKILL.md'));
+  assert.match(codexSkill.content, /^---\nname: worktree-proof\ndescription: .+\n---\n/);
+  const claudeSkill = renderAdapter('claude', context).files.find((file) => file.path.endsWith('/SKILL.md'));
+  assert.match(claudeSkill.content, /^---\nname: worktree-proof\ndescription: .+\n---\n/);
   assert.match(renderAdapter('ci', context).files[0].content, /workflow|CI|continuous integration/i);
   assert.match(renderAdapter('vscode', context).files[0].content, /tasks|WorktreeProof/i);
 });

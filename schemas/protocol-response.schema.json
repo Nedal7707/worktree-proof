@@ -31,7 +31,7 @@
     },
     "warnings": {
       "type": "array",
-      "maxItems": 100,
+      "maxItems": 128,
       "items": { "type": "string", "minLength": 1, "maxLength": 512 }
     },
     "code": { "type": "integer", "enum": [0, 1, 2] },

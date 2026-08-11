@@ -10,21 +10,34 @@ correctness, adoption, or autonomous merging.
 
 ## Five-minute quick start
 
-Use Node.js 20 or newer:
+Use Node.js 20 or newer. The most reproducible path is a source checkout; the
+commands below invoke the checked-in CLI directly:
+
+```sh
+git clone https://github.com/Nedal7707/worktree-proof.git
+cd worktree-proof
+npm ci
+node bin/worktree-proof.js doctor --json
+node bin/worktree-proof.js plan docs-refresh --scope docs/ --json
+node bin/worktree-proof.js reserve docs-refresh --scope docs/ --json
+node bin/worktree-proof.js run docs-refresh --json -- node --version
+node bin/worktree-proof.js status --json
+```
+
+`close` consumes an explicit JSON receipt; it never invents terminal evidence.
+For a complete, disposable run that closes an abandoned demo lane, see
+[the reproducible demo](docs/DEMO.md). Every mutating action is explicit:
+`--dry-run` previews state changes and `init` is preview-only unless
+`--apply --confirm` are supplied. Commands pass argv with `shell:false`;
+WorktreeProof is not a security sandbox.
+
+The 0.1.0 tag can also be installed globally from GitHub when a PATH command is
+more convenient (verify the installed version before using it):
 
 ```sh
 npm install --global github:Nedal7707/worktree-proof#v0.1.0
-worktree-proof doctor
-worktree-proof plan docs-refresh --scope docs/
-worktree-proof reserve docs-refresh --scope docs/
-worktree-proof run docs-refresh -- node --version
-worktree-proof status --json
-worktree-proof release docs-refresh --reason "demo complete"
+worktree-proof --version
 ```
-
-Every mutating action is explicit. `--dry-run` previews state changes and
-`init` is preview-only unless `--apply --confirm` are supplied. Commands pass
-argv with `shell:false`; WorktreeProof is not a sandbox.
 
 ## Codex installation link
 
@@ -72,12 +85,27 @@ The public helper request defaults to 8 and supports an explicit request up to
 24, but the host/runtime ceiling and CPU/RAM/disk safety can reduce the
 effective value to zero.
 
+## Architecture at a glance
+
+The CLI keeps plans, leases, run records, and closure receipts under the
+project's `.worktree-proof/` directory. Scope normalization and lease checks
+are local and deterministic; no coordinator or account is required. A command
+selected by the user runs as an argv array, then a bounded/redacted run record
+can be inspected with `status`. `close` validates a caller-supplied receipt
+against [the closure schema](schemas/closure-receipt.schema.json), and
+`validate` checks the resulting state without mutating it. The bridge, task
+awareness, manifests, and MCP stdio surface are optional adapters around this
+same local state. See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for boundaries
+and [THREAT-MODEL.md](docs/THREAT-MODEL.md) for what the checks do not prove.
+
 ## Project contents
 
 - `skills/` — concise, portable Agent Skills.
 - `recipes/` — bounded examples for common maintenance work.
 - `catalog/` — declarative tool manifests.
 - `schemas/` — lane, receipt, recipe, resource, and skill-source contracts.
+- `docs/benchmarks/` — a no-dependency, local benchmark harness and its
+  reproducibility notes.
 - `site/` — a static, tracker-free overview.
 
 ## Privacy, security, and limits
@@ -95,6 +123,18 @@ inventory. They do not change OS settings, kill processes, delete files, run a
 daemon, or promise to prevent crashes. If you inspect a crash dump or
 `.heapsnapshot`, treat it as potentially containing conversations or
 credentials and keep it private; this project never uploads or shares it.
+
+## Support, governance, and roadmap
+
+- [SUPPORT.md](SUPPORT.md) explains what belongs in a public issue and how to
+  provide a redacted reproduction.
+- [GOVERNANCE.md](GOVERNANCE.md) describes the maintainer decision process;
+  [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) applies to participation.
+- [ROADMAP.md](ROADMAP.md) lists the intentionally small, evidence-gated next
+  steps. It is a plan, not a promise of dates or adoption.
+- [docs/benchmarks/README.md](docs/benchmarks/README.md) describes how to run
+  the local benchmark. Its numbers are machine- and runtime-specific and are
+  not a vendor or security comparison.
 
 ## Contributing
 

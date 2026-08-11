@@ -20,6 +20,11 @@ npm run check
 
 For CLI changes, run the reproducible demo in [docs/DEMO.md](docs/DEMO.md) and include the command result in the pull request description without copying sensitive output.
 
+For documentation or performance claims, run the no-dependency harness in
+[docs/benchmarks/](docs/benchmarks/). Report the Node.js version, operating
+system, iteration count, and raw JSON summary. Do not turn local timings into a
+claim about security, correctness, adoption, or superiority over another tool.
+
 ## Lanes and receipts
 
 When parallelizing work, reserve a distinct file scope, record the lane identifier, and close it with a validation receipt. Never claim completion from a branch or commit alone; a closed receipt should state what was checked and what remains.
@@ -27,6 +32,11 @@ When parallelizing work, reserve a distinct file scope, record the lane identifi
 ## Pull requests
 
 Explain the motivation, behavior change, tests, documentation impact, and any compatibility concern. Keep commits focused. Maintainers may request a smaller scope or a follow-up change when that makes review safer.
+
+If a change affects support or project direction, link the relevant section of
+[SUPPORT.md](SUPPORT.md), [GOVERNANCE.md](GOVERNANCE.md), or
+[ROADMAP.md](ROADMAP.md). Keep examples runnable with synthetic data and state
+what remains unverified.
 
 ## Conduct
 

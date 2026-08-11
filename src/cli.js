@@ -1476,8 +1476,11 @@ function checkCommandPositionals(parsed) {
   if (command === 'tasks' && positionals.length > 1) {
     throw new CliUsageError('tasks accepts one action');
   }
-  if (command === 'manifest' && positionals.length > 1) {
-    throw new CliUsageError('manifest accepts one preview target');
+  if (command === 'manifest' && positionals.length > 2) {
+    throw new CliUsageError('manifest accepts preview and one target');
+  }
+  if (command === 'manifest' && positionals.length === 2 && positionals[0] !== 'preview') {
+    throw new CliUsageError('manifest accepts preview and one target');
   }
   if (command === 'migrate' && positionals.length > 1) {
     throw new CliUsageError('migrate accepts one action');
@@ -1532,7 +1535,10 @@ async function executeCommand(parsed, context) {
   if (command === 'manifest') {
     const manifestApi = context.deps.manifest;
     if (!manifestApi) return { supported: false, command, reason: 'manifest adapter unavailable' };
-    const target = parsed.positionals[0] ?? options.target ?? 'generic';
+    const [actionOrTarget, positionalTarget] = parsed.positionals;
+    const target = actionOrTarget === 'preview'
+      ? positionalTarget ?? options.target ?? 'generic'
+      : actionOrTarget ?? options.target ?? 'generic';
     let manifest;
     const inputPath = options.input ?? options.manifest;
     if (inputPath !== undefined) {

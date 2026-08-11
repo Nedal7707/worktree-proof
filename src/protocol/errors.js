@@ -1,3 +1,5 @@
+import { types as utilTypes } from 'node:util';
+
 const PUBLIC_MESSAGES = Object.freeze({
   ERR_PROTOCOL: 'protocol operation failed',
   ERR_INVALID_REQUEST: 'invalid protocol request',
@@ -39,7 +41,16 @@ export function normalizeErrorCode(code) {
  * wire. Unknown failures intentionally collapse to ERR_PROTOCOL.
  */
 export function normalizePublicError(error) {
-  const code = normalizeErrorCode(error?.code);
+  let candidate;
+  if (error && typeof error === 'object' && !utilTypes.isProxy(error)) {
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(error, 'code');
+      candidate = descriptor && 'value' in descriptor ? descriptor.value : undefined;
+    } catch {
+      candidate = undefined;
+    }
+  }
+  const code = normalizeErrorCode(candidate);
   return Object.freeze({
     code,
     message: PUBLIC_MESSAGES[code] ?? PUBLIC_MESSAGES.ERR_PROTOCOL,

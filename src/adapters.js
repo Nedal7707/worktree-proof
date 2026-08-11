@@ -132,7 +132,12 @@ function stackSummary(context) {
 }
 
 function neutralSkill(context, host) {
-  return `# WorktreeProof onboarding (${host})
+  return `---
+name: worktree-proof
+description: Coordinate bounded coding-agent lanes with explicit scopes, reservations, run records, and closure receipts.
+---
+
+# WorktreeProof onboarding (${host})
 
 This is an optional, local guide for **${context.name}**. It describes WorktreeProof
 artifacts; it does not install software, contact a service, read credentials, or

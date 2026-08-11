@@ -12,13 +12,13 @@
     "schemaVersion": { "const": "1" },
     "capabilities": {
       "type": "array",
-      "maxItems": 100,
+      "maxItems": 128,
       "uniqueItems": true,
       "items": { "$ref": "#/$defs/capability" }
     },
     "unsupported": {
       "type": "array",
-      "maxItems": 100,
+      "maxItems": 128,
       "uniqueItems": true,
       "items": {
         "type": "string",
@@ -32,7 +32,7 @@
       "required": ["maxMessageBytes", "maxBatchItems"],
       "properties": {
         "maxMessageBytes": { "const": 16384 },
-        "maxBatchItems": { "const": 100 }
+        "maxBatchItems": { "const": 128 }
       }
     },
     "extensions": { "$ref": "#/$defs/extensions" }

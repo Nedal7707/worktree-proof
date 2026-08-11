@@ -99,6 +99,60 @@ test('envelopes redact protected fields and reject oversized batches/messages', 
   );
 });
 
+test('envelopes preserve bounded extension data and reject executable values', () => {
+  const first = createEnvelope({
+    ok: true,
+    command: 'status',
+    requestId: 'req-extension',
+    extensions: {
+      zeta: 2,
+      alpha: { token: 'extension-private', value: 'safe' },
+    },
+  });
+  const second = createEnvelope({
+    ok: true,
+    command: 'status',
+    requestId: 'req-extension',
+    extensions: {
+      alpha: { value: 'safe', token: 'other-private' },
+      zeta: 2,
+    },
+  });
+
+  assert.deepEqual(first.extensions, {
+    alpha: { token: '[redacted]', value: 'safe' },
+    zeta: 2,
+  });
+  assert.equal(JSON.stringify(first), JSON.stringify(second));
+  assert.ok(Object.isFrozen(first.extensions));
+  assert.ok(Object.isFrozen(first.extensions.alpha));
+
+  const accessor = {};
+  Object.defineProperty(accessor, 'value', {
+    enumerable: true,
+    get() { throw new Error('getter must not execute'); },
+  });
+  assert.throws(
+    () => createEnvelope({ ok: true, result: accessor }),
+    (error) => error instanceof ProtocolError && error.code === 'ERR_INVALID_RESULT',
+  );
+  assert.throws(
+    () => createEnvelope({ ok: true, result: new Proxy({}, { getPrototypeOf() { throw new Error('proxy'); } }) }),
+    (error) => error instanceof ProtocolError && error.code === 'ERR_INVALID_RESULT',
+  );
+  assert.throws(
+    () => createEnvelope({ ok: true, extensions: [] }),
+    (error) => error instanceof ProtocolError && error.code === 'ERR_INVALID_ENVELOPE',
+  );
+  const unsafeError = {};
+  Object.defineProperty(unsafeError, 'code', {
+    enumerable: true,
+    get() { throw new Error('error getter must not execute'); },
+  });
+  const failure = createEnvelope({ ok: false, error: unsafeError });
+  assert.equal(failure.error.code, 'ERR_PROTOCOL');
+});
+
 test('warning values are redacted, bounded, and deterministic', () => {
   const warnings = [
     'safe warning',

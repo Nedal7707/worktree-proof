@@ -1,0 +1,140 @@
+name: Release integrity
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Semantic release tag to verify (for example, v0.2.0)
+        required: true
+        type: string
+      publish_package:
+        description: Publish the exact verified tarball through npm trusted publishing
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-integrity-${{ github.event.release.tag_name || inputs.ref || github.ref }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_REF: ${{ github.event.release.tag_name || inputs.ref || github.ref }}
+
+jobs:
+  prepare:
+    name: Build and attest release artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Check out the reviewed release ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify semantic version and lockfile
+        run: |
+          node scripts/release-integrity.mjs check-ref "$RELEASE_REF"
+          npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Run checks and dependency audit
+        run: |
+          npm run check
+          npm audit --omit=dev --audit-level=high
+
+      - name: Build npm package and CycloneDX SBOM
+        run: |
+          mkdir -p dist/release
+          npm pack --ignore-scripts --pack-destination dist/release > dist/pack.json
+          npm sbom --package-lock-only --omit=dev --sbom-format cyclonedx --sbom-type library > dist/release/sbom.cdx.json
+
+      - name: Create and verify checksums and release manifest
+        run: |
+          node scripts/release-integrity.mjs create dist/release
+          node scripts/release-integrity.mjs verify dist/release
+
+      - name: Attest release subjects and SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: dist/release/SHA256SUMS
+          sbom-path: dist/release/sbom.cdx.json
+
+      - name: Upload release integrity bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: worktree-proof-${{ github.run_id }}-release-integrity
+          path: dist/release
+          if-no-files-found: error
+          retention-days: 14
+
+  attach-release-assets:
+    name: Attach integrity assets to the published release
+    if: ${{ github.event_name == 'release' }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the attested bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: worktree-proof-${{ github.run_id }}-release-integrity
+          path: dist/release
+
+      - name: Upload checksums, SBOM, manifest, and package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$RELEASE_REF" dist/release/* --repo "$GITHUB_REPOSITORY" --clobber
+
+  publish-package:
+    name: Publish the exact verified tarball to npm
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_package == true }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/worktree-proof
+    steps:
+      - name: Check out the reviewed release ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.RELEASE_REF }}
+          persist-credentials: false
+
+      - name: Set up Node.js for trusted publishing
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Download the attested bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: worktree-proof-${{ github.run_id }}-release-integrity
+          path: dist/release
+
+      - name: Verify the exact tarball before publishing
+        run: |
+          npm run release:integrity -- verify dist/release
+          PACKAGE_TARBALL="$(node --input-type=module -e "import fs from 'node:fs'; const p = JSON.parse(fs.readFileSync('package.json', 'utf8')); console.log(p.name.replace(/^@/, '').replaceAll('/', '-') + '-' + p.version + '.tgz');")"
+          npm publish "dist/release/$PACKAGE_TARBALL" --provenance --access public --ignore-scripts

@@ -144,6 +144,13 @@ test('envelopes preserve bounded extension data and reject executable values', (
     () => createEnvelope({ ok: true, extensions: [] }),
     (error) => error instanceof ProtocolError && error.code === 'ERR_INVALID_ENVELOPE',
   );
+  const unsafeError = {};
+  Object.defineProperty(unsafeError, 'code', {
+    enumerable: true,
+    get() { throw new Error('error getter must not execute'); },
+  });
+  const failure = createEnvelope({ ok: false, error: unsafeError });
+  assert.equal(failure.error.code, 'ERR_PROTOCOL');
 });
 
 test('warning values are redacted, bounded, and deterministic', () => {

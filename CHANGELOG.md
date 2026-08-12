@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] - 2026-08-12
+
+### Added
+
+- Worktree Proof Workflow V3 specification (WORKFLOW_SPEC.md) with immutable task contracts, fixed terminal ledgers, right-target/baseline/identity checks, wrong-task rejection, breaker and blocked-auto-wake circuits, recovery receipts, exact cleanup, and crash recovery.
+- Helper Policy codification (HELPER_POLICY.md) with ceiling vs effective pool, lane selection, compact briefs, terminal-first allocation, no forced utilization, no sidebar overflow, activity-is-not-progress rule, model/reasoning/speed rules, no authority gates, resource gating, and backfill discipline.
+- Spec audit script (scripts/spec-audit.mjs) verifying §§1–10 presence in both documents.
+
+### Changed
+
+- Generalized locally proven anti-burn workflow into public WorktreeProof product with conservative defaults and curated upstream skill references.
+
+
+
 All notable changes to WorktreeProof are documented here.
 
 ## [0.2.0] - 2026-08-11

@@ -19,7 +19,7 @@ import {
   normalizeRequestId,
 } from './protocol/index.js';
 
-export const VERSION = '0.2.0';
+export const VERSION = '0.3.0';
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const EXIT_CODES = Object.freeze({

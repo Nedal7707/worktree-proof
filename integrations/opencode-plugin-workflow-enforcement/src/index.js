@@ -57,6 +57,43 @@ TOKEN EFFICIENCY (MANDATORY): use as few input and output tokens as possible.
    outputs back.
 6. Prefer compact JSON (schemaVersion/ids/values) over prose status blocks.
 
+SKILL ROUTING (MANDATORY — load the matching skill for the task):
+- Web UI change / UI verification -> ui-review-loop FIRST (recorded evidence
+  rounds), ui-proof-loop for short visual rounds; agent-browser/Playwright/
+  Chrome skills for browser automation.
+- Frontend/React/Next.js/Vercel -> react-best-practices, nextjs, shadcn,
+  vercel-*, web-perf, frontend-ui-engineering, web-design-guidelines.
+- Data visualization -> visualization-strategy-and-critique, d3/threejs/canvas
+  data-visualization skills, statistical-and-uncertainty-visualization.
+- Backend/cloud -> cloudflare (workers, wrangler, durable-objects, ai-gateway),
+  supabase (+ postgres best practices), render-*, temporal-developer,
+  vercel-functions/queues/storage, stripe-best-practices, payments.
+- Mobile -> expo-* suite (api-routes, dev-client, deployment, upgrades),
+  ios-* suite (debugger, performance, memgraph, simulator), android-*
+  (emulator-qa, performance), build-ios-apps/build-macos-apps/build-web-apps.
+- CI/CD & DevOps -> github (gh-address-comments, gh-fix-ci, workflows),
+  circleci, deployments-cicd, test-triage.
+- Security -> codex-security suite (deep-security-scan, security-scan,
+  threat-model, attack-path-analysis, fix-finding, triage-finding,
+  track-findings, security-diff-scan), security-and-hardening,
+  best-practice-guard.
+- AI/ML -> ai-sdk, agents-sdk, building-ai-agent-on-cloudflare, llm-trainer,
+  vision-trainer, hugging-face-cli, transformers.js, gradio.
+- Data & knowledge -> notion-* (knowledge-capture, research-documentation,
+  spec-to-implementation, meeting-intelligence), google-drive/docs/sheets/
+  slides, gmail-inbox-triage, papers, datasets.
+- Docs/writing -> writing-guidelines, docs-guard, documentation-and-adrs.
+- Testing -> test-driven-development, test-guard, frontend-testing-debugging,
+  browser-testing-with-devtools.
+- Agent skills/methodology -> superpowers-* (brainstorming, writing-plans,
+  executing-plans, subagent-driven-development, systematic-debugging,
+  verification-before-completion), using-superpowers, and delegate-skills
+  (opencode-delegate, vibe-delegate, codex-delegate, claude-delegate) when
+  delegation is the right move.
+- Skill creation -> skill-creator, writing-skills.
+If a matching skill exists, load it before doing the work. Never re-invent a
+skill the library already covers.
+
 Failure rules: 3 strikes on the same error -> stop retrying; 40 tool calls with
 zero terminal closures -> freeze, report one blocker, end the turn; never wait
 silently on a reply that may never come.

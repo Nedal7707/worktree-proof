@@ -1,6 +1,6 @@
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, constants, copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +12,11 @@ const pluginRoot = join(configRoot, "plugins");
 const commandRoot = join(configRoot, "commands");
 // Claude Code skills dir — OpenCode auto-loads these as external skills.
 const claudeSkillRoot = join(homedir(), ".claude", "skills");
+// OpenAI Codex curated marketplace skills are already cached locally by the
+// Codex desktop app. When present, they are copied into the OpenCode-visible
+// skill directory so the same official plugin skills remain available.
+const CODEX_CURATED_SKILLS = join(homedir(), ".codex", "plugins", "cache", "openai-curated");
+const CODEX_OWN_SKILLS = join(homedir(), ".codex", "skills");
 // Operator-managed upstream skill libraries installed beside the own skills.
 // These are NOT vendored into the repo; they are local copies for this machine
 // only, matching the upstream pins in integrations/skill-sources.json.
@@ -140,9 +145,6 @@ for (const skill of SKILLS_TO_INSTALL) {
 // Uses a shallow temp clone pinned to the recorded ref, then copies the named
 // skill directories into ~/.claude/skills so OpenCode and Claude Code can load
 // them. This is the documented optional-library install path.
-import { rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-
 for (const upstream of UPSTREAM_SKILLS) {
   const tempClone = join(tmpdir(), `wtp-${upstream.name}-${Date.now()}`);
   try {
@@ -164,6 +166,95 @@ for (const upstream of UPSTREAM_SKILLS) {
   }
 }
 
+// Copy curated Codex marketplace skills when the local cache exists.
+// Layout: <curated>/<plugin>/<version-hash>/skills/<skill>/SKILL.md
+async function exists(path) {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function installCuratedCodexSkills() {
+  let plugins;
+  try {
+    plugins = await readdir(CODEX_CURATED_SKILLS, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  let installed = 0;
+  for (const plugin of plugins.filter((entry) => entry.isDirectory())) {
+    let versions;
+    try {
+      versions = await readdir(join(CODEX_CURATED_SKILLS, plugin.name), { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    const versionDir = versions.find((entry) => entry.isDirectory());
+    if (!versionDir) continue;
+    const skillsDir = join(CODEX_CURATED_SKILLS, plugin.name, versionDir.name, "skills");
+    let skills;
+    try {
+      skills = await readdir(skillsDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const skill of skills.filter((entry) => entry.isDirectory())) {
+      const sourceSkill = join(skillsDir, skill.name);
+      let hasManifest;
+      try {
+        await access(join(sourceSkill, "SKILL.md"), constants.F_OK);
+        hasManifest = true;
+      } catch {
+        hasManifest = false;
+      }
+      if (!hasManifest) continue;
+      const target = join(claudeSkillRoot, skill.name);
+      if (!(await exists(target))) {
+        await mkdir(target, { recursive: true });
+        await copyFile(join(sourceSkill, "SKILL.md"), join(target, "SKILL.md"));
+        installed += 1;
+      }
+    }
+  }
+  return installed;
+}
+
+// Copy Codex-owned skills that do not exist in OpenCode yet (e.g.
+// ui-review-loop) so nothing the old Codex had is lost.
+async function installCodexOwnSkills() {
+  let skills;
+  try {
+    skills = await readdir(CODEX_OWN_SKILLS, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  let installed = 0;
+  for (const skill of skills.filter((entry) => entry.isDirectory())) {
+    const sourceSkill = join(CODEX_OWN_SKILLS, skill.name);
+    let hasManifest;
+    try {
+      await access(join(sourceSkill, "SKILL.md"), constants.F_OK);
+      hasManifest = true;
+    } catch {
+      hasManifest = false;
+    }
+    if (!hasManifest) continue;
+    const target = join(claudeSkillRoot, skill.name);
+    if (!(await exists(target))) {
+      await mkdir(target, { recursive: true });
+      await copyFile(join(sourceSkill, "SKILL.md"), join(target, "SKILL.md"));
+      installed += 1;
+    }
+  }
+  return installed;
+}
+
+const curatedInstalled = await installCuratedCodexSkills();
+const codexOwnInstalled = await installCodexOwnSkills();
+
 console.log(
   JSON.stringify(
     {
@@ -171,6 +262,8 @@ console.log(
       pluginRoot,
       commandRoot,
       skillsInstalledTo: claudeSkillRoot,
+      curatedCodexSkillsCopied: curatedInstalled,
+      codexOwnSkillsCopied: codexOwnInstalled,
       restartRequired: true,
     },
     null,

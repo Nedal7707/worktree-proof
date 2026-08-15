@@ -36,11 +36,11 @@
         "licenseOwner": "worktree-proof"
       },
       "install": {
-        "opencode": "opencode plugin add opencode-plugin-chrome-use"
+        "opencode": "npm run opencode:plugins:install"
       },
       "policy": {
         "vendored": true,
-        "autoInstall": true,
+        "autoInstall": false,
         "authenticate": false,
         "execute": true
       }
@@ -57,11 +57,11 @@
         "licenseOwner": "worktree-proof"
       },
       "install": {
-        "opencode": "opencode plugin add opencode-plugin-computer-use"
+        "opencode": "npm run opencode:plugins:install"
       },
       "policy": {
         "vendored": true,
-        "autoInstall": true,
+        "autoInstall": false,
         "authenticate": false,
         "execute": true
       }
@@ -78,15 +78,14 @@
         "licenseOwner": "worktree-proof"
       },
       "install": {
-        "opencode": "opencode plugin add opencode-plugin-goal-plan"
+        "opencode": "npm run opencode:plugins:install"
       },
       "policy": {
         "vendored": true,
-        "autoInstall": true,
+        "autoInstall": false,
         "authenticate": false,
         "execute": true
       }
     }
   ]
 }
-

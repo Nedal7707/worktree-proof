@@ -1,190 +1,87 @@
-// Goal/Plan Plugin for OpenCode
-// Provides /goal, /plan, /task, /review workflow commands
+import { tool } from "@opencode-ai/plugin";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
 
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
-import { resolve, join } from 'path';
-
-// State storage in project .opencode/goal-plan.json
-function getStatePath(ctx) {
-  const workspace = ctx?.workspace || process.cwd();
-  const dir = join(workspace, '.opencode');
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  return join(dir, 'goal-plan.json');
+async function statePath(context) {
+  const directory = context.worktree || context.directory;
+  const folder = join(directory, ".opencode");
+  await mkdir(folder, { recursive: true });
+  return join(folder, "goal-plan.json");
 }
 
-function loadState(ctx) {
-  const path = getStatePath(ctx);
-  if (!existsSync(path)) return { goal: null, plan: null, tasks: [] };
-  try {
-    return JSON.parse(readFileSync(path, 'utf8'));
-  } catch {
-    return { goal: null, plan: null, tasks: [] };
-  }
+async function load(context) {
+  try { return JSON.parse(await readFile(await statePath(context), "utf8")); }
+  catch { return { version: 1, goal: null, plan: null, tasks: [] }; }
 }
 
-function saveState(ctx, state) {
-  writeFileSync(getStatePath(ctx), JSON.stringify(state, null, 2));
-}
+async function save(context, state) { await writeFile(await statePath(context), JSON.stringify(state, null, 2)); return state; }
+function result(title, value) { return { title, output: typeof value === "string" ? value : JSON.stringify(value, null, 2) }; }
+function now() { return new Date().toISOString(); }
 
-// --- Commands ---
-
-async function cmdGoalSet(ctx, { objective, criteria = [], deadline }) {
-  const state = loadState(ctx);
-  state.goal = { objective, criteria, deadline, createdAt: new Date().toISOString() };
-  state.plan = null;
-  state.tasks = [];
-  saveState(ctx, state);
-  return { goal: state.goal, message: 'Goal set. Use /plan:create to decompose.' };
-}
-
-async function cmdGoalShow(ctx) {
-  const state = loadState(ctx);
-  if (!state.goal) return { goal: null, message: 'No goal set. Use /goal:set <objective>' };
-  return { goal: state.goal, plan: state.plan, taskCount: state.tasks.length };
-}
-
-async function cmdGoalClear(ctx) {
-  const state = loadState(ctx);
-  state.goal = null;
-  state.plan = null;
-  state.tasks = [];
-  saveState(ctx, state);
-  return { cleared: true };
-}
-
-async function cmdPlanCreate(ctx, { tasks = [], auto = false }) {
-  const state = loadState(ctx);
-  if (!state.goal) throw new Error('No goal set. Use /goal:set first.');
-  
-  let planTasks = tasks;
-  if (auto && tasks.length === 0) {
-    // Simple auto-decomposition based on goal criteria
-    planTasks = state.goal.criteria.map((c, i) => ({
-      id: `task-${i + 1}`,
-      title: c,
-      status: 'pending',
-      evidence: null,
-      startedAt: null,
-      completedAt: null
-    }));
-    if (planTasks.length === 0) {
-      planTasks = [{ id: 'task-1', title: state.goal.objective, status: 'pending', evidence: null }];
-    }
-  }
-  
-  state.plan = { createdAt: new Date().toISOString(), goalRef: state.goal.objective };
-  state.tasks = planTasks;
-  saveState(ctx, state);
-  return { plan: state.plan, tasks: state.tasks };
-}
-
-async function cmdPlanShow(ctx) {
-  const state = loadState(ctx);
-  if (!state.plan) return { plan: null, message: 'No plan. Use /plan:create' };
-  const summary = {
-    total: state.tasks.length,
-    pending: state.tasks.filter(t => t.status === 'pending').length,
-    in_progress: state.tasks.filter(t => t.status === 'in_progress').length,
-    done: state.tasks.filter(t => t.status === 'done').length,
-    blocked: state.tasks.filter(t => t.status === 'blocked').length
-  };
-  return { plan: state.plan, tasks: state.tasks, summary };
-}
-
-async function cmdPlanUpdate(ctx, { taskId, status, evidence }) {
-  const state = loadState(ctx);
-  const task = state.tasks.find(t => t.id === taskId);
-  if (!task) throw new Error(`Task ${taskId} not found`);
-  
-  const validStatus = ['pending', 'in_progress', 'done', 'blocked'];
-  if (!validStatus.includes(status)) throw new Error(`Invalid status: ${status}`);
-  
-  task.status = status;
-  if (evidence) task.evidence = evidence;
-  if (status === 'in_progress' && !task.startedAt) task.startedAt = new Date().toISOString();
-  if (status === 'done') task.completedAt = new Date().toISOString();
-  
-  saveState(ctx, state);
-  return { task };
-}
-
-async function cmdTaskNext(ctx) {
-  const state = loadState(ctx);
-  const next = state.tasks.find(t => t.status === 'pending');
-  if (!next) return { task: null, message: 'No pending tasks' };
-  return { task: next };
-}
-
-async function cmdTaskStart(ctx, { taskId }) {
-  return await cmdPlanUpdate(ctx, { taskId, status: 'in_progress' });
-}
-
-async function cmdTaskDone(ctx, { taskId, evidence }) {
-  return await cmdPlanUpdate(ctx, { taskId, status: 'done', evidence });
-}
-
-async function cmdReviewGate(ctx) {
-  const state = loadState(ctx);
-  if (!state.goal) throw new Error('No goal set');
-  if (!state.plan) throw new Error('No plan created');
-  
-  const results = state.tasks.map(t => ({
-    id: t.id,
-    title: t.title,
-    criteria: state.goal.criteria.find(c => t.title.includes(c)) || t.title,
-    status: t.status,
-    evidence: t.evidence,
-    passed: t.status === 'done' && !!t.evidence
-  }));
-  
-  const allPassed = results.every(r => r.passed);
-  return { goal: state.goal.objective, results, allPassed, readyForReview: allPassed };
-}
-
-async function cmdReviewSummary(ctx) {
-  const state = loadState(ctx);
-  if (!state.goal) return { summary: 'No goal set' };
-  
-  const done = state.tasks.filter(t => t.status === 'done').length;
-  const total = state.tasks.length;
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  
-  return {
-    goal: state.goal.objective,
-    deadline: state.goal.deadline,
-    progress: `${done}/${total} (${pct}%)`,
-    tasks: state.tasks.map(t => ({ id: t.id, title: t.title, status: t.status, evidence: t.evidence })),
-    ready: state.tasks.every(t => t.status === 'done' && t.evidence)
-  };
-}
-
-// --- Tools ---
-const tools = {
-  goal_set: cmdGoalSet,
-  goal_show: cmdGoalShow,
-  goal_clear: cmdGoalClear,
-  plan_create: cmdPlanCreate,
-  plan_show: cmdPlanShow,
-  plan_update: cmdPlanUpdate,
-  task_next: cmdTaskNext,
-  task_start: cmdTaskStart,
-  task_done: cmdTaskDone,
-  review_gate: cmdReviewGate,
-  review_summary: cmdReviewSummary
+const goalPlanTools = {
+  goal_set: tool({
+    description: "Set one concrete WorktreeProof goal. Keep outcome, terminal gates, denominator, scope, baseline, and deadline fixed after setting.",
+    args: { objective: tool.schema.string().min(1), criteria: tool.schema.array(tool.schema.string()).optional(), deadline: tool.schema.string().optional(), scope: tool.schema.string().optional(), baseline: tool.schema.string().optional() },
+    async execute(args, context) {
+      const state = await load(context);
+      state.goal = { objective: args.objective, criteria: args.criteria || [], deadline: args.deadline || "none", scope: args.scope || "unspecified", baseline: args.baseline || "unspecified", createdAt: now() };
+      state.plan = null;
+      state.tasks = [];
+      await save(context, state);
+      return result("Goal set", state.goal);
+    },
+  }),
+  goal_show: tool({ description: "Show the current WorktreeProof goal, fixed ledger, and plan status.", args: {}, async execute(_, context) { return result("Goal", await load(context)); } }),
+  goal_clear: tool({ description: "Clear the current local goal and plan state.", args: {}, async execute(_, context) { await save(context, { version: 1, goal: null, plan: null, tasks: [] }); return result("Goal cleared", { cleared: true }); } }),
+  plan_create: tool({
+    description: "Create a fixed task plan from the current goal. Each task must have a terminal acceptance gate.",
+    args: { tasks: tool.schema.array(tool.schema.object({ id: tool.schema.string(), title: tool.schema.string(), scope: tool.schema.string().optional(), acceptance: tool.schema.string().optional() })).optional() },
+    async execute(args, context) {
+      const state = await load(context);
+      if (!state.goal) throw new Error("Set a goal before creating a plan");
+      const supplied = args.tasks || [];
+      const source = supplied.length ? supplied : state.goal.criteria.map((criterion, index) => ({ id: `task-${index + 1}`, title: criterion, acceptance: criterion }));
+      state.plan = { createdAt: now(), goalObjective: state.goal.objective, terminalTotal: source.length };
+      state.tasks = source.map((task) => ({ ...task, status: "pending", evidence: null, startedAt: null, completedAt: null }));
+      await save(context, state);
+      return result("Plan created", { plan: state.plan, tasks: state.tasks });
+    },
+  }),
+  plan_show: tool({ description: "Show the fixed plan and terminal-only task ledger.", args: {}, async execute(_, context) { const state = await load(context); return result("Plan", { plan: state.plan, tasks: state.tasks, closed: state.tasks.filter((task) => task.status === "done").length, total: state.tasks.length }); } }),
+  plan_update: tool({
+    description: "Update a task status. A task is terminally closed only when status is done and evidence is supplied.",
+    args: { taskId: tool.schema.string(), status: tool.schema.enum(["pending", "in_progress", "done", "blocked"]), evidence: tool.schema.string().optional() },
+    async execute(args, context) {
+      const state = await load(context);
+      const task = state.tasks.find((item) => item.id === args.taskId);
+      if (!task) throw new Error(`Unknown task: ${args.taskId}`);
+      if (args.status === "done" && !args.evidence) throw new Error("done requires terminal evidence");
+      task.status = args.status;
+      if (args.evidence) task.evidence = args.evidence;
+      if (args.status === "in_progress" && !task.startedAt) task.startedAt = now();
+      if (args.status === "done") task.completedAt = now();
+      await save(context, state);
+      return result("Task updated", task);
+    },
+  }),
+  task_next: tool({ description: "Return the next pending task in the fixed plan.", args: {}, async execute(_, context) { const state = await load(context); return result("Next task", state.tasks.find((task) => task.status === "pending") || { task: null, message: "No pending task" }); } }),
+  task_start: tool({ description: "Mark a fixed-plan task in progress.", args: { taskId: tool.schema.string() }, async execute(args, context) { return goalPlanTools.plan_update.execute({ taskId: args.taskId, status: "in_progress" }, context); } }),
+  task_done: tool({ description: "Close a fixed-plan task with explicit terminal evidence.", args: { taskId: tool.schema.string(), evidence: tool.schema.string().min(1) }, async execute(args, context) { return goalPlanTools.plan_update.execute({ taskId: args.taskId, status: "done", evidence: args.evidence }, context); } }),
+  review_gate: tool({
+    description: "Evaluate whether every named plan task has terminal evidence.",
+    args: {},
+    async execute(_, context) {
+      const state = await load(context);
+      const results = state.tasks.map((task) => ({ id: task.id, status: task.status, evidence: task.evidence, passed: task.status === "done" && Boolean(task.evidence) }));
+      return result("Review gate", { goal: state.goal?.objective || null, terminalClosed: results.filter((item) => item.passed).length, terminalTotal: results.length, results, ready: results.length > 0 && results.every((item) => item.passed) });
+    },
+  }),
+  review_summary: tool({ description: "Summarize the current goal and terminal-only progress without inventing an ETA.", args: {}, async execute(_, context) { const state = await load(context); const closed = state.tasks.filter((task) => task.status === "done" && task.evidence).length; return result("Review summary", { objective: state.goal?.objective || null, terminalClosed: closed, terminalTotal: state.tasks.length, forecast: "FORECAST_UNAVAILABLE", tasks: state.tasks }); } }),
 };
 
-const commands = {
-  'goal:set': cmdGoalSet,
-  'goal:show': cmdGoalShow,
-  'goal:clear': cmdGoalClear,
-  'plan:create': cmdPlanCreate,
-  'plan:show': cmdPlanShow,
-  'plan:update': cmdPlanUpdate,
-  'task:next': cmdTaskNext,
-  'task:start': cmdTaskStart,
-  'task:done': cmdTaskDone,
-  'review:gate': cmdReviewGate,
-  'review:summary': cmdReviewSummary
-};
-
-export default { commands, tools };
+export const GoalPlanPlugin = async () => ({
+  tool: goalPlanTools,
+  "experimental.chat.system.transform": async (_input, output) => {
+    output.system.push("WorktreeProof integration policy: use chrome_* tools for Chrome/browser work and computer_* tools for visible desktop work. Do not enter passwords, OTPs, passkeys, CAPTCHAs, or other credentials. For substantive work, set one goal with goal_set, create a fixed plan with plan_create, and close tasks only with explicit evidence using task_done; report terminalClosed/terminalTotal and never invent an ETA.");
+  },
+});

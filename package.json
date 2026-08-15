@@ -45,7 +45,9 @@
     "check": "npm run lint && npm test",
     "release:integrity": "node scripts/release-integrity.mjs",
     "benchmark": "node benchmarks/run.js",
-    "eval": "node evals/run.js"
+    "eval": "node evals/run.js",
+    "opencode:plugins:install": "node scripts/install-opencode-plugins.mjs",
+    "opencode:plugins:link": "node scripts/install-opencode-plugins.mjs"
   },
   "license": "Apache-2.0",
   "publishConfig": {

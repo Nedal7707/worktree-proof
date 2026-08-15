@@ -34,7 +34,9 @@
       { "name": "review_summary", "description": "Generate summary" }
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.16"
+  },
   "devDependencies": {},
   "engines": { "node": ">=20" }
 }

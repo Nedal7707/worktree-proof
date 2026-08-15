@@ -36,21 +36,21 @@ test('optional skill manifest records the pinned upstream without enabling it', 
   assert.equal(chromePlugin.provenance.kind, 'local');
   assert.equal(chromePlugin.policy.vendored, true);
   assert.equal(chromePlugin.policy.execute, true);
-  assert.equal(chromePlugin.policy.autoInstall, true);
+  assert.equal(chromePlugin.policy.autoInstall, false);
   
   const computerPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-computer-use');
   assert.ok(computerPlugin, 'opencode-plugin-computer-use should exist');
   assert.equal(computerPlugin.provenance.kind, 'local');
   assert.equal(computerPlugin.policy.vendored, true);
   assert.equal(computerPlugin.policy.execute, true);
-  assert.equal(computerPlugin.policy.autoInstall, true);
+  assert.equal(computerPlugin.policy.autoInstall, false);
   
   const goalPlanPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-goal-plan');
   assert.ok(goalPlanPlugin, 'opencode-plugin-goal-plan should exist');
   assert.equal(goalPlanPlugin.provenance.kind, 'local');
   assert.equal(goalPlanPlugin.policy.vendored, true);
   assert.equal(goalPlanPlugin.policy.execute, true);
-  assert.equal(goalPlanPlugin.policy.autoInstall, true);
+  assert.equal(goalPlanPlugin.policy.autoInstall, false);
 });
 
 test('optional library documentation distinguishes upstream provenance and policy', async () => {
@@ -95,4 +95,3 @@ test('skill source schema is valid JSON and matches the manifest contract', asyn
     execute: { const: false },
   });
 });
-

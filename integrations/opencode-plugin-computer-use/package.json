@@ -39,6 +39,7 @@
     ]
   },
   "dependencies": {
+    "@opencode-ai/plugin": "1.18.16",
     "@nut-tree-fork/nut-js": "^4.2.0",
     "screenshot-desktop": "^1.15.0"
   },

@@ -39,6 +39,7 @@
     ]
   },
   "dependencies": {
+    "@opencode-ai/plugin": "1.18.16",
     "ws": "^8.16.0"
   },
   "devDependencies": {},

@@ -48,48 +48,43 @@ Both clients use the same `.worktree-proof/` state and schemas; neither client i
 Three OpenCode plugins are included for agent automation:
 
 ```bash
-# Install all (requires opencode CLI)
+# Install all into the current user's OpenCode global config
 npm run opencode:plugins:install
 
-# Or individually
-opencode plugin add opencode-plugin-chrome-use
-opencode plugin add opencode-plugin-computer-use
-opencode plugin add opencode-plugin-goal-plan
+# Restart OpenCode after installation.
 ```
 
 ### Chrome Use (`opencode-plugin-chrome-use`)
-Drive Chrome via CDP (port 9222):
+Drive Chrome via CDP (port 9222). These are agent tools, not slash commands:
 ```bash
-/chrome:connect
-/chrome:navigate https://github.com
-/chrome:click "button.submit"
-/chrome:fill "input[name=email]" "me@example.com"
-/chrome:screenshot --savePath shot.png
-/chrome:extract "h1" --attribute text
-/chrome:wait --for element --selector ".results"
+chrome_connect
+chrome_navigate
+chrome_click
+chrome_fill
+chrome_screenshot
+chrome_extract
+chrome_wait
 ```
 
 ### Computer Use (`opencode-plugin-computer-use`)
-Human-like OS automation (Windows/macOS/Linux via nut-js):
+Human-like OS automation (Windows/macOS/Linux via nut-js). These are agent tools:
 ```bash
-/cu:screenshot --savePath screen.png
-/cu:mouse_click 500 300
-/cu:keyboard_type "hello world"
-/cu:keyboard_press "ctrl+c"
-/cu:keyboard_press "alt+tab"
-/cu:wait 1000
+computer_screenshot
+computer_mouse_click
+computer_keyboard_type
+computer_keyboard_press
+computer_window_focus
+computer_wait
 ```
 
 ### Goal/Plan Modes (`opencode-plugin-goal-plan`)
 Structured agent workflow:
 ```bash
-/goal:set "Add user auth" --criteria "JWT login, role guards, tests pass" --deadline 2026-08-20
-/plan:create --auto
-/task:next
-/task:start task-1
-/task:done task-1 --evidence "tests pass, JWT works"
-/review:gate
-/review:summary
+/goal Add user auth
+/plan JWT login, role guards, tests pass
+/task start task-1
+/task done task-1
+/review
 ```
 
 State persists in `.opencode/goal-plan.json`.

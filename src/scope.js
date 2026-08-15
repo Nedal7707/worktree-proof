@@ -122,7 +122,6 @@ export function normalizeLanes(lanes) {
   }
   const normalized = [];
   const ids = new Map();
-  const scopes = new Map();
 
   for (const lane of lanes) {
     const item = normalizeLane(lane);
@@ -142,7 +141,6 @@ export function normalizeLanes(lanes) {
         );
       }
     }
-    scopes.set(item.fileScope, true);
     normalized.push(item);
   }
   return normalized;

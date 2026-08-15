@@ -256,7 +256,7 @@ export async function withRegistryLock(registryPath, operation, options = {}) {
   return operationResult;
 }
 
-async function readRegistryFile(registryPath, now) {
+async function readRegistryFile(registryPath, now, options = {}) {
   let raw;
   try {
     raw = await readFile(registryPath, 'utf8');
@@ -272,7 +272,7 @@ async function readRegistryFile(registryPath, now) {
   } catch (error) {
     throw new RegistryStateError(`registry JSON is malformed: ${error.message}`);
   }
-  return validateRegistry(parsed, now);
+  return validateRegistry(parsed, now, options);
 }
 
 /**
@@ -281,21 +281,8 @@ async function readRegistryFile(registryPath, now) {
  * make an explicit, confirmed recovery decision.  Conflict checks are deferred
  * to the selector, which can fail closed with an actionable ambiguity code.
  */
-async function readRegistryForInspection(registryPath, now) {
-  let raw;
-  try {
-    raw = await readFile(registryPath, 'utf8');
-  } catch (error) {
-    if (error?.code === 'ENOENT') return stateSkeleton();
-    throw new RegistryStateError(`unable to read registry: ${error.message}`, 'ERR_REGISTRY_READ');
-  }
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw new RegistryStateError(`registry JSON is malformed: ${error.message}`);
-  }
-  return validateRegistry(parsed, now, { allowStale: true, checkConflicts: false });
+function readRegistryForInspection(registryPath, now) {
+  return readRegistryFile(registryPath, now, { allowStale: true, checkConflicts: false });
 }
 
 async function writeRegistryFile(registryPath, state) {

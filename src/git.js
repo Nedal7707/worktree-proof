@@ -173,7 +173,8 @@ function hasReparseLikeFlag(stats) {
   return Number.isInteger(attributes) && (attributes & 0x400) !== 0;
 }
 
-function canonicalRealPath(target) {
+/** Resolve a path through the filesystem, following links to the real target. */
+export function canonicalRealPath(target) {
   const resolver = typeof fs.realpathSync.native === 'function' ? fs.realpathSync.native : fs.realpathSync;
   return resolver(target);
 }

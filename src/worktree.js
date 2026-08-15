@@ -4,6 +4,7 @@ import path from 'node:path';
 import { executeArgv } from './runner.js';
 import {
   assertContainedRealPath,
+  canonicalRealPath,
   discoverGitRepository,
   isPathContained,
   runGit,
@@ -75,11 +76,6 @@ function ensureDirectory(directory) {
   if (stats.isSymbolicLink?.() || (Number.isInteger(stats.attributes) && (stats.attributes & 0x400) !== 0)) {
     throw new Error('worktree root cannot be a symlink or reparse point');
   }
-}
-
-function canonicalRealPath(target) {
-  const resolver = typeof fs.realpathSync.native === 'function' ? fs.realpathSync.native : fs.realpathSync;
-  return resolver(target);
 }
 
 function resolveRepository(config) {

@@ -7,7 +7,7 @@
  * the command contract testable without a Git checkout.
  */
 
-import { access, lstat, mkdir, readFile, readdir, realpath, rename, stat, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readFile, readdir, realpath, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -18,8 +18,9 @@ import {
   negotiateCapabilities,
   normalizeRequestId,
 } from './protocol/index.js';
+import { VERSION } from './version.js';
 
-export const VERSION = '0.3.2';
+export { VERSION };
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const EXIT_CODES = Object.freeze({
@@ -141,6 +142,89 @@ const OPTION_ALIASES = new Map([
   ['-V', '--version'],
 ]);
 
+/** Maps normalized (lowercase, dash-free) option names to camelCase keys. */
+const VALUE_KEY_MAP = Object.freeze({
+  repo: 'repo',
+  config: 'config',
+  input: 'input',
+  receipt: 'receipt',
+  schema: 'schema',
+  laneid: 'laneId',
+  filescope: 'fileScope',
+  scope: 'fileScope',
+  branch: 'branch',
+  integrationtarget: 'integrationTarget',
+  leaseid: 'leaseId',
+  lease: 'lease',
+  owner: 'owner',
+  session: 'session',
+  ttl: 'ttl',
+  capacity: 'capacity',
+  resources: 'resources',
+  backlog: 'backlog',
+  lanes: 'lanes',
+  timeout: 'timeout',
+  maxoutputbytes: 'maxOutputBytes',
+  canonicalref: 'canonicalRef',
+  reason: 'reason',
+  task: 'task',
+  mode: 'mode',
+  output: 'output',
+  goal: 'goal',
+  target: 'target',
+  targets: 'targets',
+  preset: 'preset',
+  profile: 'profile',
+  allowedroot: 'allowedRoot',
+  allowedroots: 'allowedRoots',
+  maxdepth: 'maxDepth',
+  maxentries: 'maxEntries',
+  catalog: 'catalog',
+  manifest: 'manifest',
+  concurrency: 'concurrency',
+  workload: 'workload',
+  sender: 'sender',
+  recipient: 'recipient',
+  agent: 'agent',
+  messageid: 'messageId',
+  type: 'type',
+  summary: 'summary',
+  replyto: 'replyTo',
+  capabilities: 'capabilities',
+  receiptref: 'receiptRef',
+  resultstatus: 'resultStatus',
+  ttlms: 'ttlMs',
+  claimms: 'claimMs',
+  idempotencykey: 'idempotencyKey',
+  actor: 'actor',
+  status: 'status',
+  bridgeroot: 'bridgeRoot',
+  hostceiling: 'hostCeiling',
+  othertaskreservations: 'otherTaskReservations',
+  namespace: 'namespace',
+  currenttaskid: 'currentTaskId',
+  protocolversion: 'protocolVersion',
+  requestid: 'requestId',
+  home: 'home',
+  clients: 'clients',
+  artifact: 'artifact',
+  backuproot: 'backupRoot',
+  client: 'client',
+});
+
+const BOOLEAN_KEY_MAP = Object.freeze({
+  json: 'json',
+  help: 'help',
+  version: 'version',
+  dryrun: 'dryRun',
+  nosubmit: 'noSubmit',
+  force: 'force',
+  all: 'all',
+  apply: 'apply',
+  confirm: 'confirm',
+  includeunavailable: 'includeUnavailable',
+});
+
 const MODULE_FILES = Object.freeze({
   scope: 'scope.js',
   planner: 'planner.js',
@@ -255,75 +339,7 @@ export function parseArgs(argv = []) {
         }
         const key = name.slice(2).replaceAll('-', '');
         // Keep command-facing camelCase keys while preserving an options map.
-        const keyMap = {
-          repo: 'repo',
-          config: 'config',
-          input: 'input',
-          receipt: 'receipt',
-          schema: 'schema',
-          laneid: 'laneId',
-          filescope: 'fileScope',
-          scope: 'fileScope',
-          branch: 'branch',
-          integrationtarget: 'integrationTarget',
-          leaseid: 'leaseId',
-          lease: 'lease',
-          owner: 'owner',
-          session: 'session',
-          ttl: 'ttl',
-          capacity: 'capacity',
-          resources: 'resources',
-          backlog: 'backlog',
-          lanes: 'lanes',
-          timeout: 'timeout',
-          maxoutputbytes: 'maxOutputBytes',
-          canonicalref: 'canonicalRef',
-          reason: 'reason',
-          task: 'task',
-          mode: 'mode',
-          output: 'output',
-          goal: 'goal',
-          target: 'target',
-          targets: 'targets',
-          preset: 'preset',
-          profile: 'profile',
-          allowedroot: 'allowedRoot',
-          allowedroots: 'allowedRoots',
-          maxdepth: 'maxDepth',
-          maxentries: 'maxEntries',
-          catalog: 'catalog',
-          manifest: 'manifest',
-          concurrency: 'concurrency',
-          workload: 'workload',
-          sender: 'sender',
-          recipient: 'recipient',
-          agent: 'agent',
-          messageid: 'messageId',
-          type: 'type',
-          summary: 'summary',
-          replyto: 'replyTo',
-          capabilities: 'capabilities',
-          receiptref: 'receiptRef',
-          resultstatus: 'resultStatus',
-          ttlms: 'ttlMs',
-          claimms: 'claimMs',
-          idempotencykey: 'idempotencyKey',
-          actor: 'actor',
-          status: 'status',
-          bridgeroot: 'bridgeRoot',
-          hostceiling: 'hostCeiling',
-          othertaskreservations: 'otherTaskReservations',
-          namespace: 'namespace',
-          currenttaskid: 'currentTaskId',
-          protocolversion: 'protocolVersion',
-          requestid: 'requestId',
-          home: 'home',
-          clients: 'clients',
-          artifact: 'artifact',
-          backuproot: 'backupRoot',
-          client: 'client',
-        };
-        const mappedKey = keyMap[key] ?? key;
+        const mappedKey = VALUE_KEY_MAP[key] ?? key;
         if (mappedKey === 'goal' || mappedKey === 'allowedRoot') {
           const prior = options[mappedKey];
           options[mappedKey] = prior === undefined ? value : [...(Array.isArray(prior) ? prior : [prior]), value];
@@ -336,19 +352,7 @@ export function parseArgs(argv = []) {
           : name === '--version'
             ? 'version'
             : name.slice(2).replaceAll('-', '');
-        const keyMap = {
-          json: 'json',
-          help: 'help',
-          version: 'version',
-          dryrun: 'dryRun',
-          nosubmit: 'noSubmit',
-          force: 'force',
-          all: 'all',
-          apply: 'apply',
-          confirm: 'confirm',
-          includeunavailable: 'includeUnavailable',
-        };
-        options[keyMap[key] ?? key] = parseBoolean(inlineValue, name);
+        options[BOOLEAN_KEY_MAP[key] ?? key] = parseBoolean(inlineValue, name);
       }
       continue;
     }
@@ -798,7 +802,6 @@ async function writeJsonAtomic(filePath, value) {
   } catch (error) {
     // Best effort cleanup; the original destination is never removed.
     try {
-      const { rm } = await import('node:fs/promises');
       await rm(temporary, { force: true });
     } catch {
       // Keep the original write error as the actionable result.
@@ -861,8 +864,9 @@ async function readRecipe(repo, name) {
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(normalized)) throw new CliUsageError('recipe name contains unsupported characters');
   const localDirectory = resolve(repo, 'recipes');
   const directory = await pathExists(localDirectory) ? localDirectory : join(PACKAGE_ROOT, 'recipes');
+  // The charset regex above restricts `normalized` to a single path segment,
+  // so this resolution cannot escape the recipe directory.
   const file = resolve(directory, `${normalized}.json`);
-  if (file !== resolve(directory, `${normalized}.json`)) throw new CliUsageError('recipe path escaped the repository');
   try {
     return JSON.parse(await readFile(file, 'utf8'));
   } catch (error) {

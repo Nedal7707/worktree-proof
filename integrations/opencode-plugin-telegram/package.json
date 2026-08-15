@@ -1,0 +1,25 @@
+{
+  "name": "opencode-plugin-telegram",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Telegram Web automation via the user's logged-in Chrome — status, send, read through Telegram Web (web.telegram.org/a).",
+  "keywords": ["opencode", "plugin", "telegram", "worktree-proof"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nedal7707/worktree-proof.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": ["src/"],
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.16",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

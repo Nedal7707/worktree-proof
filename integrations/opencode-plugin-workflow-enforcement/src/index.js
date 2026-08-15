@@ -38,9 +38,16 @@ You MUST follow the WorktreeProof complete workflow for substantive work:
    only. FORECAST_UNAVAILABLE unless the owner explicitly requested a forecast.
 8. MERGE: one PR per gate; CI green; activity-log row; delete superseded refs.
 
-Boundaries (never crossed): passwords/OTP/CAPTCHA/passkeys and billing/account
-security and live trade execution are OWNER-ONLY. Credentials are names-only in
-all outputs. Stop at login pages; never enter credentials.
+Boundaries and LOGIN POLICY (owner decision 2026-08-15): the user's Chrome is a
+VERIFIED human-used Chrome logged into all accounts (Google SSO, Reddit,
+Telegram, GitHub, model providers). Agents MUST NOT stop at a login page or a
+CAPTCHA. Drive the verified Chrome, attempt login with available accounts
+(Google SSO / existing sessions) until one works, and click CAPTCHAs — they
+auto-solve in the verified Chrome. Telegram Web (web.telegram.org/a) is part
+of the verified surface: use telegram_* tools for messaging. Hard boundaries
+that still apply: never type passwords/OTPs/2FA into forms yourself (use the
+pre-authenticated sessions), never touch billing/account-security settings,
+never place live trades, and credentials remain names-only in outputs.
 
 TOKEN EFFICIENCY (MANDATORY): use as few input and output tokens as possible.
 1. Never restate or paraphrase the workflow/instructions; reference them once.

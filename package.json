@@ -40,10 +40,11 @@
     "worktree-proof-mcp": "bin/worktree-proof-mcp.js"
   },
   "scripts": {
-    "test": "node --test",
-    "lint": "node --check bin/worktree-proof.js && node --check bin/worktree-proof-mcp.js && node --check scripts/release-integrity.mjs && node --check src/cli.js && node --check src/index.js && node --check src/mcp/framing.js && node --check src/mcp/tools.js && node --check src/mcp/server.js && node --check src/mcp/index.js && node --check src/protocol/constants.js && node --check src/protocol/errors.js && node --check src/protocol/envelope.js && node --check src/protocol/capabilities.js && node --check src/protocol/index.js && node --check src/adapters.js && node --check src/bridge.js && node --check src/evidence.js && node --check src/git.js && node --check src/init.js && node --check src/leases.js && node --check src/planner.js && node --check src/resources.js && node --check src/runner.js && node --check src/scope.js && node --check src/tasks.js && node --check src/text-safety.js && node --check src/tools.js && node --check src/worktree.js",
+    "test": "node --test \"test/*.test.js\"",
+    "lint": "node --check bin/worktree-proof.js && node --check bin/worktree-proof-mcp.js && node --check scripts/release-integrity.mjs && node --check src/cli.js && node --check src/index.js && node --check src/mcp/framing.js && node --check src/mcp/tools.js && node --check src/mcp/server.js && node --check src/mcp/index.js && node --check src/protocol/constants.js && node --check src/protocol/errors.js && node --check src/protocol/envelope.js && node --check src/protocol/capabilities.js && node --check src/protocol/index.js && node --check src/adapters.js && node --check src/bridge.js && node --check src/evidence.js && node --check src/git.js && node --check src/init.js && node --check src/leases.js && node --check src/manifest.js && node --check src/migration.js && node --check src/planner.js && node --check src/resources.js && node --check src/runner.js && node --check src/scope.js && node --check src/tasks.js && node --check src/text-safety.js && node --check src/tools.js && node --check src/worktree.js",
     "check": "npm run lint && npm test",
-    "release:integrity": "node scripts/release-integrity.mjs"
+    "release:integrity": "node scripts/release-integrity.mjs",
+    "benchmark": "node benchmarks/run.js"
   },
   "license": "Apache-2.0",
   "publishConfig": {

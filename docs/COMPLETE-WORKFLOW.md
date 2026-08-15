@@ -73,7 +73,9 @@ All WorktreeProof-owned skills (11) are always available; upstream libraries
 The Ultra workflow keeps the parent at maximum reasoning while routing work to
 free/cheap helpers through the local model router:
 
-1. Parent (`gpt-5.6-sol` / Ultra) reasons, decomposes, decides, reviews.
+1. Parent (`gpt-5.6-sol` / Ultra) reasons, decomposes, decides, reviews — and
+   **always delegates proactively like native Codex Ultra**: never inline when
+   independent helpers exist, never waits for a delegation request.
 2. Lanes dispatch through the free model router (`opencode`, `aihubmix`,
    `zenmux`, `nvidia` free tiers) at **standard speed** — never Fast mode, no
    `service_tier: fast`, no `features.fast_mode`.
@@ -91,9 +93,15 @@ free/cheap helpers through the local model router:
    failure, helpers never become authority gates.
 5. NVIDIA models: **one instant attempt per model, then DROP** — never retry,
    cool down, poll, or sweep.
-6. Effective helper pool = intersection of genuinely independent lane scopes
-   and live resource availability (host cap observed at 12; requested 20;
-   supported ceiling 24). Never create sidebar/user-visible tasks as overflow.
+6. **Parallel dispatch (native Ultra swarm).** Up to **20 internal helper
+   lanes** run in parallel: batch-dispatch every genuinely independent open
+   item at session start (all at once, before any completes), backfill each
+   returning slot in the same turn, keep one closed scope per lane. Idle slots
+   are the failure, busy ones are not; an idle slot is acceptable only when no
+   independent item exists — never spawn to occupy capacity, never sidebar/
+   user-visible overflow, never recursive trees. Effective pool = intersection
+   of independent non-overlapping scopes and live resources (host cap observed
+   at 12; requested 20; supported ceiling 24).
 7. Backfill a freed slot immediately while independent items exist; idle slots
    are the failure, busy ones are not. Spawning solely to occupy capacity is a
    violation.

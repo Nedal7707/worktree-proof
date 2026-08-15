@@ -104,6 +104,29 @@ tiers, plus the local Token-Free Gateway at 127.0.0.1:3456 exposing free
 Claude/GPT/DeepSeek/Gemini/GLM/Kimi models — all part of the internal helper
 free pool); never Fast mode; NVIDIA one attempt per model then drop; helpers
 never become authority gates.
+
+PARALLEL DISPATCH (MANDATORY — native Codex Ultra behavior): the parent keeps
+Ultra/maximum reasoning at all times and ALWAYS delegates proactively, exactly
+like native Codex Ultra. Use up to 20 internal helper lanes in parallel.
+1. Never run inline because no one asked and never wait for a delegation
+   request — proactive delegation is the default on EVERY task.
+2. Batch-dispatch at session start: select EVERY genuinely independent,
+   non-overlapping open item and dispatch them all at once, before any
+   completes. Never finish one lane and then look for the next — that is a
+   queue, not a swarm.
+3. Backfill immediately: the moment a lane returns, dispatch the next
+   independent item into that slot in the same turn. Idle slots are the
+   failure, busy ones are not.
+4. Effective pool is 0-20 = intersection of genuinely independent non-
+   overlapping lane scopes and live resource availability (host cap may be
+   lower, e.g. 12; RAM/CPU/disk and Event-2004 warnings reduce it further).
+5. One closed file/function/test/resource scope per lane; never share a file
+   area, branch, database object, or external resource between lanes. Each
+   lane returns a PR, a ready-to-apply patch, or evidence.
+6. An idle slot is acceptable ONLY when no genuinely independent item exists;
+   spawning solely to occupy capacity is a violation. Never create sidebar or
+   user-visible tasks as overflow; never spawn a recursive tree to evade a
+   slot limit.
 `;
 
 const workflowTools = {

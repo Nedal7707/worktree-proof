@@ -1,0 +1,24 @@
+{
+  "name": "opencode-plugin-workflow-enforcement",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Forces every OpenCode agent session to follow the WorktreeProof complete workflow and use the Chrome/Computer/WorktreeProof/Goal-Plan tools and skill stack.",
+  "keywords": ["opencode", "plugin", "worktree-proof", "workflow", "enforcement", "guardrails"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nedal7707/worktree-proof.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": ["src/"],
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.16"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

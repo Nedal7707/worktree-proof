@@ -1,0 +1,34 @@
+{
+  "name": "opencode-plugin-worktree-proof",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "WorktreeProof CLI as OpenCode agent tools — plan, reserve, run, close, validate, status with terminal evidence",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "worktree-proof",
+    "evidence",
+    "guardrails",
+    "ai-agent",
+    "cli"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nedal7707/worktree-proof.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "src/"
+  ],
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.16"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -9,8 +9,20 @@ const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 test('optional skill manifest records the pinned upstream without enabling it', async () => {
   const manifest = JSON.parse(await readFile(path.join(projectRoot, 'integrations/skill-sources.json'), 'utf8'));
   assert.equal(manifest.$schema, '../schemas/skill-source.schema.json');
-  // Now 4 sources: delegate-skills (upstream) + 3 local opencode plugins
-  assert.equal(manifest.sources.length, 4);
+  // 11 sources: 5 upstream skill libraries + 5 local opencode plugins +
+  // 1 local complete-workflow skill
+  assert.equal(manifest.sources.length, 11);
+
+  // Verify upstream skill libraries are pinned and never auto-installed
+  for (const id of ['delegate-skills', 'superpowers', 'anthropic-official-skills', 'vercel-official-skills', 'openai-codex-official']) {
+    const source = manifest.sources.find(s => s.id === id);
+    assert.ok(source, `${id} should exist`);
+    assert.equal(source.provenance.kind, 'upstream');
+    assert.equal(source.policy.vendored, false);
+    assert.equal(source.policy.autoInstall, false);
+    assert.equal(source.policy.execute, false);
+    assert.ok(source.upstreamRef && /^[0-9a-f]{40}$/.test(source.upstreamRef), `${id} must pin a commit SHA`);
+  }
   
   // Find delegate-skills source
   const delegateSource = manifest.sources.find(s => s.id === 'delegate-skills');
@@ -51,6 +63,24 @@ test('optional skill manifest records the pinned upstream without enabling it', 
   assert.equal(goalPlanPlugin.policy.vendored, true);
   assert.equal(goalPlanPlugin.policy.execute, true);
   assert.equal(goalPlanPlugin.policy.autoInstall, false);
+
+  const wpPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-worktree-proof');
+  assert.ok(wpPlugin, 'opencode-plugin-worktree-proof should exist');
+  assert.equal(wpPlugin.provenance.kind, 'local');
+  assert.equal(wpPlugin.policy.vendored, true);
+  assert.equal(wpPlugin.policy.execute, true);
+  assert.equal(wpPlugin.policy.autoInstall, false);
+
+  const enforcementPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-workflow-enforcement');
+  assert.ok(enforcementPlugin, 'opencode-plugin-workflow-enforcement should exist');
+  assert.equal(enforcementPlugin.provenance.kind, 'local');
+  assert.equal(enforcementPlugin.policy.vendored, true);
+  assert.equal(enforcementPlugin.policy.execute, true);
+
+  const completeWorkflowSkill = manifest.sources.find(s => s.id === 'complete-workflow-skill');
+  assert.ok(completeWorkflowSkill, 'complete-workflow-skill should exist');
+  assert.equal(completeWorkflowSkill.provenance.kind, 'local');
+  assert.equal(completeWorkflowSkill.policy.vendored, true);
 });
 
 test('optional library documentation distinguishes upstream provenance and policy', async () => {

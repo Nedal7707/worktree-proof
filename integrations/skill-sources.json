@@ -25,6 +25,98 @@
       }
     },
     {
+      "id": "superpowers",
+      "repository": "obra/superpowers",
+      "url": "https://github.com/obra/superpowers",
+      "license": "MIT",
+      "upstreamRef": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "purpose": "Agentic skills framework and software development methodology (brainstorming, TDD, debugging, executing plans, subagent-driven development).",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["obra/superpowers"],
+        "licenseOwner": "obra/superpowers"
+      },
+      "install": {
+        "list": "git clone https://github.com/obra/superpowers.git",
+        "opencode": "git clone https://github.com/obra/superpowers.git ~/.config/opencode/skills/superpowers"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
+      "id": "anthropic-official-skills",
+      "repository": "anthropics/skills",
+      "url": "https://github.com/anthropics/skills",
+      "license": "MIT",
+      "upstreamRef": "f6656c1256d5a8adfa37db9110046ef20bac644c",
+      "purpose": "Anthropic's official Agent Skills: docx, pdf, pptx, xlsx, canvas-design, webapp-testing, skill-creator, mcp-builder, doc-coauthoring, theme-factory, frontend-design, algorithmic-art, brand-guidelines, internal-comms, claude-api.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["anthropics/skills"],
+        "licenseOwner": "anthropics/skills"
+      },
+      "install": {
+        "list": "npx skills add https://github.com/anthropics/skills --list",
+        "selective": "npx skills add https://github.com/anthropics/skills --skill <skill-name>"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
+      "id": "vercel-official-skills",
+      "repository": "vercel-labs/agent-skills",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "license": "MIT",
+      "upstreamRef": "b8caa260a420a73042e35521de4b5c8baf6446cc",
+      "purpose": "Vercel's official collection of agent skills: react-best-practices, react-native-skills, react-view-transitions, composition-patterns, web-design-guidelines, writing-guidelines, vercel-optimize, deploy-to-vercel, vercel-cli-with-tokens.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["vercel-labs/agent-skills"],
+        "licenseOwner": "vercel-labs/agent-skills"
+      },
+      "install": {
+        "list": "npx skills add https://github.com/vercel-labs/agent-skills --list",
+        "selective": "npx skills add https://github.com/vercel-labs/agent-skills --skill <skill-name>"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
+      "id": "openai-codex-official",
+      "repository": "openai/codex",
+      "url": "https://github.com/openai/codex",
+      "license": "Apache-2.0",
+      "upstreamRef": "3685a61dadefebb66690f8c0f945df044fc11b25",
+      "purpose": "OpenAI's official Codex repository: the lightweight coding agent CLI, protocol, and platform documentation.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["openai/codex"],
+        "licenseOwner": "openai/codex"
+      },
+      "install": {
+        "list": "git clone https://github.com/openai/codex.git",
+        "opencode": "git clone https://github.com/openai/codex.git ~/.config/opencode/skills/codex-official"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
       "id": "opencode-plugin-chrome-use",
       "repository": "worktree-proof/opencode-plugin-chrome-use",
       "url": "file://./opencode-plugin-chrome-use",
@@ -72,6 +164,69 @@
       "url": "file://./opencode-plugin-goal-plan",
       "license": "Apache-2.0",
       "purpose": "Goal/Plan workflow modes — /goal:set, /plan:create, /task:next, /review:gate for structured agent workflows",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "npm run opencode:plugins:install"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": true
+      }
+    },
+    {
+      "id": "opencode-plugin-worktree-proof",
+      "repository": "worktree-proof/opencode-plugin-worktree-proof",
+      "url": "file://./opencode-plugin-worktree-proof",
+      "license": "Apache-2.0",
+      "purpose": "WorktreeProof CLI as OpenCode agent tools — plan, reserve, run, close, validate, status with terminal evidence",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "npm run opencode:plugins:install"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": true
+      }
+    },
+    {
+      "id": "opencode-plugin-workflow-enforcement",
+      "repository": "worktree-proof/opencode-plugin-workflow-enforcement",
+      "url": "file://./opencode-plugin-workflow-enforcement",
+      "license": "Apache-2.0",
+      "purpose": "Forces every OpenCode agent session to follow the WorktreeProof complete workflow and use the Chrome/Computer/WorktreeProof/Goal-Plan tools and skill stack",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "npm run opencode:plugins:install"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": true
+      }
+    },
+    {
+      "id": "complete-workflow-skill",
+      "repository": "worktree-proof/complete-workflow",
+      "url": "file://./skills/complete-workflow",
+      "license": "Apache-2.0",
+      "purpose": "Agent-facing enforcement skill for the WorktreeProof complete workflow (no gaps, no mistakes)",
       "provenance": {
         "kind": "local",
         "authors": ["Nedal Elbaz"],

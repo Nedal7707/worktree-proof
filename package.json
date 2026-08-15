@@ -1,6 +1,6 @@
 {
   "name": "worktree-proof",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Evidence-backed guardrails for AI coding agents.",
   "type": "module",
   "repository": {
@@ -47,6 +47,7 @@
     "benchmark": "node benchmarks/run.js",
     "eval": "node evals/run.js",
     "chrome:launch": "node scripts/launch-chrome-cdp.mjs",
+    "setup": "node install.mjs",
     "opencode:plugins:install": "node scripts/install-opencode-plugins.mjs",
     "opencode:plugins:link": "node scripts/install-opencode-plugins.mjs"
   },

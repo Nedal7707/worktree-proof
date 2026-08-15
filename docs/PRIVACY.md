@@ -1,6 +1,6 @@
 # Privacy and recovery
 
-WorktreeProof is local-first. In 0.3.4 it has no built-in telemetry, hosted
+WorktreeProof is local-first. In 0.4.0 it has no built-in telemetry, hosted
 account, or background uploader. State and receipts are written where the user
 runs the CLI. A local-first default is a data-flow property, not a promise that
 an arbitrary command or integration is safe.
@@ -22,7 +22,7 @@ credential-safe sandbox around that child.
 | Bridge/task records | `.worktree-proof/bridge/` and explicit input snapshots | Bounded handoffs and host-provided task awareness | Never include hidden context, cookies, tokens, or private paths |
 
 The optional MCP and client-manifest adapters are local/stdin-stdout surfaces
-in 0.3.4. They do not add a hosted transport. Read adapter source and
+in 0.4.0. They do not add a hosted transport. Read adapter source and
 configuration before enabling any future integration.
 
 ## Secrets and personal data

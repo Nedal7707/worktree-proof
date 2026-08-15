@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0] - 2026-08-15
+
+### Added
+
+- One-click universal installer: `install.mjs` (and `install.bat` / `npm run setup`)
+  installs the complete WorktreeProof stack for ANY agentic app: 5 OpenCode
+  plugins (54 tools), 4 slash commands, 286 skills (12 own + Superpowers +
+  delegate-skills + planning-with-files + claude-mem + OpenAI Codex curated
+  marketplace skills + ui-review-loop), MCP server wiring, workflow-enforcement
+  mandate (goal/plan/reserve/run/close, chrome/computer tool routing, token
+  efficiency, skill routing).
+- `openai/codex`, `anthropics/skills`, `vercel-labs/agent-skills`,
+  `obra/superpowers`, `OthmanAdi/planning-with-files`, `thedotmack/claude-mem`
+  upstream skill sources pinned in `integrations/skill-sources.json`.
+- `docs/COMPLETE-WORKFLOW.md` master workflow and `skills/complete-workflow`
+  enforcement skill.
+- `test/opencode-plugins.test.js` validating every plugin tool surface.
+
+### Changed
+
+- Release version bumped 0.3.4 → 0.4.0; docs and site version references
+  updated.
+
 ## [0.3.4] - 2026-08-15
 
 ### Changed

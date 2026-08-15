@@ -27,10 +27,10 @@ node bin/worktree-proof.js status --json
 
 `close` consumes an explicit JSON receipt; it never invents terminal evidence. For a complete, disposable run that closes an abandoned demo lane, see [the reproducible demo](docs/DEMO.md).
 
-The 0.3.4 tag can also be installed globally from GitHub:
+The 0.4.0 tag can also be installed globally from GitHub:
 
 ```sh
-npm install --global github:Nedal7707/worktree-proof#v0.3.4
+npm install --global github:Nedal7707/worktree-proof#v0.4.0
 worktree-proof --version
 ```
 
@@ -157,12 +157,12 @@ WorktreeProof is an unofficial community project and is not affiliated with, end
 
 ## Release notes
 
-### 0.3.4 — 2026-08-15
+### 0.4.0 — 2026-08-15
 - Evals harness: 9 seeded fail-closed checks (all pass); `evals/run.js` + `test/evals.test.js` + `test/benchmarks.test.js`
 - Benchmark dedup: removed stale `docs/benchmarks/run.mjs`; single runner at `benchmarks/run.js`
 - Package scripts: added `npm run eval` and `npm run benchmark`
 - CI green: Node 20/22 × ubuntu/windows, Publish static site, CodeQL
-- Clean-install verified: fresh `npm install worktree-proof@0.3.4` on Node 20/22/24 → full lifecycle `plan→reserve→run→close→release→validate` → `valid:true, receipts:1`
+- Clean-install verified: fresh `npm install worktree-proof@0.4.0` on Node 20/22/24 → full lifecycle `plan→reserve→run→close→release→validate` → `valid:true, receipts:1`
 - SBOM + SHA256SUMS + release manifest + provenance per release
 
 ### 0.3.3 — 2026-08-14

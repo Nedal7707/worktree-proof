@@ -9,12 +9,12 @@ const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 test('optional skill manifest records the pinned upstream without enabling it', async () => {
   const manifest = JSON.parse(await readFile(path.join(projectRoot, 'integrations/skill-sources.json'), 'utf8'));
   assert.equal(manifest.$schema, '../schemas/skill-source.schema.json');
-  // 11 sources: 5 upstream skill libraries + 5 local opencode plugins +
+  // 13 sources: 7 upstream skill libraries + 5 local opencode plugins +
   // 1 local complete-workflow skill
-  assert.equal(manifest.sources.length, 11);
+  assert.equal(manifest.sources.length, 13);
 
   // Verify upstream skill libraries are pinned and never auto-installed
-  for (const id of ['delegate-skills', 'superpowers', 'anthropic-official-skills', 'vercel-official-skills', 'openai-codex-official']) {
+  for (const id of ['delegate-skills', 'superpowers', 'anthropic-official-skills', 'vercel-official-skills', 'openai-codex-official', 'planning-with-files', 'claude-mem']) {
     const source = manifest.sources.find(s => s.id === id);
     assert.ok(source, `${id} should exist`);
     assert.equal(source.provenance.kind, 'upstream');

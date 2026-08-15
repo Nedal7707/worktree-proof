@@ -48,6 +48,40 @@ const UPSTREAM_SKILLS = [
       "writing-skills",
     ],
   },
+  {
+    name: "planning-with-files",
+    repository: "https://github.com/OthmanAdi/planning-with-files.git",
+    ref: "9b7d0a007946ae7694216642fd5be78c2f13b6db",
+    skills: ["planning-with-files"],
+  },
+  {
+    name: "claude-mem",
+    repository: "https://github.com/thedotmack/claude-mem.git",
+    ref: "d768ba364302d12b76e69e4f021f0bb1d2d50ed6",
+    sourceSubdir: "plugin/skills",
+    skills: [
+      "babysit",
+      "cloud-sync",
+      "design-is",
+      "do",
+      "how-it-works",
+      "knowledge-agent",
+      "learn-codebase",
+      "make-plan",
+      "mem-search",
+      "mode-creator",
+      "oh-my-issues",
+      "pathfinder",
+      "smart-explore",
+      "standup",
+      "timeline-report",
+      "version-bump",
+      "weekly-digests",
+      "what-the",
+      "wowerpoint",
+    ],
+    prefix: "claude-mem-",
+  },
 ];
 
 // [global file prefix, repo plugin directory, required dependency set]
@@ -151,12 +185,25 @@ for (const upstream of UPSTREAM_SKILLS) {
     const clone = spawnSync("git", ["clone", "--depth", "1", upstream.repository, tempClone], { stdio: "inherit", shell: process.platform === "win32" });
     if (clone.status !== 0) throw new Error(`git clone failed for ${upstream.name}`);
     for (const skill of upstream.skills) {
-      const sourceDir = join(tempClone, "skills", skill);
-      const targetDir = join(claudeSkillRoot, skill);
+      const sourceDir = upstream.sourceSubdir ? join(tempClone, upstream.sourceSubdir, skill) : join(tempClone, "skills", skill);
+      const targetName = upstream.prefix ? `${upstream.prefix}${skill}` : skill;
+      const targetDir = join(claudeSkillRoot, targetName);
       try {
         await mkdir(targetDir, { recursive: true });
         await copyFile(join(sourceDir, "SKILL.md"), join(targetDir, "SKILL.md"));
-        console.log(`installed upstream skill: ${skill}`);
+        // OpenCode requires the frontmatter `name:` to equal the directory
+        // name; prefixed upstream skills are rewritten to their target name.
+        if (upstream.prefix) {
+          const lines = (await readFile(join(targetDir, "SKILL.md"), "utf8")).split(/\r?\n/);
+          for (let index = 0; index < lines.length; index += 1) {
+            if (/^name:\s*/.test(lines[index])) {
+              lines[index] = `name: ${targetName}`;
+              break;
+            }
+          }
+          await writeFile(join(targetDir, "SKILL.md"), lines.join("\n"));
+        }
+        console.log(`installed upstream skill: ${targetName}`);
       } catch (error) {
         console.warn(`skill ${upstream.name}/${skill} not copied: ${error.message}`);
       }

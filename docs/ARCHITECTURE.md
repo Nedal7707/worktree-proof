@@ -63,7 +63,7 @@ Normalize paths relative to the project root, reject traversal outside that root
 Keep storage and command output deterministic enough for tests. Prefer JSON
 output for automation and human-readable output for interactive use. New
 integrations should be optional adapters with explicit, documented boundaries
-rather than hidden network calls. The MCP surface is stdio-only in 0.3.4; it
+rather than hidden network calls. The MCP surface is stdio-only in 0.4.0; it
 does not imply a remote transport or hosted coordination service.
 
 ## Recovery model

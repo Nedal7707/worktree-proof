@@ -117,6 +117,52 @@
       }
     },
     {
+      "id": "planning-with-files",
+      "repository": "OthmanAdi/planning-with-files",
+      "url": "https://github.com/OthmanAdi/planning-with-files",
+      "license": "MIT",
+      "upstreamRef": "9b7d0a007946ae7694216642fd5be78c2f13b6db",
+      "purpose": "Manus-style persistent file-based planning for AI coding agents: task_plan.md, findings.md, progress.md survive context loss and /clear; crash-proof plans and deterministic completion gates.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["OthmanAdi/planning-with-files"],
+        "licenseOwner": "OthmanAdi/planning-with-files"
+      },
+      "install": {
+        "list": "git clone https://github.com/OthmanAdi/planning-with-files.git",
+        "opencode": "npm run setup"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
+      "id": "claude-mem",
+      "repository": "thedotmack/claude-mem",
+      "url": "https://github.com/thedotmack/claude-mem",
+      "license": "MIT",
+      "upstreamRef": "d768ba364302d12b76e69e4f021f0bb1d2d50ed6",
+      "purpose": "Persistent context across sessions for every agent: captures session activity, compresses it, and injects relevant context into future sessions; works with Claude Code, Codex, OpenCode, Gemini, Copilot and more.",
+      "provenance": {
+        "kind": "upstream",
+        "authors": ["thedotmack/claude-mem"],
+        "licenseOwner": "thedotmack/claude-mem"
+      },
+      "install": {
+        "list": "git clone https://github.com/thedotmack/claude-mem.git",
+        "opencode": "npm run setup"
+      },
+      "policy": {
+        "vendored": false,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": false
+      }
+    },
+    {
       "id": "opencode-plugin-chrome-use",
       "repository": "worktree-proof/opencode-plugin-chrome-use",
       "url": "file://./opencode-plugin-chrome-use",

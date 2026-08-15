@@ -10,7 +10,7 @@ import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/p
 import path from 'node:path';
 
 import { normalizeFileScope, normalizeLaneId } from './scope.js';
-import { releaseLease, reserveLease } from './leases.js';
+import { isTransientLockBusy, releaseLease, reserveLease } from './leases.js';
 
 export const BRIDGE_MESSAGE_TYPES = Object.freeze(['task', 'status', 'result', 'question', 'cancel']);
 export const BRIDGE_STATUSES = Object.freeze(['pending', 'claimed', 'completed', 'failed', 'cancelled']);
@@ -175,7 +175,10 @@ async function withBridgeLock(root, operation, options = {}) {
         await rm(lock, { recursive: true, force: true }).catch(() => {});
       }
     } catch (error) {
-      if (error?.code !== 'EEXIST') throw error;
+      // Windows can surface EPERM/EACCES when a concurrent owner's rm is
+      // still mid-flight; treat those as transient busy conditions.
+      const busy = isTransientLockBusy(error);
+      if (!busy) throw error;
       try {
         const info = await stat(lock);
         if (Date.now() - info.mtimeMs > staleMs) await rm(lock, { recursive: true, force: true });

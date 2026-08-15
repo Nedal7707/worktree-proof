@@ -169,6 +169,16 @@ function wait(milliseconds) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
 }
 
+/**
+ * True when a lock acquisition failed because a concurrent owner is still
+ * mid-flight.  Windows can surface EPERM/EACCES (instead of EEXIST) when a
+ * concurrent owner's rm/rmdir has not fully landed; all three codes mean
+ * "transient busy, retry within bound" rather than a real error.
+ */
+export function isTransientLockBusy(error) {
+  return error?.code === 'EEXIST' || error?.code === 'EPERM' || error?.code === 'EACCES';
+}
+
 /** Acquire an exclusive directory lock with bounded retries. */
 export async function acquireRegistryLock(registryPath, {
   attempts = DEFAULT_LOCK_ATTEMPTS,
@@ -189,7 +199,11 @@ export async function acquireRegistryLock(registryPath, {
       await mkdir(directory, { recursive: false });
       return { path: directory, attempts: attempt };
     } catch (error) {
-      if (error?.code !== 'EEXIST') {
+      // On Windows, a concurrent owner's rmdir can still be mid-flight when
+      // this mkdir lands, surfacing EPERM/EACCES instead of EEXIST. Treat
+      // those as transient busy conditions bounded by the same attempts.
+      const busy = isTransientLockBusy(error);
+      if (!busy) {
         throw new LeaseError(`unable to acquire registry lock: ${error.message}`, 'ERR_LOCK_ACQUIRE');
       }
       if (attempt === attempts) {

@@ -74,5 +74,24 @@
     "NOTICE.md",
     "README.md",
     "SECURITY.md"
-  ]
+  ],
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "test"
+  },
+  "keywords": [
+    "ai-agent",
+    "guardrails",
+    "worktree",
+    "evidence",
+    "developer-tools",
+    "cli",
+    "nodejs",
+    "typescript",
+    "open-source",
+    "codex",
+    "claude-code"
+  ],
+  "author": "Nedal Elbaz <elbanedal@gmail.com>"
 }

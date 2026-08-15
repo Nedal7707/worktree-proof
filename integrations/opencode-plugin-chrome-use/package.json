@@ -1,0 +1,46 @@
+{
+  "name": "opencode-plugin-chrome-use",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Chrome automation via CDP — navigate, click, fill, screenshot, extract, wait, console, network",
+  "opencode": {
+    "name": "Chrome Use",
+    "description": "Drive Chrome via CDP like a human — navigate, click, type, scroll, screenshot, extract DOM, wait for elements, read console logs, intercept network",
+    "commands": [
+      { "name": "chrome:connect", "description": "Connect to Chrome via CDP (default port 9222)" },
+      { "name": "chrome:disconnect", "description": "Disconnect from Chrome" },
+      { "name": "chrome:navigate", "description": "Navigate to URL" },
+      { "name": "chrome:click", "description": "Click element by selector" },
+      { "name": "chrome:fill", "description": "Fill input/textarea by selector" },
+      { "name": "chrome:type", "description": "Type text into focused element" },
+      { "name": "chrome:scroll", "description": "Scroll page" },
+      { "name": "chrome:screenshot", "description": "Take screenshot (base64 or save to file)" },
+      { "name": "chrome:extract", "description": "Extract text/HTML/attributes from selector" },
+      { "name": "chrome:wait", "description": "Wait for element, text, navigation, or timeout" },
+      { "name": "chrome:console", "description": "Get console logs" },
+      { "name": "chrome:network", "description": "Get network requests" },
+      { "name": "chrome:tabs", "description": "List/activate/close tabs" },
+      { "name": "chrome:evaluate", "description": "Run JS in page context" }
+    ],
+    "tools": [
+      { "name": "chrome_navigate", "description": "Navigate to URL" },
+      { "name": "chrome_click", "description": "Click element by CSS selector" },
+      { "name": "chrome_fill", "description": "Fill input/textarea by CSS selector" },
+      { "name": "chrome_type", "description": "Type text into focused element" },
+      { "name": "chrome_scroll", "description": "Scroll page (up/down/element)" },
+      { "name": "chrome_screenshot", "description": "Take screenshot" },
+      { "name": "chrome_extract", "description": "Extract data from page via selector" },
+      { "name": "chrome_wait", "description": "Wait for element/text/navigation" },
+      { "name": "chrome_console", "description": "Get browser console logs" },
+      { "name": "chrome_network", "description": "Get network requests" },
+      { "name": "chrome_tabs", "description": "Manage tabs" },
+      { "name": "chrome_evaluate", "description": "Execute JS in page" }
+    ]
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {},
+  "engines": { "node": ">=20" }
+}

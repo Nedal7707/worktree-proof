@@ -1,0 +1,48 @@
+{
+  "name": "opencode-plugin-computer-use",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Computer Use automation — screenshot, mouse, keyboard, window management via nut-js",
+  "opencode": {
+    "name": "Computer Use",
+    "description": "Human-like computer automation — screenshot, mouse move/click/drag, keyboard type/press/combos, window management, OCR-ready",
+    "commands": [
+      { "name": "cu:screenshot", "description": "Take screenshot (full screen, region, or window)" },
+      { "name": "cu:mouse_move", "description": "Move mouse to coordinates" },
+      { "name": "cu:mouse_click", "description": "Click at coordinates (left/right/middle, single/double)" },
+      { "name": "cu:mouse_drag", "description": "Drag from point to point" },
+      { "name": "cu:mouse_scroll", "description": "Scroll wheel" },
+      { "name": "cu:keyboard_type", "description": "Type text" },
+      { "name": "cu:keyboard_press", "description": "Press key or key combination (e.g., 'ctrl+c', 'enter', 'alt+tab')" },
+      { "name": "cu:keyboard_hold", "description": "Hold key down" },
+      { "name": "cu:keyboard_release", "description": "Release held key" },
+      { "name": "cu:window_list", "description": "List open windows" },
+      { "name": "cu:window_focus", "description": "Focus window by title/app" },
+      { "name": "cu:window_bounds", "description": "Get/set window position/size" },
+      { "name": "cu:wait", "description": "Wait for milliseconds" }
+    ],
+    "tools": [
+      { "name": "cu_screenshot", "description": "Take screenshot" },
+      { "name": "cu_mouse_move", "description": "Move mouse" },
+      { "name": "cu_mouse_click", "description": "Click mouse" },
+      { "name": "cu_mouse_drag", "description": "Drag mouse" },
+      { "name": "cu_mouse_scroll", "description": "Scroll wheel" },
+      { "name": "cu_keyboard_type", "description": "Type text" },
+      { "name": "cu_keyboard_press", "description": "Press key combo" },
+      { "name": "cu_keyboard_hold", "description": "Hold key" },
+      { "name": "cu_keyboard_release", "description": "Release key" },
+      { "name": "cu_window_list", "description": "List windows" },
+      { "name": "cu_window_focus", "description": "Focus window" },
+      { "name": "cu_window_bounds", "description": "Get/set window bounds" },
+      { "name": "cu_wait", "description": "Wait" }
+    ]
+  },
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.0",
+    "screenshot-desktop": "^1.15.0"
+  },
+  "devDependencies": {},
+  "engines": { "node": ">=20" },
+  "os": ["win32", "darwin", "linux"]
+}

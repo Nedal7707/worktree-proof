@@ -23,6 +23,48 @@
         "authenticate": false,
         "execute": false
       }
+    },
+    {
+      "id": "opencode-plugin-chrome-use",
+      "repository": "worktree-proof/opencode-plugin-chrome-use",
+      "url": "file://./opencode-plugin-chrome-use",
+      "license": "Apache-2.0",
+      "purpose": "Chrome automation via CDP — navigate, click, fill, screenshot, extract, wait, console, network, tabs, evaluate",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "opencode plugin add opencode-plugin-chrome-use"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": true
+      }
+    },
+    {
+      "id": "opencode-plugin-computer-use",
+      "repository": "worktree-proof/opencode-plugin-computer-use",
+      "url": "file://./opencode-plugin-computer-use",
+      "license": "Apache-2.0",
+      "purpose": "Computer Use automation — screenshot, mouse, keyboard, window management via nut-js",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "opencode plugin add opencode-plugin-computer-use"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": false,
+        "authenticate": false,
+        "execute": true
+      }
     }
   ]
 }

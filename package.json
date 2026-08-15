@@ -84,6 +84,12 @@
     "example": "examples",
     "test": "test"
   },
+  "devDependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.0",
+    "@opencode-ai/plugin": "1.18.16",
+    "screenshot-desktop": "^1.15.0",
+    "ws": "^8.16.0"
+  },
   "keywords": [
     "ai-agent",
     "guardrails",

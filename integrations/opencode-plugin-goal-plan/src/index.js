@@ -1,12 +1,21 @@
 import { tool } from "@opencode-ai/plugin";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+// Per-session goal state. The goal file is scoped by the session ID and lives
+// in the OS temp directory — it is NEVER a project file, is never committed,
+// and never leaks across sessions. When a host does not provide a session ID
+// (fallback), a process-unique id is used so the state still dies with the
+// agent process.
+function sessionId(context) {
+  return context.sessionID || `proc-${process.pid}`;
+}
+
 async function statePath(context) {
-  const directory = context.worktree || context.directory;
-  const folder = join(directory, ".opencode");
+  const folder = join(tmpdir(), "wtp-goal-plan");
   await mkdir(folder, { recursive: true });
-  return join(folder, "goal-plan.json");
+  return join(folder, `${sessionId(context)}.json`);
 }
 
 async function load(context) {

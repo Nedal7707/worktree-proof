@@ -119,11 +119,12 @@ const workflowTools = {
     args: {},
     async execute(_, context) {
       const { readFile } = await import("node:fs/promises");
+      const { tmpdir } = await import("node:os");
       const { join } = await import("node:path");
-      const root = context.worktree || context.directory;
+      const sessionId = context.sessionID || `proc-${process.pid}`;
       let state = { goal: null, plan: null, tasks: [] };
       try {
-        state = JSON.parse(await readFile(join(root, ".opencode", "goal-plan.json"), "utf8"));
+        state = JSON.parse(await readFile(join(tmpdir(), "wtp-goal-plan", `${sessionId}.json`), "utf8"));
       } catch {
         /* no goal state yet */
       }

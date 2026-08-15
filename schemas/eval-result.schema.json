@@ -1,0 +1,24 @@
+{
+  \"\": \"https://json-schema.org/draft/2020-12/schema\",
+  \"\": \"https://worktree-proof.dev/schemas/eval-result.schema.json\",
+  \"title\": \"WorktreeProof Evaluation Result\",
+  \"type\": \"object\",
+  \"required\": [\"schemaVersion\", \"seed\", \"results\"],
+  \"properties\": {
+    \"schemaVersion\": { \"type\": \"string\", \"const\": \"1\" },
+    \"seed\": { \"type\": \"string\" },
+    \"results\": {
+      \"type\": \"array\",
+      \"items\": {
+        \"type\": \"object\",
+        \"required\": [\"id\", \"passed\"],
+        \"properties\": {
+          \"id\": { \"type\": \"string\" },
+          \"passed\": { \"type\": \"boolean\" }
+        },
+        \"additionalProperties\": false
+      }
+    }
+  },
+  \"additionalProperties\": false
+}

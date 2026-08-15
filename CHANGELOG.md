@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.3] - 2026-08-15
+
+### Fixed
+
+- MCP `initialize` handshake now advertises the current package version instead of a stale `0.2.0` literal; the version now comes from a single `src/version.js` source shared with the CLI.
+- Registry and bridge lock acquisition treats Windows `EPERM`/`EACCES` as transient busy conditions bounded by the same retry attempts.
+
+### Added
+
+- CLI benchmark harness (`npm run benchmark`) timing the core lane lifecycle with correctness assertions, plus benchmark/eval result schemas.
+
+### Changed
+
+- Deduplicated the MCP safety helpers (`plainObject`, `DANGEROUS_KEYS`), the lease registry reader, and `canonicalRealPath`; removed a dead recipe-path check and an unused scopes map. No behavior change.
+
 ## [0.3.0] - 2026-08-12
 
 ### Added

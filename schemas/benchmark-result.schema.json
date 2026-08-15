@@ -1,43 +1,43 @@
 {
-  \"\": \"https://json-schema.org/draft/2020-12/schema\",
-  \"\": \"https://worktree-proof.dev/schemas/benchmark-result.schema.json\",
-  \"title\": \"WorktreeProof Benchmark Result\",
-  \"type\": \"object\",
-  \"required\": [\"benchmark\", \"packageVersion\", \"node\", \"platform\", \"arch\", \"iterations\", \"operations\", \"assertions\"],
-  \"properties\": {
-    \"benchmark\": { \"type\": \"string\" },
-    \"packageVersion\": { \"type\": \"string\" },
-    \"node\": { \"type\": \"string\" },
-    \"platform\": { \"type\": \"string\" },
-    \"arch\": { \"type\": \"string\" },
-    \"iterations\": { \"type\": \"integer\", \"minimum\": 1 },
-    \"operations\": {
-      \"type\": \"object\",
-      \"patternProperties\": {
-        \"^.*$\": {
-          \"type\": \"object\",
-          \"required\": [\"samples\", \"minMs\", \"medianMs\", \"maxMs\"],
-          \"properties\": {
-            \"samples\": { \"type\": \"integer\", \"minimum\": 1 },
-            \"minMs\": { \"type\": \"number\" },
-            \"medianMs\": { \"type\": \"number\" },
-            \"maxMs\": { \"type\": \"number\" }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://worktree-proof.dev/schemas/benchmark-result.schema.json",
+  "title": "WorktreeProof Benchmark Result",
+  "type": "object",
+  "required": ["benchmark", "packageVersion", "node", "platform", "arch", "iterations", "operations", "assertions"],
+  "properties": {
+    "benchmark": { "type": "string" },
+    "packageVersion": { "type": "string" },
+    "node": { "type": "string" },
+    "platform": { "type": "string" },
+    "arch": { "type": "string" },
+    "iterations": { "type": "integer", "minimum": 1 },
+    "operations": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "required": ["samples", "minMs", "medianMs", "maxMs"],
+          "properties": {
+            "samples": { "type": "integer", "minimum": 1 },
+            "minMs": { "type": "number" },
+            "medianMs": { "type": "number" },
+            "maxMs": { "type": "number" }
           },
-          \"additionalProperties\": false
+          "additionalProperties": false
         }
       },
-      \"additionalProperties\": false
+      "additionalProperties": false
     },
-    \"assertions\": {
-      \"type\": \"object\",
-      \"required\": [\"everyCommandReturnedOkJson\", \"closureReceiptValidated\", \"cleanupWasPreviewOnly\"],
-      \"properties\": {
-        \"everyCommandReturnedOkJson\": { \"type\": \"boolean\" },
-        \"closureReceiptValidated\": { \"type\": \"boolean\" },
-        \"cleanupWasPreviewOnly\": { \"type\": \"boolean\" }
+    "assertions": {
+      "type": "object",
+      "required": ["everyCommandReturnedOkJson", "closureReceiptValidated", "cleanupWasPreviewOnly"],
+      "properties": {
+        "everyCommandReturnedOkJson": { "type": "boolean" },
+        "closureReceiptValidated": { "type": "boolean" },
+        "cleanupWasPreviewOnly": { "type": "boolean" }
       },
-      \"additionalProperties\": false
+      "additionalProperties": false
     }
   },
-  \"additionalProperties\": false
+  "additionalProperties": false
 }

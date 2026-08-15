@@ -99,8 +99,11 @@ zero terminal closures -> freeze, report one blocker, end the turn; never wait
 silently on a reply that may never come.
 
 Ultra routing: parent keeps maximum reasoning; lane work dispatches at standard
-speed through the free model router; never Fast mode; NVIDIA one attempt per
-model then drop; helpers never become authority gates.
+speed through the free model router (opencode/aihubmix/zenmux/nvidia free
+tiers, plus the local Token-Free Gateway at 127.0.0.1:3456 exposing free
+Claude/GPT/DeepSeek/Gemini/GLM/Kimi models — all part of the internal helper
+free pool); never Fast mode; NVIDIA one attempt per model then drop; helpers
+never become authority gates.
 `;
 
 const workflowTools = {

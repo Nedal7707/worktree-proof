@@ -80,12 +80,21 @@ free/cheap helpers through the local model router:
 3. Helper models: Luna `max` for independent diagnosis/design; Terra `high`
    for ordinary implementation; `medium` for mechanically verifiable work;
    never `low`.
-4. NVIDIA models: **one instant attempt per model, then DROP** — never retry,
+4. **Token-Free Gateway (internal helper free pool).** The local gateway at
+   `http://127.0.0.1:3456/v1` (provider `gateway`, name "Token-Free Gateway")
+   exposes free Claude (Sonnet 4/4.6, Opus 4/4.6, Haiku 4/4.6), GPT-4 family,
+   DeepSeek Chat/Reasoner, Gemini Pro/Ultra, GLM 4 Plus/Think, and Kimi 8K/32K
+   models with high/max reasoning variants. These are part of the internal
+   helper free pool and are preferred for lane work when the primary free
+   tiers are unavailable or a lane needs a different model family — same
+   rules apply: standard speed, never Fast mode, one attempt then drop on
+   failure, helpers never become authority gates.
+5. NVIDIA models: **one instant attempt per model, then DROP** — never retry,
    cool down, poll, or sweep.
-5. Effective helper pool = intersection of genuinely independent lane scopes
+6. Effective helper pool = intersection of genuinely independent lane scopes
    and live resource availability (host cap observed at 12; requested 20;
    supported ceiling 24). Never create sidebar/user-visible tasks as overflow.
-6. Backfill a freed slot immediately while independent items exist; idle slots
+7. Backfill a freed slot immediately while independent items exist; idle slots
    are the failure, busy ones are not. Spawning solely to occupy capacity is a
    violation.
 

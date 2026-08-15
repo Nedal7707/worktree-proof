@@ -21,9 +21,10 @@ npm run check
 For CLI changes, run the reproducible demo in [docs/DEMO.md](docs/DEMO.md) and include the command result in the pull request description without copying sensitive output.
 
 For documentation or performance claims, run the no-dependency harness in
-[docs/benchmarks/](docs/benchmarks/). Report the Node.js version, operating
-system, iteration count, and raw JSON summary. Do not turn local timings into a
-claim about security, correctness, adoption, or superiority over another tool.
+[benchmarks/](benchmarks/) (notes in [docs/benchmarks/](docs/benchmarks/)).
+Report the Node.js version, operating system, iteration count, and raw JSON
+summary. Do not turn local timings into a claim about security, correctness,
+adoption, or superiority over another tool.
 
 ## Lanes and receipts
 

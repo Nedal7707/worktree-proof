@@ -1,8 +1,8 @@
 # Local benchmark
 
-`run.mjs` measures a small, disposable WorktreeProof flow with Node's standard
-library only. Each iteration creates a fresh temporary repository directory and
-invokes the checked-in CLI in this order:
+`benchmarks/run.js` measures a small, disposable WorktreeProof flow with Node's
+standard library only. Each iteration creates a fresh temporary repository
+directory and invokes the checked-in CLI in this order:
 
 `doctor` → `plan` → `reserve` → `run node --version` → `status` → `close` →
 `release` → `validate` → `cleanup --dry-run`.
@@ -18,14 +18,14 @@ compared without leaking local details.
 From the repository root:
 
 ```sh
-node docs/benchmarks/run.mjs
-node docs/benchmarks/run.mjs --iterations 10 > benchmark.json
+npm run benchmark
+node benchmarks/run.js --iterations 10 > benchmark.json
 ```
 
 PowerShell:
 
 ```powershell
-node .\docs\benchmarks\run.mjs --iterations 10 | Tee-Object benchmark.json
+node .\benchmarks\run.js --iterations 10 | Tee-Object benchmark.json
 ```
 
 The default is three iterations. Use a positive integer from 1 through 25;

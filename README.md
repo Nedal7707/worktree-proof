@@ -104,8 +104,9 @@ and [THREAT-MODEL.md](docs/THREAT-MODEL.md) for what the checks do not prove.
 - `recipes/` — bounded examples for common maintenance work.
 - `catalog/` — declarative tool manifests.
 - `schemas/` — lane, receipt, recipe, resource, and skill-source contracts.
-- `docs/benchmarks/` — a no-dependency, local benchmark harness and its
-  reproducibility notes.
+- `benchmarks/` — a no-dependency, local benchmark harness with reproducibility
+  notes in `docs/benchmarks/`.
+- `evals/` — a seeded, fail-closed scenario harness for the CLI guarantees.
 - `site/` — a static, tracker-free overview.
 
 ## Privacy, security, and limits

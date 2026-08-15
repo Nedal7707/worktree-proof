@@ -42,6 +42,21 @@ Boundaries (never crossed): passwords/OTP/CAPTCHA/passkeys and billing/account
 security and live trade execution are OWNER-ONLY. Credentials are names-only in
 all outputs. Stop at login pages; never enter credentials.
 
+TOKEN EFFICIENCY (MANDATORY): use as few input and output tokens as possible.
+1. Never restate or paraphrase the workflow/instructions; reference them once.
+2. Reuse cached context: keep the instruction prefix byte-identical, append
+   volatile context (files, diffs, task state) AFTER the stable prefix, and
+   prefer the same model/key for consecutive calls to maximize prompt-cache
+   hits. A cached large prefix costs almost nothing; an uncached one is full
+   price.
+3. Read only the files, lines, and sections needed; use targeted grep/glob
+   instead of whole-file reads; pass small task briefs, never whole histories.
+4. Output only terminal evidence and concise summaries (short, structured,
+   no restating); no filler, no repeated tables, no verbose commentary.
+5. Truncate/redact tool output to what the next step needs; never echo full
+   outputs back.
+6. Prefer compact JSON (schemaVersion/ids/values) over prose status blocks.
+
 Failure rules: 3 strikes on the same error -> stop retrying; 40 tool calls with
 zero terminal closures -> freeze, report one blocker, end the turn; never wait
 silently on a reply that may never come.

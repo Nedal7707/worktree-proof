@@ -82,6 +82,6 @@ const goalPlanTools = {
 export const GoalPlanPlugin = async () => ({
   tool: goalPlanTools,
   "experimental.chat.system.transform": async (_input, output) => {
-    output.system.push("WorktreeProof integration policy: use chrome_* tools for Chrome/browser work and computer_* tools for visible desktop work. Do not enter passwords, OTPs, passkeys, CAPTCHAs, or other credentials. For substantive work, set one goal with goal_set, create a fixed plan with plan_create, and close tasks only with explicit evidence using task_done; report terminalClosed/terminalTotal and never invent an ETA.");
+    output.system.push("WorktreeProof integration policy: use chrome_* tools for Chrome/browser work (ONLY the user's normal logged-in Chrome profile launched on port 9222 via scripts/launch-chrome-cdp.mjs — never a dedicated automation profile, never a logged-out instance) and computer_* tools for visible desktop work. Do not enter passwords, OTPs, passkeys, CAPTCHAs, or other credentials. For substantive work, set one goal with goal_set, create a fixed plan with plan_create, and close tasks only with explicit evidence using task_done; report terminalClosed/terminalTotal and never invent an ETA. TOKEN EFFICIENCY: minimize input/output tokens — reuse cached context with byte-identical prefixes, read only needed sections, output short structured terminal evidence only, never restate instructions or echo full outputs.");
   },
 });

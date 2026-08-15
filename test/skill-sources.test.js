@@ -9,8 +9,8 @@ const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 test('optional skill manifest records the pinned upstream without enabling it', async () => {
   const manifest = JSON.parse(await readFile(path.join(projectRoot, 'integrations/skill-sources.json'), 'utf8'));
   assert.equal(manifest.$schema, '../schemas/skill-source.schema.json');
-  // Now 3 sources: delegate-skills (upstream) + 2 local opencode plugins
-  assert.equal(manifest.sources.length, 3);
+  // Now 4 sources: delegate-skills (upstream) + 3 local opencode plugins
+  assert.equal(manifest.sources.length, 4);
   
   // Find delegate-skills source
   const delegateSource = manifest.sources.find(s => s.id === 'delegate-skills');
@@ -36,12 +36,21 @@ test('optional skill manifest records the pinned upstream without enabling it', 
   assert.equal(chromePlugin.provenance.kind, 'local');
   assert.equal(chromePlugin.policy.vendored, true);
   assert.equal(chromePlugin.policy.execute, true);
+  assert.equal(chromePlugin.policy.autoInstall, true);
   
   const computerPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-computer-use');
   assert.ok(computerPlugin, 'opencode-plugin-computer-use should exist');
   assert.equal(computerPlugin.provenance.kind, 'local');
   assert.equal(computerPlugin.policy.vendored, true);
   assert.equal(computerPlugin.policy.execute, true);
+  assert.equal(computerPlugin.policy.autoInstall, true);
+  
+  const goalPlanPlugin = manifest.sources.find(s => s.id === 'opencode-plugin-goal-plan');
+  assert.ok(goalPlanPlugin, 'opencode-plugin-goal-plan should exist');
+  assert.equal(goalPlanPlugin.provenance.kind, 'local');
+  assert.equal(goalPlanPlugin.policy.vendored, true);
+  assert.equal(goalPlanPlugin.policy.execute, true);
+  assert.equal(goalPlanPlugin.policy.autoInstall, true);
 });
 
 test('optional library documentation distinguishes upstream provenance and policy', async () => {

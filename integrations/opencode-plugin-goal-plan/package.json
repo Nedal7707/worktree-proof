@@ -1,0 +1,40 @@
+{
+  "name": "opencode-plugin-goal-plan",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Goal/Plan modes for OpenCode — /goal, /plan, /task, /review workflow commands",
+  "opencode": {
+    "name": "Goal Plan",
+    "description": "Structured goal/plan/task workflow — /goal to set objective, /plan to decompose, /task to execute, /review to validate",
+    "commands": [
+      { "name": "goal:set", "description": "Set the current goal with acceptance criteria" },
+      { "name": "goal:show", "description": "Show current goal and progress" },
+      { "name": "goal:clear", "description": "Clear current goal" },
+      { "name": "plan:create", "description": "Create a plan from the current goal (auto-decompose or manual)" },
+      { "name": "plan:show", "description": "Show current plan with task status" },
+      { "name": "plan:update", "description": "Update task status (pending/in_progress/done/blocked)" },
+      { "name": "task:next", "description": "Get next actionable task from plan" },
+      { "name": "task:start", "description": "Start a task (marks in_progress)" },
+      { "name": "task:done", "description": "Mark task done with evidence" },
+      { "name": "review:gate", "description": "Run review gate checks against acceptance criteria" },
+      { "name": "review:summary", "description": "Generate review summary for goal" }
+    ],
+    "tools": [
+      { "name": "goal_set", "description": "Set goal with criteria" },
+      { "name": "goal_show", "description": "Show goal" },
+      { "name": "goal_clear", "description": "Clear goal" },
+      { "name": "plan_create", "description": "Create plan from goal" },
+      { "name": "plan_show", "description": "Show plan" },
+      { "name": "plan_update", "description": "Update task status" },
+      { "name": "task_next", "description": "Get next task" },
+      { "name": "task_start", "description": "Start task" },
+      { "name": "task_done", "description": "Complete task with evidence" },
+      { "name": "review_gate", "description": "Run gate checks" },
+      { "name": "review_summary", "description": "Generate summary" }
+    ]
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": { "node": ">=20" }
+}

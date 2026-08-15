@@ -40,7 +40,7 @@
       },
       "policy": {
         "vendored": true,
-        "autoInstall": false,
+        "autoInstall": true,
         "authenticate": false,
         "execute": true
       }
@@ -61,7 +61,28 @@
       },
       "policy": {
         "vendored": true,
-        "autoInstall": false,
+        "autoInstall": true,
+        "authenticate": false,
+        "execute": true
+      }
+    },
+    {
+      "id": "opencode-plugin-goal-plan",
+      "repository": "worktree-proof/opencode-plugin-goal-plan",
+      "url": "file://./opencode-plugin-goal-plan",
+      "license": "Apache-2.0",
+      "purpose": "Goal/Plan workflow modes — /goal:set, /plan:create, /task:next, /review:gate for structured agent workflows",
+      "provenance": {
+        "kind": "local",
+        "authors": ["Nedal Elbaz"],
+        "licenseOwner": "worktree-proof"
+      },
+      "install": {
+        "opencode": "opencode plugin add opencode-plugin-goal-plan"
+      },
+      "policy": {
+        "vendored": true,
+        "autoInstall": true,
         "authenticate": false,
         "execute": true
       }

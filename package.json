@@ -1,6 +1,6 @@
 {
   "name": "worktree-proof",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Evidence-backed guardrails for AI coding agents.",
   "type": "module",
   "repository": {

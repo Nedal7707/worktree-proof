@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.4] - 2026-08-15
+
+### Changed
+
+- Documentation and site version references updated from the stale 0.2.0 pins to the current release (README install command, ARCHITECTURE, PRIVACY, PROVENANCE, THREAT-MODEL, site metadata and footer). No code changes.
+
 ## [0.3.3] - 2026-08-15
 
 ### Fixed

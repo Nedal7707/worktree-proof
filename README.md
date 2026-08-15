@@ -31,11 +31,11 @@ For a complete, disposable run that closes an abandoned demo lane, see
 `--apply --confirm` are supplied. Commands pass argv with `shell:false`;
 WorktreeProof is not a security sandbox.
 
-The 0.2.0 tag can also be installed globally from GitHub when a PATH command is
+The 0.3.4 tag can also be installed globally from GitHub when a PATH command is
 more convenient (verify the installed version before using it):
 
 ```sh
-npm install --global github:Nedal7707/worktree-proof#v0.2.0
+npm install --global github:Nedal7707/worktree-proof#v0.3.4
 worktree-proof --version
 ```
 

@@ -20,7 +20,7 @@ export const HARD_TOOL_LIMITS = Object.freeze({
 });
 
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/u;
-const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+export const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 const SENSITIVE_WORDS = new Set([
   'apikey', 'token', 'secret', 'password', 'passphrase', 'credential',
   'authorization', 'auth', 'cookie', 'session', 'owner', 'stack', 'path',
@@ -37,7 +37,7 @@ export class McpToolError extends Error {
   }
 }
 
-function plainObject(value) {
+export function plainObject(value) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
   if (utilTypes.isProxy(value)) return false;
   try {

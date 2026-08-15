@@ -7,14 +7,17 @@ import {
 import { types as utilTypes } from 'node:util';
 import {
   DEFAULT_TOOL_LIMITS,
+  DANGEROUS_KEYS,
   HARD_TOOL_LIMITS,
   McpToolError,
   assertJsonSafe,
   createMcpToolRegistry,
+  plainObject,
 } from './tools.js';
+import { VERSION } from '../version.js';
 
 export const MCP_PROTOCOL_VERSION = '2025-11-25';
-export const MCP_SERVER_INFO = Object.freeze({ name: 'worktree-proof', version: '0.2.0' });
+export const MCP_SERVER_INFO = Object.freeze({ name: 'worktree-proof', version: VERSION });
 export const DEFAULT_MCP_LIMITS = Object.freeze({
   maxMessageBytes: 16 * 1024,
   maxInputBytes: 16 * 1024,
@@ -45,19 +48,6 @@ export const HARD_MCP_LIMITS = Object.freeze({
   maxItems: HARD_TOOL_LIMITS.maxItems,
   maxNodes: HARD_TOOL_LIMITS.maxNodes,
 });
-
-const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
-
-function plainObject(value) {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  if (utilTypes.isProxy(value)) return false;
-  try {
-    const prototype = Object.getPrototypeOf(value);
-    return prototype === Object.prototype || prototype === null;
-  } catch {
-    return false;
-  }
-}
 
 function ownDescriptors(value, maxItems = DEFAULT_TOOL_LIMITS.maxItems) {
   try {

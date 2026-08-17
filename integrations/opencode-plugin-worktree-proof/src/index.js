@@ -19,6 +19,8 @@ async function resolveCli(context) {
   const candidates = [];
   if (process.env.WORKTREE_PROOF_CLI) candidates.push(process.env.WORKTREE_PROOF_CLI);
   candidates.push(join(context.worktree || context.directory, "bin", "worktree-proof.js"));
+  // Absolute fallback: the canonical checkout, so wp_* tools work from any session cwd.
+  candidates.push("C:\\VectorHQ\\worktree-proof-workflow\\bin\\worktree-proof.js");
   for (const candidate of candidates) {
     try {
       await access(candidate, constants.R_OK);

@@ -55,7 +55,11 @@ npm run opencode:plugins:install
 ```
 
 ### Chrome Use (`opencode-plugin-chrome-use`)
-Drive Chrome via CDP (port 9222). These are agent tools, not slash commands:
+Drive the user's normal Chrome via the Chrome Bridge extension relay
+(`chrome_connect` endpoint `http://127.0.0.1:9333` — extension ID
+`epppjbfmmabiphlgeokdichnhhklabep`; the 9222 debug-port "Chrome portal" is
+retired for browser automation and port 9222 is Token-Free Gateway only).
+These are agent tools, not slash commands:
 ```bash
 chrome_connect
 chrome_navigate

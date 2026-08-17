@@ -27,11 +27,14 @@ GOAL → CONTRACT → PLAN → RESERVE → RUN → EVIDENCE → REVIEW → MERGE
    named acceptance condition and concrete scope.
 4. **Reserve.** Call `wp_reserve` (preview with `--dry-run`, then reserve).
 5. **Execute with the right tool:**
-   - Browser/web → `chrome_*` tools, using ONLY the user's NORMAL Chrome
-     profile (launched on port 9222 via `scripts/launch-chrome-cdp.mjs` — the
-     profile logged into all accounts). Never a dedicated automation profile,
-     a fresh/guest window, or a logged-out Chrome. If normal Chrome is not on
-     9222, run the launcher first; never fall back to another profile.
+   - Browser/web → `chrome_*` tools via the Chrome Bridge extension relay
+     ONLY (`chrome_connect` endpoint `http://127.0.0.1:9333`; extension ID
+     `epppjbfmmabiphlgeokdichnhhklabep` in the user's normal no-port Chrome).
+     The 9222 debug-port "Chrome portal" is retired for browser automation;
+     port 9222 is Token-Free Gateway only (never automate, never kill). Never
+     a dedicated automation profile, a fresh/guest window, or a logged-out
+     Chrome. If the relay is not reachable on 9333, ask the owner to open
+     Chrome; never fall back to another profile or port.
    - Visible desktop → `computer_*` tools.
    - Lanes/commands → `wp_run` (argv only, no shell).
    - Context/knowledge → the matching skill from the skill map

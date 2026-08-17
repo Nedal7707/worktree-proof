@@ -2,7 +2,7 @@ import { tool } from "@opencode-ai/plugin";
 import Ws from "ws";
 
 const WebSocketImpl = globalThis.WebSocket ?? Ws;
-const CDP = "http://127.0.0.1:9222";
+const CDP = "http://127.0.0.1:9333"; // Chrome Bridge extension relay (user's normal no-port Chrome)
 
 const state = { socket: null, nextId: 0, pending: new Map() };
 

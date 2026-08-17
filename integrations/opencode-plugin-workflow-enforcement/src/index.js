@@ -19,12 +19,15 @@ You MUST follow the WorktreeProof complete workflow for substantive work:
 5. EXECUTE with the right tool, never the wrong one:
    - Browser/web tasks -> chrome_* tools ONLY (chrome_navigate, chrome_click,
      chrome_fill, chrome_extract, chrome_screenshot, chrome_wait, chrome_tabs).
-     CHROME RULE: use ONLY the user's NORMAL Chrome profile (the one logged
-     into all accounts, launched via scripts/launch-chrome-cdp.mjs on port
-     9222). NEVER use a dedicated automation profile, a fresh profile, a
-     guest/incognito window, or any logged-out Chrome instance. If the normal
-     Chrome is not running on 9222, run the launcher first — do not fall back
-     to another browser profile.
+CHROME RULE: use ONLY the Chrome Bridge extension relay (chrome_connect
+      endpoint http://127.0.0.1:9333; extension ID
+      epppjbfmmabiphlgeokdichnhhklabep in the user's normal no-port Chrome).
+      The 9222 debug-port "Chrome portal" is retired for browser automation;
+      port 9222 is Token-Free Gateway only (never automate, never kill).
+      NEVER use a dedicated automation profile, a fresh profile, a
+      guest/incognito window, or any logged-out Chrome instance. If the relay
+      is not reachable on 9333, ask the owner to open Chrome — do not fall
+      back to another browser profile or port.
    - Visible desktop tasks -> computer_* tools ONLY (computer_screenshot,
      computer_mouse_*, computer_keyboard_*, computer_window_*).
    - Lane/command execution -> wp_run (argv only, never a shell string).

@@ -1,6 +1,11 @@
-// Launch the user's NORMAL Chrome profile with a CDP port so agents can drive
-// the browser that is already logged into all accounts. This is the only
-// profile chrome_* tools are allowed to use.
+// RETIRED for agent browser automation (owner decision 2026-08-17): agents
+// drive the user's normal Chrome ONLY through the Chrome Bridge extension
+// relay (chrome_connect endpoint http://127.0.0.1:9333; extension ID
+// epppjbfmmabiphlgeokdichnhhklabep). Port 9222 is the Token-Free Gateway
+// Chrome only (Chrome-TFG-Debug, hosts the free model providers) — never an
+// automation target, never killed. This script remains ONLY as a manual
+// operator tool to relaunch the Token-Free Gateway Chrome (default 9222) or
+// to inspect state with --check. Do not use it for browser automation.
 //
 // Usage:
 //   node scripts/launch-chrome-cdp.mjs            # launch (or report state) on 9222
@@ -10,7 +15,7 @@
 // Rules:
 //   - Uses the standard user-data-dir (%LOCALAPPDATA%\Google\Chrome\User Data).
 //   - Never creates or uses a dedicated/automation profile.
-//   - If the normal Chrome is already running without the debug port, the
+//   - If the target Chrome is already running without the debug port, the
 //     script FAILS with instructions: close Chrome, then run it again.
 //     (Chrome ignores the debug flag for an existing process.)
 

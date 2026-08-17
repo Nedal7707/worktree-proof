@@ -8,7 +8,7 @@
     "name": "Chrome Use",
     "description": "Drive Chrome via CDP like a human — navigate, click, type, scroll, screenshot, extract DOM, wait for elements, read console logs, intercept network",
     "commands": [
-      { "name": "chrome:connect", "description": "Connect to Chrome via CDP (default port 9222)" },
+      { "name": "chrome:connect", "description": "Connect to Chrome via the Chrome Bridge extension relay (default port 9333)" },
       { "name": "chrome:disconnect", "description": "Disconnect from Chrome" },
       { "name": "chrome:navigate", "description": "Navigate to URL" },
       { "name": "chrome:click", "description": "Click element by selector" },

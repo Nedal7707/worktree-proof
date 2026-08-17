@@ -55,7 +55,7 @@ All WorktreeProof-owned skills (11) are always available; upstream libraries
 
 | Action | Plugin / tool |
 |---|---|
-| Any browser/web task | `chrome_*` tools — **ONLY the user's normal Chrome profile** (launched on port 9222 via `scripts/launch-chrome-cdp.mjs`; the profile with all logged-in accounts). Never a dedicated automation profile, guest/incognito, or logged-out Chrome. |
+| Any browser/web task | `chrome_*` tools — **ONLY via the Chrome Bridge extension relay** (`chrome_connect` endpoint `http://127.0.0.1:9333`; extension ID `epppjbfmmabiphlgeokdichnhhklabep` in the user's normal no-port Chrome). The 9222 debug-port "Chrome portal" is retired for browser automation; port 9222 is Token-Free Gateway only (never automate, never kill). Never a dedicated automation profile, guest/incognito, or logged-out Chrome. |
 | Any visible desktop task | `computer_*` tools (screenshot, mouse, keyboard, windows) |
 | Lane lifecycle | `wp_plan`, `wp_reserve`, `wp_run`, `wp_close`, `wp_release`, `wp_status`, `wp_validate` |
 | Goal/contract/ledger | `goal_set`, `plan_create`, `task_start`, `task_done` (evidence required), `review_gate`, `review_summary` |

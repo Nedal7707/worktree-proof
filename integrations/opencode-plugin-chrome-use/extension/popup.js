@@ -38,7 +38,7 @@ connectBtn.addEventListener('click', async () => {
     statusEl.className = 'status disconnected';
   }
   connectBtn.disabled = false;
-  connectBtn.textContent = 'Connect to Chrome (CDP 9222)';
+  connectBtn.textContent = 'Connect to Chrome (relay 9333)';
 });
 
 disconnectBtn.addEventListener('click', async () => {

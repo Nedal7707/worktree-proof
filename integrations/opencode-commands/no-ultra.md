@@ -22,8 +22,9 @@ Run this task INLINE with maximum reasoning, WITHOUT proactive delegation:
    publishing, and follow-ups are part of the same task until the fixed goal
    closes with terminal evidence.
 3. RESOURCES: You may use the installed tools directly — chrome_* for the
-   user's normal logged-in Chrome (port 9222 via scripts/launch-chrome-cdp.mjs,
-   never a dedicated/logged-out profile), computer_* for desktop work,
+   user's normal logged-in Chrome via the Chrome Bridge extension relay
+   (endpoint http://127.0.0.1:9333; 9222 is Token-Free Gateway only, never an
+   automation target), computer_* for desktop work,
    wp_* for lane diagnostics, and the 286 installed skills routed by task.
 4. TOKEN EFFICIENCY: minimize input/output tokens; cache-first with
    byte-identical prefixes; read only needed sections; short structured

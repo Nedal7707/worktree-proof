@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import Ws from "ws";
 
 const WebSocketImpl = globalThis.WebSocket ?? Ws;
-const DEFAULT_CDP = "http://127.0.0.1:9222";
+const DEFAULT_CDP = "http://127.0.0.1:9333"; // Chrome Bridge extension relay (user's normal no-port Chrome)
 
 const state = {
   endpoint: DEFAULT_CDP,
@@ -46,7 +46,7 @@ async function disconnect() {
 async function connect(targetId) {
   const available = await targets();
   const target = targetId ? available.find((item) => item.id === targetId) : available[0];
-  if (!target) throw new Error("No Chrome page target found. Start Chrome with --remote-debugging-port=9222.");
+  if (!target) throw new Error("No Chrome page target found. Open the user's normal Chrome with the Chrome Bridge extension loaded (relay http://127.0.0.1:9333).");
   await disconnect();
   state.target = target;
   const socket = new WebSocketImpl(target.webSocketDebuggerUrl);
@@ -157,7 +157,7 @@ async function navigate({ url, waitMs = 500 }) {
 const chromeTools = {
   chrome_connect: tool({
     description: "Connect to an existing Chrome instance through CDP. Never enter credentials or OTPs with this tool.",
-    args: { endpoint: tool.schema.string().optional().describe("CDP HTTP endpoint, default http://127.0.0.1:9222") },
+    args: { endpoint: tool.schema.string().optional().describe("CDP HTTP endpoint, default http://127.0.0.1:9333 (Chrome Bridge extension relay)") },
     async execute(args) {
       state.endpoint = args.endpoint || DEFAULT_CDP;
       const target = await connect();

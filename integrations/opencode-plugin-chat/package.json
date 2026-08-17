@@ -1,0 +1,25 @@
+{
+  "name": "opencode-plugin-chat",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Chat-to-chat messaging for OpenCode: list sessions (active first), read another chat's history, and send steers into another chat via prompt_async",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "chat",
+    "messaging",
+    "steer",
+    "handoff"
+  ],
+  "license": "Apache-2.0",
+  "files": [
+    "src/"
+  ],
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.16"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

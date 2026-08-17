@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Bridge (no-port CDP relay client)",
+  "version": "0.1.0",
+  "description": "Exposes the normal Chrome to local agents over a WebSocket relay without any debug port. Attaches chrome.debugger on demand; commands and events are proxied to ws://127.0.0.1:9333/bridge.",
+  "permissions": ["debugger", "tabs", "alarms"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Chrome Bridge"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "chrome-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "No-port CDP bridge: Chrome extension (debugger API) + local relay exposing CDP endpoints on 127.0.0.1:9333 for agents.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

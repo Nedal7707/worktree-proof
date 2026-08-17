@@ -3,7 +3,8 @@
 // profile chrome_* tools are allowed to use.
 //
 // Usage:
-//   node scripts/launch-chrome-cdp.mjs            # launch (or report state)
+//   node scripts/launch-chrome-cdp.mjs            # launch (or report state) on 9222
+//   node scripts/launch-chrome-cdp.mjs --port 9333  # launch on a custom port
 //   node scripts/launch-chrome-cdp.mjs --check    # report only
 //
 // Rules:
@@ -19,7 +20,9 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const PORT = 9222;
+const portArg = process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] ?? process.env.CHROME_CDP_PORT ?? "9222";
+const PORT = Number(portArg);
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw new Error(`Invalid CDP port: ${portArg}`);
 const checkOnly = process.argv.includes("--check");
 
 const candidateProfiles = [
@@ -74,5 +77,5 @@ if (version) {
     shell: false,
   });
   child.unref();
-  console.log(JSON.stringify({ ok: true, launched: true, port: PORT, profile, note: "Wait a few seconds; agents then connect to chrome_connect on 127.0.0.1:9222." }, null, 2));
+  console.log(JSON.stringify({ ok: true, launched: true, port: PORT, profile, note: `Wait a few seconds; agents then connect to chrome_connect on 127.0.0.1:${PORT}.` }, null, 2));
 }

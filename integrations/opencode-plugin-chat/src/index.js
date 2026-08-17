@@ -128,6 +128,44 @@ export function chatSteerHandler(client) {
   };
 }
 
+export function chatStartHandler(client) {
+  return async ({ prompt, title, directory, parentID } = {}) => {
+    if (!prompt || typeof prompt !== "string" || prompt.length === 0) {
+      throw new Error("chat_start: 'prompt' (the new task's first message) is required");
+    }
+    if (Buffer.byteLength(prompt, "utf8") > MAX_STEER_BYTES) {
+      throw new Error(`chat_start: prompt exceeds ${MAX_STEER_BYTES} bytes`);
+    }
+    const created = dataOf(
+      await client.session.create({
+        body: {
+          ...(title && typeof title === "string" ? { title } : {}),
+          ...(parentID && typeof parentID === "string" ? { parentID } : {}),
+        },
+        query: directory && typeof directory === "string" ? { directory } : undefined,
+      })
+    );
+    const id = typeof created === "string" ? created : created?.id;
+    if (!id || typeof id !== "string") {
+      throw new Error("chat_start: session.create returned no session id");
+    }
+    await client.session.prompt_async({
+      path: { id },
+      body: {
+        parts: [{ type: "text", text: prompt }],
+        noReply: true,
+      },
+    });
+    return {
+      started: true,
+      id,
+      title: title || null,
+      parentID: parentID || null,
+      promptSent: true,
+    };
+  };
+}
+
 function result(title, value) {
   return { title, output: JSON.stringify(value, null, 2) };
 }
@@ -163,6 +201,19 @@ export const chatTools = {
     },
     async execute(args, context) {
       return result("chat steer", await chatSteerHandler(context.client)(args));
+    },
+  }),
+  chat_start: tool({
+    description:
+      "Start a NEW opencode chat (task) with an initial prompt, then send the first message into it. Returns the new session id.",
+    args: {
+      prompt: tool.schema.string().describe("The new task's first message (max 16 KiB)"),
+      title: tool.schema.string().optional().describe("Optional session title"),
+      directory: tool.schema.string().optional().describe("Optional working directory for the new session"),
+      parentID: tool.schema.string().optional().describe("Optional parent session id to fork from"),
+    },
+    async execute(args, context) {
+      return result("chat start", await chatStartHandler(context.client)(args));
     },
   }),
 };

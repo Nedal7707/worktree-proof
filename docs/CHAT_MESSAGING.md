@@ -8,7 +8,8 @@ in both directions:
   server's own `prompt_async` endpoint, so the target agent sees it and acts
   on it (optionally without triggering a response).
 
-It is the opencode equivalent of the Codex app's inter-chat messaging/handoff.
+It is the opencode equivalent of the Codex app's inter-chat messaging/handoff,
+plus the ability to **start a brand-new task/chat** (`chat_start`).
 
 ## Tools
 
@@ -17,6 +18,7 @@ It is the opencode equivalent of the Codex app's inter-chat messaging/handoff.
 | `chat_list` | List sessions. **Active sessions (busy/working/running) are listed FIRST**, then the rest, newest first. Each entry: id, title, status, active flag, updated. |
 | `chat_read` | Read another chat's message history. Args: `id` (required), `limit` (default 50, max 200), `since` (epoch ms). Text parts only; secrets redacted. |
 | `chat_steer` | Send a steer into another chat. Args: `to` (required), `text` (required, max 16 KiB), `noReply` (optional, default false). Calls `prompt_async`. |
+| `chat_start` | **Start a NEW chat/task.** Args: `prompt` (required, max 16 KiB), optional `title`, `directory`, `parentID`. Creates the session via `session.create` and sends the first prompt immediately (`prompt_async` with `noReply: true`). Returns `{ started: true, id, title, parentID, promptSent: true }`. |
 
 ## Usage
 
@@ -28,11 +30,12 @@ It is the opencode equivalent of the Codex app's inter-chat messaging/handoff.
 /chat read "mobile fix"           # read by title match
 /chat steer 3 Please review the bridge PR
 /chat steer "mobile fix" Just FYI, no reply needed --no-reply
+/chat start "Audit the tunnel config" "tunnel audit"   # new chat
 ```
 
 Targets are resolved for you: a number = position in the list; otherwise a
 case-insensitive title match. If several chats match, you get the list and
-pick a number.
+pick a number. `chat start` takes the prompt and an optional title.
 
 ### Agents (tools)
 
@@ -45,6 +48,10 @@ const history = await chat_read({ id: "session-abc", limit: 50 });
 
 // steer another chat
 await chat_steer({ to: "session-abc", text: "Please review the bridge PR", noReply: false });
+
+// start a brand-new task chat
+const fresh = await chat_start({ prompt: "Audit the tunnel config", title: "tunnel audit" });
+const focused = await chat_start({ prompt: "Fix the proxy", directory: "C:\\repo", parentID: "session-abc" });
 ```
 
 ## How it works
@@ -55,6 +62,8 @@ authoritative surface the TUI uses:
 - `chat_list` → `GET /session` + `GET /session/status`, sorted active-first.
 - `chat_read` → `GET /session/{id}/message` (read-only).
 - `chat_steer` → `POST /session/{id}/prompt_async` with a text part.
+- `chat_start` → `POST /session` (body: `title`/`parentID`, query: `directory`),
+  then `POST /session/{id}/prompt_async` (text part, `noReply: true`).
 
 No direct storage access, no file bridges, no side channels — the server is
 the single source of truth.
@@ -67,9 +76,14 @@ the single source of truth.
 - **No secrets.** `chat_read` redacts credential-class patterns
   (bearer tokens, private keys, `sk-`/`gh*`/`xox*` tokens, `key=`/`token=`
   assignments) before returning text. Never put secrets inside steers.
-- **Bounded.** Steers are capped at 16 KiB; reads are capped at 200 messages.
-- **Server-mediated.** Steers go through `prompt_async` — the target session's
-  normal message pipeline — never by editing another session's storage.
+- **Bounded.** Steers and start prompts are capped at 16 KiB; reads are capped
+  at 200 messages.
+- **Server-mediated.** Steers and start prompts go through the server's session
+  endpoints (`prompt_async`, `session.create`) — the target session's normal
+  message pipeline — never by editing another session's storage.
+- **New sessions only, never forged.** `chat_start` creates a real session via
+  the server API and returns the server-assigned id; it never claims an id
+  that the server did not allocate.
 
 ## Install
 
@@ -90,5 +104,6 @@ and copy `integrations/opencode-commands/chat.md` into
 node --test integrations/opencode-plugin-chat/test/chat.test.js
 ```
 
-Covers active-first sorting, argument validation, redaction, size caps, and
-the exact client call shapes with a mocked client.
+Covers active-first sorting, argument validation, redaction, size caps,
+`chat_start` creation/prompt flow, and the exact client call shapes with a
+mocked client.

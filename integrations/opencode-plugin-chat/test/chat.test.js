@@ -5,6 +5,7 @@ import {
   chatListHandler,
   chatReadHandler,
   chatSteerHandler,
+  chatStartHandler,
   sortActiveFirst,
   chatTools,
 } from "../src/index.js";
@@ -16,6 +17,7 @@ function mockClient(overrides = {}) {
       status: overrides.status ?? (async () => ({ data: {} })),
       messages: overrides.messages ?? (async () => ({ data: [] })),
       prompt_async: overrides.prompt_async ?? (async () => ({ data: { messageID: "m1" } })),
+      create: overrides.create ?? (async () => ({ data: { id: "new-session" } })),
     },
   };
 }
@@ -135,8 +137,8 @@ test("chat_steer defaults noReply to false", async () => {
   assert.equal(body.noReply, false);
 });
 
-test("chatTools registers chat_list, chat_read, chat_steer with execute returning title+output", async () => {
-  for (const name of ["chat_list", "chat_read", "chat_steer"]) {
+test("chatTools registers chat_list, chat_read, chat_steer, chat_start with execute returning title+output", async () => {
+  for (const name of ["chat_list", "chat_read", "chat_steer", "chat_start"]) {
     assert.ok(chatTools[name], `missing tool ${name}`);
     assert.equal(typeof chatTools[name].execute, "function");
   }
@@ -152,4 +154,69 @@ test("chatTools registers chat_list, chat_read, chat_steer with execute returnin
   );
   assert.equal(steerRes.title, "chat steer");
   assert.equal(JSON.parse(steerRes.output).sent, true);
+  const startRes = await chatTools.chat_start.execute(
+    { prompt: "do the thing" },
+    { client: mockClient() },
+  );
+  assert.equal(startRes.title, "chat start");
+  assert.equal(JSON.parse(startRes.output).started, true);
+});
+
+test("chat_start requires a prompt", async () => {
+  const handler = chatStartHandler(mockClient());
+  await assert.rejects(() => handler({}), /'prompt' \(the new task's first message\) is required/);
+  await assert.rejects(() => handler({ prompt: "" }), /'prompt' \(the new task's first message\) is required/);
+});
+
+test("chat_start rejects oversized prompts", async () => {
+  const handler = chatStartHandler(mockClient());
+  await assert.rejects(
+    () => handler({ prompt: "x".repeat(17 * 1024) }),
+    /exceeds 16384 bytes/,
+  );
+});
+
+test("chat_start creates a session and sends the first prompt", async () => {
+  let createCalled = null;
+  let promptCalled = null;
+  const create = async (opts) => {
+    createCalled = opts;
+    return { data: { id: "ses_newtask" } };
+  };
+  const prompt_async = async (opts) => {
+    promptCalled = opts;
+    return { data: { messageID: "mid-1" } };
+  };
+  const handler = chatStartHandler(mockClient({ create, prompt_async }));
+  const out = await handler({
+    prompt: "Investigate the 401",
+    title: "Fix auth",
+    directory: "C:\\VectorHQ\\worktree-proof-workflow",
+    parentID: "ses_parent",
+  });
+  assert.deepEqual(createCalled, {
+    body: { title: "Fix auth", parentID: "ses_parent" },
+    query: { directory: "C:\\VectorHQ\\worktree-proof-workflow" },
+  });
+  assert.deepEqual(promptCalled, {
+    path: { id: "ses_newtask" },
+    body: { parts: [{ type: "text", text: "Investigate the 401" }], noReply: true },
+  });
+  assert.deepEqual(out, {
+    started: true,
+    id: "ses_newtask",
+    title: "Fix auth",
+    parentID: "ses_parent",
+    promptSent: true,
+  });
+});
+
+test("chat_start accepts a bare prompt with defaults", async () => {
+  const create = async () => ({ data: "ses_plain" });
+  const handler = chatStartHandler(mockClient({ create }));
+  const out = await handler({ prompt: "just do it" });
+  assert.equal(out.id, "ses_plain");
+  assert.equal(out.title, null);
+  assert.equal(out.parentID, null);
+  assert.equal(out.promptSent, true);
 });

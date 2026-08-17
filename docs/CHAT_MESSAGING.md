@@ -20,14 +20,19 @@ It is the opencode equivalent of the Codex app's inter-chat messaging/handoff.
 
 ## Usage
 
-### Humans (`/chat` command)
+### Humans (`/chat` command) — no IDs needed
 
 ```
-/chat list                     # sessions, active first
-/chat read <session-id> [50]   # read that chat's history
-/chat steer <session-id> <text>   # steer that chat (it will respond)
-/chat steer <session-id> <text> --no-reply   # inject without a response
+/chat list                        # chats, active first, numbered
+/chat read 3                      # read chat #3 from the list
+/chat read "mobile fix"           # read by title match
+/chat steer 3 Please review the bridge PR
+/chat steer "mobile fix" Just FYI, no reply needed --no-reply
 ```
+
+Targets are resolved for you: a number = position in the list; otherwise a
+case-insensitive title match. If several chats match, you get the list and
+pick a number.
 
 ### Agents (tools)
 
